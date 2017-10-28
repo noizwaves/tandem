@@ -12,5 +12,8 @@
   "license": "",
   "devDependencies": {
     "electron": "~1.7.8"
+  },
+  "dependencies": {
+    "simple-peer": "^8.1.1"
   }
 }

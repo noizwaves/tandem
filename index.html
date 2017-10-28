@@ -11,9 +11,26 @@ We are using Node.js <script>document.write(process.versions.node)</script>,
 Chromium <script>document.write(process.versions.chrome)</script>,
 and Electron <script>document.write(process.versions.electron)</script>.
 
+<div id="simple-peer-example">
+    <style>
+        #outgoing {
+            width: 600px;
+            word-wrap: break-word;
+        }
+    </style>
+    <form>
+        <textarea id="incoming"></textarea>
+        <button type="submit">submit</button>
+    </form>
+    <pre id="outgoing"></pre>
+    <h4>Data:</h4>
+    <pre id="data"></pre>
+</div>
+
 <script>
     // You can also require other files to run in this process
     require('./renderer.js')
 </script>
+<script src="simple-peer-example.js"></script>
 </body>
 </html>
