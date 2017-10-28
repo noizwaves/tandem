@@ -1,22 +1,36 @@
 var Peer = require('simple-peer')
+const getScreenStream = require('./get-screen-media')();
 
 document.querySelector("#host").addEventListener('click', function (ev) {
     ev.preventDefault();
 
+    title('Hosting');
+
     show("#connect-form");
     hide("#buttons");
 
-    establishConnection(true);
+
+    getScreenStream(function(screenStream) {
+        establishConnection(screenStream);
+    })
+
 });
 
 document.querySelector("#join").addEventListener('click', function (ev) {
     ev.preventDefault();
 
+    title('Joining');
+
     show("#connect-form");
     hide("#buttons");
+    show("#remote-screen");
 
-    establishConnection(false);
+    establishConnection();
 });
+
+function title(titleText) {
+    document.querySelector('h1').innerText = titleText;
+}
 
 function show(selector) {
     document.querySelector(selector).classList.remove('hidden');
@@ -26,8 +40,13 @@ function hide(selector) {
     document.querySelector(selector).classList.add('hidden');
 }
 
-function establishConnection(initiator) {
-    var p = new Peer({initiator: initiator, trickle: false})
+function establishConnection(screenStream) {
+    const isHost = !!screenStream;
+    const opts = {initiator: isHost, trickle: false};
+    if (screenStream) {
+        opts.stream = screenStream;
+    }
+    var p = new Peer(opts)
 
     p.on('error', function (err) {
         console.log('error', err)
@@ -53,5 +72,14 @@ function establishConnection(initiator) {
     p.on('data', function (data) {
         console.log('[peer].DATA');
         document.querySelector('#data').textContent += "Received: " + data + ";\n";
+    })
+
+    p.on('stream', function(stream) {
+        console.log('[peer,hosting=' + isHost + '].STREAM');
+        const remoteScreen = document.querySelector('#remote-screen');
+        remoteScreen.srcObject = stream
+        remoteScreen.onloadedmetadata = function (e) {
+            remoteScreen.play();
+        }
     })
 }
