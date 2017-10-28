@@ -1,0 +1,16 @@
+{
+  "name": "display-champion",
+  "version": "1.0.0",
+  "description": "Display Champion",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "repository": "",
+  "keywords": [],
+  "author": "Adam Neumann",
+  "license": "",
+  "devDependencies": {
+    "electron": "~1.7.8"
+  }
+}
