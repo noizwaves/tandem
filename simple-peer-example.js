@@ -34,7 +34,7 @@ function establishConnection(initiator) {
     })
 
     p.on('signal', function (data) {
-        console.log('SIGNAL', JSON.stringify(data))
+        console.log('[peer]SIGNAL', JSON.stringify(data))
         document.querySelector('#outgoing').textContent = JSON.stringify(data)
     })
 
@@ -44,12 +44,14 @@ function establishConnection(initiator) {
     })
 
     p.on('connect', function () {
+        console.log('[peer].CONNECT')
         const chunk = 'whatever' + Math.random();
         p.send(chunk)
         document.querySelector('#data').textContent += "Sending: " + chunk + ";\n";
     })
 
     p.on('data', function (data) {
+        console.log('[peer].DATA');
         document.querySelector('#data').textContent += "Received: " + data + ";\n";
     })
 }
