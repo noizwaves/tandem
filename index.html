@@ -17,14 +17,26 @@ and Electron <script>document.write(process.versions.electron)</script>.
             width: 600px;
             word-wrap: break-word;
         }
+
+        .hidden {
+            display: none;
+        }
     </style>
-    <form>
-        <textarea id="incoming"></textarea>
-        <button type="submit">submit</button>
-    </form>
-    <pre id="outgoing"></pre>
-    <h4>Data:</h4>
-    <pre id="data"></pre>
+
+    <div id="buttons">
+        <button id="host">Host</button>
+        <button id="join">Join</button>
+    </div>
+
+    <div id="connect-form" class="hidden">
+        <form>
+            <textarea id="incoming"></textarea>
+            <button type="submit">submit</button>
+        </form>
+        <pre id="outgoing"></pre>
+        <h4>Data:</h4>
+        <pre id="data"></pre>
+    </div>
 </div>
 
 <script>
