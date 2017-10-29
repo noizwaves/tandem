@@ -65,6 +65,44 @@ function transmitScreenMouseDownEvents(mouseMoveCallback) {
     })
 };
 
+function transmitKeyboardEvents(keyboardCallback) {
+    document.addEventListener('keyup', function (e) {
+            keyboardCallback(e.key);
+        },
+        true
+    );
+
+    // document.addEventListener('keydown',
+    //     function(e) { console.log('keydown capture', e); },
+    //     true /* grab event on tunnel, not on bubble */);
+}
+
+function toRobotKey(key) {
+    switch (key) {
+        case 'Escape':
+            return 'escape';
+        case 'Shift':
+            return 'shift';
+        case ' ':
+            return 'space';
+        case 'Enter':
+            return 'enter';
+        case 'Tab':
+            return 'tab';
+        case 'Control':
+            return 'control';
+        case 'Alt':
+            return 'alt';
+        case 'Meta':
+            return 'command';
+        case 'Backspace':
+            return 'backspace';
+        default:
+            return key;
+    }
+}
+
+
 function establishConnection(screenStream) {
     const isHost = !!screenStream;
     const opts = {initiator: isHost, trickle: false};
@@ -105,16 +143,20 @@ function establishConnection(screenStream) {
         remoteScreen.srcObject = stream
         remoteScreen.onloadedmetadata = function (e) {
             remoteScreen.play();
-        }
-        if (!isHost) {
-            transmitScreenMouseEvents(function (mouseMove) {
-                const data = {t: 'mousemove', x: mouseMove.x / mouseMove.width, y: mouseMove.y / mouseMove.height};
-                p.send(JSON.stringify(data));
-            })
-            transmitScreenMouseDownEvents(function (mouseDown) {
-                const data = {t: 'mousedown', x: mouseDown.x / mouseDown.width, y: mouseDown.y / mouseDown.height};
-                p.send(JSON.stringify(data));
-            })
+            if (!isHost) {
+                transmitScreenMouseEvents(function (mouseMove) {
+                    const data = {t: 'mousemove', x: mouseMove.x / mouseMove.width, y: mouseMove.y / mouseMove.height};
+                    p.send(JSON.stringify(data));
+                })
+                transmitScreenMouseDownEvents(function (mouseDown) {
+                    const data = {t: 'mousedown', x: mouseDown.x / mouseDown.width, y: mouseDown.y / mouseDown.height};
+                    p.send(JSON.stringify(data));
+                })
+                transmitKeyboardEvents(function (key) {
+                    const data = {t: 'keyup', key: key};
+                    p.send(JSON.stringify(data));
+                })
+            }
         }
     })
 
@@ -129,6 +171,7 @@ function establishConnection(screenStream) {
             return;
         }
 
+        var result = null;
         switch (message.t) {
             case 'mousemove':
                 robot.moveMouse(Math.round(message.x * screen.width), Math.round(message.y * screen.height));
@@ -137,8 +180,13 @@ function establishConnection(screenStream) {
                 robot.moveMouse(Math.round(message.x * screen.width), Math.round(message.y * screen.height));
                 robot.mouseClick();
                 break;
+            case 'keyup':
+                robot.keyTap(toRobotKey(message.key));
+                break;
+            default:
+                result = data;
         }
 
-        return;
+        return result;
     }
 }
