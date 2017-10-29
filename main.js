@@ -3,13 +3,27 @@ const electron = require('electron')
 const app = electron.app
 // Module to create native browser window.
 const BrowserWindow = electron.BrowserWindow
+const Menu = electron.Menu
 
 const path = require('path')
 const url = require('url')
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
-let mainWindow
+var mainWindow
+
+const template = [
+    {
+        label: 'Edit',
+        submenu: [
+            {role: 'copy'},
+            {role: 'paste'},
+            {role: 'quit'},
+        ]
+    },
+]
+
+const menu = Menu.buildFromTemplate(template)
 
 function createWindow () {
     // Create the browser window.
@@ -32,6 +46,8 @@ function createWindow () {
         // when you should delete the corresponding element.
         mainWindow = null
     })
+
+    Menu.setApplicationMenu(menu)
 }
 
 // This method will be called when Electron has finished
