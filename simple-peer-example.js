@@ -40,6 +40,18 @@ function hide(selector) {
     document.querySelector(selector).classList.add('hidden');
 }
 
+function transmitScreenMouseEvents(mouseMoveCallback) {
+    const remoteScreen = document.querySelector('#remote-screen');
+    remoteScreen.addEventListener('mousemove', function(event) {
+        mouseMoveCallback({
+            x: event.offsetX,
+            y: event.offsetY,
+            width: remoteScreen.clientWidth,
+            height: remoteScreen.clientHeight
+        });
+    })
+};
+
 function establishConnection(screenStream) {
     const isHost = !!screenStream;
     const opts = {initiator: isHost, trickle: false};
@@ -81,5 +93,10 @@ function establishConnection(screenStream) {
         remoteScreen.onloadedmetadata = function (e) {
             remoteScreen.play();
         }
+        transmitScreenMouseEvents(function(mouseMove) {
+            console.log('mousemove', mouseMove);
+            const data = {t: 'mousemove', x: mouseMove.x / mouseMove.width, y: mouseMove.y / mouseMove.height};
+            p.send(JSON.stringify(data));
+        })
     })
 }
