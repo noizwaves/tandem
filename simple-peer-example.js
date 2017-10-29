@@ -53,6 +53,18 @@ function transmitScreenMouseEvents(mouseMoveCallback) {
     })
 };
 
+function transmitScreenMouseDownEvents(mouseMoveCallback) {
+    const remoteScreen = document.querySelector('#remote-screen');
+    remoteScreen.addEventListener('mousedown', function (event) {
+        mouseMoveCallback({
+            x: event.offsetX,
+            y: event.offsetY,
+            width: remoteScreen.clientWidth,
+            height: remoteScreen.clientHeight
+        });
+    })
+};
+
 function establishConnection(screenStream) {
     const isHost = !!screenStream;
     const opts = {initiator: isHost, trickle: false};
@@ -96,15 +108,18 @@ function establishConnection(screenStream) {
         }
         if (!isHost) {
             transmitScreenMouseEvents(function (mouseMove) {
-                console.log('mousemove', mouseMove);
                 const data = {t: 'mousemove', x: mouseMove.x / mouseMove.width, y: mouseMove.y / mouseMove.height};
+                p.send(JSON.stringify(data));
+            })
+            transmitScreenMouseDownEvents(function (mouseDown) {
+                const data = {t: 'mousedown', x: mouseDown.x / mouseDown.width, y: mouseDown.y / mouseDown.height};
                 p.send(JSON.stringify(data));
             })
         }
     })
 
     function handleMessage(data) {
-        let message;
+        var message;
         try {
             message = JSON.parse(data);
         } catch (err) {
@@ -116,12 +131,14 @@ function establishConnection(screenStream) {
 
         switch (message.t) {
             case 'mousemove':
-                const x = Math.round(message.x * screen.width);
-                const y = Math.round(message.y * screen.height);
-                robot.moveMouse(x, y);
-                return;
+                robot.moveMouse(Math.round(message.x * screen.width), Math.round(message.y * screen.height));
+                break;
+            case 'mousedown':
+                robot.moveMouse(Math.round(message.x * screen.width), Math.round(message.y * screen.height));
+                robot.mouseClick();
+                break;
         }
 
-        return data;
+        return;
     }
 }
