@@ -157,7 +157,11 @@ function establishConnection(screenStream) {
                     p.send(JSON.stringify(data));
                 })
             }
+
+            hide('#title');
+            hide("#connect-form");
         }
+
     })
 
     function handleMessage(data) {
