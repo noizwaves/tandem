@@ -14,6 +14,7 @@
     "electron": "~1.7.8"
   },
   "dependencies": {
+    "robotjs": "^0.4.7",
     "simple-peer": "^8.1.1"
   }
 }

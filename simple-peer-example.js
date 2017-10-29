@@ -1,5 +1,6 @@
 var Peer = require('simple-peer')
 const getScreenStream = require('./get-screen-media')();
+const robot = require("robotjs");
 
 document.querySelector("#host").addEventListener('click', function (ev) {
     ev.preventDefault();
@@ -10,7 +11,7 @@ document.querySelector("#host").addEventListener('click', function (ev) {
     hide("#buttons");
 
 
-    getScreenStream(function(screenStream) {
+    getScreenStream(function (screenStream) {
         establishConnection(screenStream);
     })
 
@@ -42,7 +43,7 @@ function hide(selector) {
 
 function transmitScreenMouseEvents(mouseMoveCallback) {
     const remoteScreen = document.querySelector('#remote-screen');
-    remoteScreen.addEventListener('mousemove', function(event) {
+    remoteScreen.addEventListener('mousemove', function (event) {
         mouseMoveCallback({
             x: event.offsetX,
             y: event.offsetY,
@@ -76,27 +77,51 @@ function establishConnection(screenStream) {
 
     p.on('connect', function () {
         console.log('[peer].CONNECT')
-        const chunk = 'whatever' + Math.random();
-        p.send(chunk)
-        document.querySelector('#data').textContent += "Sending: " + chunk + ";\n";
     })
 
     p.on('data', function (data) {
         console.log('[peer].DATA');
-        document.querySelector('#data').textContent += "Received: " + data + ";\n";
+        const unhandled = handleMessage(data);
+        if (unhandled) {
+            document.querySelector('#data').textContent += "Received: " + data + ";\n";
+        }
     })
 
-    p.on('stream', function(stream) {
+    p.on('stream', function (stream) {
         console.log('[peer,hosting=' + isHost + '].STREAM');
         const remoteScreen = document.querySelector('#remote-screen');
         remoteScreen.srcObject = stream
         remoteScreen.onloadedmetadata = function (e) {
             remoteScreen.play();
         }
-        transmitScreenMouseEvents(function(mouseMove) {
-            console.log('mousemove', mouseMove);
-            const data = {t: 'mousemove', x: mouseMove.x / mouseMove.width, y: mouseMove.y / mouseMove.height};
-            p.send(JSON.stringify(data));
-        })
+        if (!isHost) {
+            transmitScreenMouseEvents(function (mouseMove) {
+                console.log('mousemove', mouseMove);
+                const data = {t: 'mousemove', x: mouseMove.x / mouseMove.width, y: mouseMove.y / mouseMove.height};
+                p.send(JSON.stringify(data));
+            })
+        }
     })
+
+    function handleMessage(data) {
+        let message;
+        try {
+            message = JSON.parse(data);
+        } catch (err) {
+            console.log(err);
+        }
+        if (!message || !message.t) {
+            return;
+        }
+
+        switch (message.t) {
+            case 'mousemove':
+                const x = Math.round(message.x * screen.width);
+                const y = Math.round(message.y * screen.height);
+                robot.moveMouse(x, y);
+                return;
+        }
+
+        return data;
+    }
 }
