@@ -7,6 +7,7 @@ const Menu = electron.Menu
 
 const path = require('path')
 const url = require('url')
+const menubar = require('menubar');
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
@@ -74,3 +75,8 @@ app.on('activate', function () {
 
 // In this file you can include the rest of your app's specific main process
 // code. You can also put them in separate files and require them here.
+
+menubar({
+    icon: path.join(__dirname, 'icons', 'tray.png'),
+    index: 'file://' + path.join(__dirname, 'reception', 'index.html')
+});
