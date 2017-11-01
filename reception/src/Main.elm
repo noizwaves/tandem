@@ -17,7 +17,7 @@ type alias NameInformation =
   }
 
 type ConnectionIntent
-  = Unconnected
+  = Browsing
   | Hosting
   | Joining
 
@@ -25,7 +25,6 @@ type alias Model =
   { name: String
   , intent: ConnectionIntent
   , information: WebData NameInformation
-  , raw: String
   }
 
 isValidName : String -> Bool
@@ -33,7 +32,7 @@ isValidName name = (String.length name) >= 4
 
 init : (Model, Cmd Msg)
 init =
-  (Model "" Unconnected NotAsked "", Cmd.none)
+  (Model "" Browsing NotAsked, Cmd.none)
 
 
 -- Message
@@ -90,7 +89,7 @@ view : Model -> Html Msg
 view model =
   let
     (buttons, inputEnabled) = case model.intent of
-      Unconnected ->
+      Browsing ->
         (viewUnconnectedButtons model, True)
       Hosting ->
         (viewHostingButtons model, False)
@@ -104,7 +103,6 @@ view model =
     div [ class "start-form" ]
       [ input [ class inputClass, placeholder "Type in a name", type_ "text", onInput NameChanged, disabled (not inputEnabled) ] [ ]
       , div [ class "start-buttons" ] buttons
-      , div [] [ text model.raw ]
       ]
 
 viewUnconnectedButtons : Model -> List (Html Msg)
