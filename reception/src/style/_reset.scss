@@ -1,0 +1,18 @@
+// Minimal reset CSS inspired by http://allthingssmitty.com/2017/01/09/css-reset-for-minimalists/
+
+* {
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  box-sizing: border-box;
+}
+
+*, *:before, *:after {
+  box-sizing: inherit;
+}
+
+li {
+  list-style: none;
+}

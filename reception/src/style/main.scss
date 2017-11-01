@@ -1,0 +1,21 @@
+@import '_reset';
+
+.start-form {
+  padding: 10px;
+  margin-left: auto;
+  margin-right: auto;
+  text-align: center;
+
+  .name {
+    font-size: 20px;
+  }
+
+  .start-buttons {
+    margin-top: 10px;
+  }
+
+  .start-button {
+    padding: 5px;
+    font-size: 20px;
+  }
+}
