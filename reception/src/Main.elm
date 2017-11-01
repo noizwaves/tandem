@@ -4,30 +4,47 @@ import Html.Events exposing (onClick, onInput)
 
 import Http
 import RemoteData exposing (WebData, RemoteData(..))
+import WebSocket
 
 import Json.Decode as Decode
 import Json.Decode.Extra exposing ((|:))
 
 -- Model
 
-type NameInformation
-  = Unclaimed String
+type alias NameInformation =
+  { canJoin: Bool
+  , canHost: Bool
+  }
+
+type ConnectionIntent
+  = Unconnected
+  | Hosting
+  | Joining
 
 type alias Model =
   { name: String
+  , intent: ConnectionIntent
   , information: WebData NameInformation
+  , raw: String
   }
+
+isValidName : String -> Bool
+isValidName name = (String.length name) >= 4
 
 init : (Model, Cmd Msg)
 init =
-  (Model "" NotAsked, Cmd.none)
+  (Model "" Unconnected NotAsked "", Cmd.none)
 
 
 -- Message
 
 type Msg
   = NameChanged String
-  | NameInformationChanged (WebData NameInformation)
+
+  | ReceiveApiMessage String
+
+  | HostSession
+  | JoinSession
 
 
 -- Update
@@ -36,95 +53,110 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
   case msg of
     NameChanged newName ->
+      ( { model | name = newName }, Cmd.none )
+
+    ReceiveApiMessage raw ->
       let
-        checkName = if newName == "" then
-            Cmd.none
-          else
-            fetchInformation newName
+        apiMsg = Decode.decodeString decodeNameInformation raw
       in
-        ( { model | name = newName }, checkName )
+        case apiMsg of
+          Ok newInformation ->
+            ( { model | information = (Success newInformation) }, Cmd.none )
+          Err error ->
+            ( model, Cmd.none )
 
-    NameInformationChanged information ->
-      ( { model | information = information }, Cmd.none )
+    HostSession ->
+      ( { model | intent = Hosting }, sendHostingIntent model.name )
+    JoinSession ->
+      ( { model | intent = Joining }, sendJoiningIntent model.name )
 
-fetchInformation : String -> Cmd Msg
-fetchInformation name =
-  Http.request
-      { method = "GET"
-      , headers = [ ]
-      , url = "http://localhost:8000/api/name/" ++ name
-      , body = Http.emptyBody
-      , expect = Http.expectJson decodeNameInformation
-      , timeout = Nothing
-      , withCredentials = False
-      }
-      |> RemoteData.sendRequest
-      |> Cmd.map NameInformationChanged
+sendHostingIntent : String -> Cmd Msg
+sendHostingIntent name =
+  WebSocket.send ("ws://localhost:8080/api/name/" ++ name) "{\"host\":true}"
+
+sendJoiningIntent : String -> Cmd Msg
+sendJoiningIntent name =
+  WebSocket.send ("ws://localhost:8080/api/name/" ++ name) "{\"join\":true}"
 
 decodeNameInformation : Decode.Decoder NameInformation
-decodeNameInformation = Decode.oneOf
-  [ decodeNameInformationUnclaimed
-  ]
-
-decodeNameInformationUnclaimed : Decode.Decoder NameInformation
-decodeNameInformationUnclaimed =
-  Decode.succeed Unclaimed
-    |: (Decode.field "unclaimed" Decode.string)
+decodeNameInformation =
+  Decode.succeed NameInformation
+    |: (Decode.field "canJoin" Decode.bool)
+    |: (Decode.field "canHost" Decode.bool)
 
 -- View
 
 view : Model -> Html Msg
 view model =
   let
-    buttonText = if model.name == ""
-      then "Start"
-      else
-        case model.information of
-          NotAsked -> "Start"
-          Loading -> "Loading..."
-          Success information ->
-            case information of
-              Unclaimed _ -> "Host"
-          Failure err -> "Error"
+    (buttons, inputEnabled) = case model.intent of
+      Unconnected ->
+        (viewUnconnectedButtons model, True)
+      Hosting ->
+        (viewHostingButtons model, False)
+      Joining ->
+        (viewJoiningButtons model, False)
 
-    instruction = if buttonText == "Start"
-      then
-        [ text "Type in a name" ]
-      else
-        []
-
-    loadingIndicator = if buttonText == "Loading"
-      then
-        [ text "Loading..." ]
-      else
-        []
-
-    joinButton = if buttonText == "Join"
-      then
-        [ button [ class "start-button" ] [ text "Join" ] ]
-      else
-        []
-
-    hostButton = if buttonText == "Host"
-      then
-        [ button [ class "start-button" ] [ text "Host" ] ]
-      else
-        []
-
-    buttons = instruction ++ loadingIndicator ++ hostButton ++ joinButton
+    inputValid = (String.length model.name) == 0 || isValidName model.name
+    inputClass = if inputValid then "name" else "name invalid"
 
   in
     div [ class "start-form" ]
-      [ input [ class "name", placeholder "Type in a name", type_ "text", onInput NameChanged ] [ ]
+      [ input [ class inputClass, placeholder "Type in a name", type_ "text", onInput NameChanged, disabled (not inputEnabled) ] [ ]
       , div [ class "start-buttons" ] buttons
+      , div [] [ text model.raw ]
       ]
 
+viewUnconnectedButtons : Model -> List (Html Msg)
+viewUnconnectedButtons model =
+  if model.name == "" then
+      [ text "Start" ]
+  else
+    case model.information of
+      NotAsked ->
+        [ text "Start" ]
+      Loading ->
+        [ text "Loading..." ]
+      Success information ->
+        if information.canHost then
+          [ button [ class "start-button", onClick HostSession ] [ text "Host" ] ]
+        else if information.canJoin then
+          [ button [ class "start-button", onClick JoinSession ] [ text "Join" ] ]
+        else
+          [ text "Occupied" ]
+      Failure err ->
+        [ text "Error" ]
+
+viewHostingButtons : Model -> List (Html Msg)
+viewHostingButtons model =
+  case model.information of
+    Success information ->
+      if (not information.canJoin) then
+        [ text "Connecting" ]
+      else
+        [ text "Hosting" ]
+    _ ->
+      [ text "Hosting" ]
+
+viewJoiningButtons : Model -> List (Html Msg)
+viewJoiningButtons model =
+  case model.information of
+    Success information ->
+      if (not information.canHost) then
+        [ text "Connecting" ]
+      else
+        [ text "Joining" ]
+    _ ->
+      [ text "Joining" ]
 
 -- Subscriptions
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-  Sub.none
+  if model.name == "" then
+    Sub.none
+  else
+    WebSocket.listen ("ws://localhost:8080/api/name/" ++ model.name) ReceiveApiMessage
 
 main : Program Never Model Msg
 main =
