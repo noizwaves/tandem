@@ -78,5 +78,5 @@ app.on('activate', function () {
 
 menubar({
     icon: path.join(__dirname, 'icons', 'tray.png'),
-    index: 'file://' + path.join(__dirname, 'reception', 'index.html')
+    index: 'file://' + path.join(__dirname, 'reception', 'dist', 'index.html')
 });
