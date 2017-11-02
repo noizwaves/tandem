@@ -17,14 +17,13 @@ type alias NameInformation =
   }
 
 type ConnectionIntent
-  = Browsing
-  | Hosting
-  | Joining
+  = Browsing (Maybe NameInformation)
+  | Hosting NameInformation
+  | Joining NameInformation
 
 type alias Model =
   { name: String
   , intent: ConnectionIntent
-  , information: WebData NameInformation
   }
 
 isValidName : String -> Bool
@@ -32,7 +31,7 @@ isValidName name = (String.length name) >= 4
 
 init : (Model, Cmd Msg)
 init =
-  (Model "" Browsing NotAsked, Cmd.none)
+  (Model "" (Browsing Nothing), Cmd.none)
 
 
 -- Message
@@ -42,8 +41,8 @@ type Msg
 
   | ReceiveApiMessage String
 
-  | HostSession
-  | JoinSession
+  | HostSession NameInformation
+  | JoinSession NameInformation
 
 
 -- Update
@@ -52,7 +51,7 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
   case msg of
     NameChanged newName ->
-      ( { model | name = newName }, Cmd.none )
+      ( { model | name = newName, intent = Browsing Nothing }, Cmd.none )
 
     ReceiveApiMessage raw ->
       let
@@ -60,14 +59,21 @@ update msg model =
       in
         case apiMsg of
           Ok newInformation ->
-            ( { model | information = (Success newInformation) }, Cmd.none )
+            case model.intent of
+              Browsing _ ->
+                ( { model | intent = Browsing (Just newInformation) }, Cmd.none )
+              Hosting _ ->
+                ( { model | intent = Hosting newInformation }, Cmd.none )
+              Joining _ ->
+                ( { model | intent = Joining newInformation }, Cmd.none )
+
           Err error ->
             ( model, Cmd.none )
 
-    HostSession ->
-      ( { model | intent = Hosting }, sendHostingIntent model.name )
-    JoinSession ->
-      ( { model | intent = Joining }, sendJoiningIntent model.name )
+    HostSession information ->
+      ( { model | intent = Hosting information }, sendHostingIntent model.name )
+    JoinSession information ->
+      ( { model | intent = Joining information }, sendJoiningIntent model.name )
 
 sendHostingIntent : String -> Cmd Msg
 sendHostingIntent name =
@@ -89,12 +95,12 @@ view : Model -> Html Msg
 view model =
   let
     (buttons, inputEnabled) = case model.intent of
-      Browsing ->
-        (viewUnconnectedButtons model, True)
-      Hosting ->
-        (viewHostingButtons model, False)
-      Joining ->
-        (viewJoiningButtons model, False)
+      Browsing information ->
+        (viewUnconnectedButtons information, True)
+      Hosting information ->
+        (viewHostingButtons information, False)
+      Joining information ->
+        (viewJoiningButtons information, False)
 
     inputValid = (String.length model.name) == 0 || isValidName model.name
     inputClass = if inputValid then "name" else "name invalid"
@@ -105,53 +111,38 @@ view model =
       , div [ class "start-buttons" ] buttons
       ]
 
-viewUnconnectedButtons : Model -> List (Html Msg)
-viewUnconnectedButtons model =
-  if model.name == "" then
+viewUnconnectedButtons : Maybe NameInformation -> List (Html Msg)
+viewUnconnectedButtons information =
+  case information of
+    Nothing ->
       [ text "Start" ]
+    Just info ->
+      if info.canHost then
+        [ button [ class "start-button", onClick (HostSession info) ] [ text "Host" ] ]
+      else if info.canJoin then
+        [ button [ class "start-button", onClick (JoinSession info) ] [ text "Join" ] ]
+      else
+        [ text "Occupied" ]
+
+viewHostingButtons : NameInformation -> List (Html Msg)
+viewHostingButtons information =
+  if (not information.canJoin) then
+    [ text "Connecting" ]
   else
-    case model.information of
-      NotAsked ->
-        [ text "Start" ]
-      Loading ->
-        [ text "Loading..." ]
-      Success information ->
-        if information.canHost then
-          [ button [ class "start-button", onClick HostSession ] [ text "Host" ] ]
-        else if information.canJoin then
-          [ button [ class "start-button", onClick JoinSession ] [ text "Join" ] ]
-        else
-          [ text "Occupied" ]
-      Failure err ->
-        [ text "Error" ]
+    [ text "Hosting" ]
 
-viewHostingButtons : Model -> List (Html Msg)
-viewHostingButtons model =
-  case model.information of
-    Success information ->
-      if (not information.canJoin) then
-        [ text "Connecting" ]
-      else
-        [ text "Hosting" ]
-    _ ->
-      [ text "Hosting" ]
-
-viewJoiningButtons : Model -> List (Html Msg)
-viewJoiningButtons model =
-  case model.information of
-    Success information ->
-      if (not information.canHost) then
-        [ text "Connecting" ]
-      else
-        [ text "Joining" ]
-    _ ->
-      [ text "Joining" ]
+viewJoiningButtons : NameInformation -> List (Html Msg)
+viewJoiningButtons information =
+  if (not information.canHost) then
+    [ text "Connecting" ]
+  else
+    [ text "Joining" ]
 
 -- Subscriptions
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-  if model.name == "" then
+  if not (isValidName model.name) then
     Sub.none
   else
     WebSocket.listen ("ws://localhost:8080/api/name/" ++ model.name) ReceiveApiMessage
