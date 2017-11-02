@@ -2,12 +2,12 @@ import Html exposing (Html, button, div, text, input)
 import Html.Attributes exposing (class, disabled, type_, placeholder)
 import Html.Events exposing (onClick, onInput)
 
-import Http
-import RemoteData exposing (WebData, RemoteData(..))
 import WebSocket
 
 import Json.Decode as Decode
 import Json.Decode.Extra exposing ((|:))
+
+import Port exposing (requestOffer, receiveOffer, requestAnswer, receiveAnswer, giveAnswer)
 
 -- Model
 
@@ -15,6 +15,19 @@ type alias NameInformation =
   { canJoin: Bool
   , canHost: Bool
   }
+
+type alias AnswerRequest =
+  { answerRequest: String
+  }
+
+type alias AnswerResponse =
+  { answerResponse: String
+  }
+
+type ApiMessage
+  = ApiNameInformation NameInformation
+  | ApiAnswerRequest AnswerRequest
+  | ApiAnswerResponse AnswerResponse
 
 type ConnectionIntent
   = Browsing (Maybe NameInformation)
@@ -44,6 +57,10 @@ type Msg
   | HostSession NameInformation
   | JoinSession NameInformation
 
+  | ReceiveOfferFromDC String
+  | ReceiveAnswerFromDC String
+
+
 
 -- Update
 
@@ -55,17 +72,21 @@ update msg model =
 
     ReceiveApiMessage raw ->
       let
-        apiMsg = Decode.decodeString decodeNameInformation raw
+        apiMsg = Decode.decodeString decodeApiMessage raw
       in
         case apiMsg of
-          Ok newInformation ->
+          Ok (ApiNameInformation newInformation) ->
             case model.intent of
               Browsing _ ->
                 ( { model | intent = Browsing (Just newInformation) }, Cmd.none )
               Hosting _ ->
-                ( { model | intent = Hosting newInformation }, Cmd.none )
+                ( { model | intent = Hosting newInformation }, initiateHandshakeIfRequired newInformation )
               Joining _ ->
                 ( { model | intent = Joining newInformation }, Cmd.none )
+          Ok (ApiAnswerRequest offer) ->
+            ( model, requestAnswer offer.answerRequest )
+          Ok (ApiAnswerResponse answer) ->
+            ( model, giveAnswer answer.answerResponse )
 
           Err error ->
             ( model, Cmd.none )
@@ -75,13 +96,60 @@ update msg model =
     JoinSession information ->
       ( { model | intent = Joining information }, sendJoiningIntent model.name )
 
+    ReceiveOfferFromDC offer ->
+      ( model , sendAnswerRequest model.name offer )
+    ReceiveAnswerFromDC answer ->
+      ( model , sendAnswerResponse model.name answer )
+
+
+initiateHandshakeIfRequired : NameInformation -> Cmd Msg
+initiateHandshakeIfRequired info =
+  let
+    connectionRequired = (not info.canJoin) && (not info.canHost)
+  in
+    if connectionRequired then
+      requestOffer True
+    else
+      Cmd.none
+
+apiUrl : String
+apiUrl = "wss://concierge-7369rtgvbiy.cfapps.io:4443/api/name/"
+--apiUrl = "ws://localhost:8080/api/name/"
+
 sendHostingIntent : String -> Cmd Msg
 sendHostingIntent name =
-  WebSocket.send ("ws://localhost:8080/api/name/" ++ name) "host"
+  WebSocket.send (apiUrl ++ name) "host"
 
 sendJoiningIntent : String -> Cmd Msg
 sendJoiningIntent name =
-  WebSocket.send ("ws://localhost:8080/api/name/" ++ name) "join"
+  WebSocket.send (apiUrl ++ name) "join"
+
+sendAnswerRequest : String -> String -> Cmd Msg
+sendAnswerRequest name offer =
+  WebSocket.send (apiUrl ++ name) ("answerRequest:" ++ offer)
+
+sendAnswerResponse : String -> String -> Cmd Msg
+sendAnswerResponse name answer =
+  WebSocket.send (apiUrl ++ name) ("answerResponse:" ++ answer)
+
+
+decodeApiMessage : Decode.Decoder ApiMessage
+decodeApiMessage =
+  Decode.oneOf
+   [ Decode.succeed ApiAnswerRequest |: decodeAnswerRequest
+   , Decode.succeed ApiAnswerResponse |: decodeAnswerResponse
+   , Decode.succeed ApiNameInformation |: decodeNameInformation
+   ]
+
+decodeAnswerRequest : Decode.Decoder AnswerRequest
+decodeAnswerRequest =
+  Decode.succeed AnswerRequest
+    |: (Decode.field "answerRequest" Decode.string)
+
+decodeAnswerResponse : Decode.Decoder AnswerResponse
+decodeAnswerResponse =
+  Decode.succeed AnswerResponse
+    |: (Decode.field "answerResponse" Decode.string)
 
 decodeNameInformation : Decode.Decoder NameInformation
 decodeNameInformation =
@@ -145,7 +213,11 @@ subscriptions model =
   if not (isValidName model.name) then
     Sub.none
   else
-    WebSocket.listen ("ws://localhost:8080/api/name/" ++ model.name) ReceiveApiMessage
+    Sub.batch
+      [ WebSocket.listen (apiUrl ++ model.name) ReceiveApiMessage
+      , receiveOffer ReceiveOfferFromDC
+      , receiveAnswer ReceiveAnswerFromDC
+      ]
 
 main : Program Never Model Msg
 main =

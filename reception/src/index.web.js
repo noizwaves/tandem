@@ -2,7 +2,7 @@
 
 require('./style/main.scss');
 
-require('./index.html');
+require('./index.web.html');
 
 const Elm = require('./Main.elm');
 const mountNode = document.getElementById('main');

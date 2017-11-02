@@ -4,7 +4,7 @@ const app = electron.app
 // Module to create native browser window.
 const BrowserWindow = electron.BrowserWindow
 const Menu = electron.Menu
-
+const ipc = electron.ipcMain;
 const path = require('path')
 const url = require('url')
 const menubar = require('menubar');
@@ -26,7 +26,7 @@ const template = [
 
 const menu = Menu.buildFromTemplate(template)
 
-function createWindow () {
+function createWindow() {
     // Create the browser window.
     mainWindow = new BrowserWindow({width: 800, height: 600})
 
@@ -76,7 +76,36 @@ app.on('activate', function () {
 // In this file you can include the rest of your app's specific main process
 // code. You can also put them in separate files and require them here.
 
-menubar({
+const receptionWindow = menubar({
     icon: path.join(__dirname, 'icons', 'idle.png'),
-    index: 'file://' + path.join(__dirname, 'reception', 'dist', 'index.html')
+    index: 'file://' + path.join(__dirname, 'reception', 'dist', 'index.electron.html')
+});
+
+receptionWindow.on('after-create-window', function () {
+    receptionWindow.window.webContents.openDevTools()
+});
+
+ipc.on('request-offer', function (event) {
+    console.log('$$$$ Getting offer from DisplayChampion...');
+
+    mainWindow.webContents.send('dc-request-offer');
+
+    ipc.on('dc-receive-offer', function (_event, offer) {
+        console.log('$$$# Offer retrieved from DC')
+        event.sender.send('receive-offer', offer);
+    });
+});
+
+ipc.on('request-answer', function (event, offer) {
+    console.log('$$$$ Get answer from DisplayChampion...');
+
+    mainWindow.webContents.send('dc-request-answer', offer);
+
+    ipc.on('dc-receive-answer', function (_event, answer) {
+        event.sender.send('receive-answer', answer);
+    });
+});
+
+ipc.on('give-answer', function (event, answer) {
+    mainWindow.webContents.send('dc-give-answer', answer);
 });

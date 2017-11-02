@@ -1,5 +1,6 @@
 package io.displaychampion.concierge;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
@@ -60,10 +61,22 @@ public class WebSocketHandler extends TextWebSocketHandler {
             // TODO: validate & check existing state
             hostMap.put(name, session);
             broadcastInformation(name);
-        } else if (payload.startsWith("\"join\"")) {
+        } else if (payload.startsWith("join")) {
             // TODO: validate & check existing state
             joinMap.put(name, session);
             broadcastInformation(name);
+        } else if (payload.startsWith("answerRequest:")) {
+            // TODO: validate & check existing state
+
+            String offer = payload.substring("answerRequest:".length());
+            WebSocketSession joinerSession = joinMap.get(name);
+            sendAnswerRequest(offer, joinerSession);
+        } else if (payload.startsWith("answerResponse:")) {
+            // TODO: validate & check existing state
+
+            String answer = payload.substring("answerResponse:".length());
+            WebSocketSession hostSession = hostMap.get(name);
+            sendAnswerResponse(answer, hostSession);
         }
     }
 
@@ -72,6 +85,26 @@ public class WebSocketHandler extends TextWebSocketHandler {
         boolean canJoin = !joinMap.containsKey(name);
 
         session.sendMessage(new TextMessage("{\"canHost\":" + canHost + ",\"canJoin\":" + canJoin + "}"));
+    }
+
+    private void sendAnswerRequest(String offer, WebSocketSession session) throws IOException {
+        Map<String, String> answerRequest = new HashMap<>();
+        answerRequest.put("answerRequest", offer);
+
+        ObjectMapper mapper = new ObjectMapper();
+        String payload = mapper.writeValueAsString(answerRequest);
+
+        session.sendMessage(new TextMessage(payload));
+    }
+
+    private void sendAnswerResponse(String offer, WebSocketSession session) throws IOException {
+        Map<String, String> answerResponse = new HashMap<>();
+        answerResponse.put("answerResponse", offer);
+
+        ObjectMapper mapper = new ObjectMapper();
+        String payload = mapper.writeValueAsString(answerResponse);
+
+        session.sendMessage(new TextMessage(payload));
     }
 
     private void broadcastInformation(String name) {
