@@ -77,11 +77,11 @@ update msg model =
 
 sendHostingIntent : String -> Cmd Msg
 sendHostingIntent name =
-  WebSocket.send ("ws://localhost:8080/api/name/" ++ name) "{\"host\":true}"
+  WebSocket.send ("ws://localhost:8080/api/name/" ++ name) "host"
 
 sendJoiningIntent : String -> Cmd Msg
 sendJoiningIntent name =
-  WebSocket.send ("ws://localhost:8080/api/name/" ++ name) "{\"join\":true}"
+  WebSocket.send ("ws://localhost:8080/api/name/" ++ name) "join"
 
 decodeNameInformation : Decode.Decoder NameInformation
 decodeNameInformation =

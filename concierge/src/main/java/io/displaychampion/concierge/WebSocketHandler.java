@@ -54,11 +54,13 @@ public class WebSocketHandler extends TextWebSocketHandler {
     @Override
     protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
         String name = webSocketRoute.extractName(session.getUri());
-        if (message.getPayload().contains("\"host\"")) {
+        String payload = message.getPayload();
+
+        if (payload.startsWith("host")) {
             // TODO: validate & check existing state
             hostMap.put(name, session);
             broadcastInformation(name);
-        } else if (message.getPayload().contains("\"join\"")) {
+        } else if (payload.startsWith("\"join\"")) {
             // TODO: validate & check existing state
             joinMap.put(name, session);
             broadcastInformation(name);
