@@ -77,6 +77,6 @@ app.on('activate', function () {
 // code. You can also put them in separate files and require them here.
 
 menubar({
-    icon: path.join(__dirname, 'icons', 'tray.png'),
+    icon: path.join(__dirname, 'icons', 'idle.png'),
     index: 'file://' + path.join(__dirname, 'reception', 'dist', 'index.html')
 });
