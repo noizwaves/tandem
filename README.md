@@ -10,6 +10,13 @@ Remote pair programming tool
 
 1. Start the app via `yarn start`
 
+## Installation
+
+### Optional
+
+1. `brew install direnv`
+
+
 ## Building for macOS
 
 1. Run `yarn build`

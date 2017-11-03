@@ -7,8 +7,7 @@
   "scripts": {
     "start": "webpack && electron .",
     "start:reception": "webpack-dev-server --port 3000",
-    "build": "webpack && electron-packager . --no-prune",
-    "rebuild": "rm -Rf \"Display Champion-darwin-x64\" && webpack && electron-packager . --no-prune"
+    "build": "webpack && electron-packager . --no-prune --out dist --overwrite"
   },
   "repository": "",
   "keywords": [],
