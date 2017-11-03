@@ -1,4 +1,4 @@
-'use strict';
+import { ipcRenderer as ipc } from 'electron';
 
 require('./style/main.scss');
 
@@ -9,13 +9,14 @@ const mountNode = document.getElementById('main');
 
 const app = Elm.Main.embed(mountNode);
 
-const ipc = require('electron').ipcRenderer;
+
+// const ipc = require('electron').ipcRenderer;
 
 app.ports.requestOffer.subscribe(function () {
     ipc.send('request-offer');
 });
 
-ipc.on('receive-offer', function (event, offer) {
+ipc.on('receive-offer', (event, offer) => {
     // console.log('$$$$ Offer created, sending to Elm');
     app.ports.receiveOffer.send(offer);
 });

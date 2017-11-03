@@ -1,0 +1,22 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "noImplicitAny": false,
+    "target": "es6",
+    "moduleResolution": "node",
+    "lib": [
+      "dom",
+      "es6"
+    ],
+    "strict": true,
+    "sourceMap": false
+  },
+  "exclude": [
+    "node_modules",
+    "elm-stuff",
+    "typings",
+    "dist",
+    "concierge",
+    "webpack.config.ts"
+  ]
+}

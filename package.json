@@ -7,22 +7,25 @@
   "scripts": {
     "start": "webpack && electron .",
     "start:reception": "webpack-dev-server --port 3000",
-    "build": "webpack && electron-packager . --no-prune --out dist --overwrite"
+    "build": "webpack && electron-packager . --no-prune --out dist --overwrite",
+    "build:reception": "webpack"
   },
   "repository": "",
   "keywords": [],
   "author": "Adam Neumann",
   "license": "UNLICENSED",
   "devDependencies": {
+    "css-loader": "^0.28.4",
     "electron": "~1.7.8",
     "electron-packager": "^9.1.0",
-    "css-loader": "^0.28.4",
     "elm": "^0.18.0",
     "elm-webpack-loader": "^4.3.1",
     "file-loader": "^0.11.2",
     "node-sass": "^4.5.3",
     "sass-loader": "^6.0.6",
     "style-loader": "^0.18.2",
+    "ts-loader": "^3.1.1",
+    "typescript": "^2.6.1",
     "url-loader": "^0.5.9",
     "webpack": "^3.5.4",
     "webpack-dev-server": "^2.7.1"

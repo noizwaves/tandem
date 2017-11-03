@@ -5,7 +5,7 @@ const elmSource = path.resolve(__dirname);
 module.exports = [{
     entry: {
         'app.web': [
-            './reception/src/index.web.js'
+            './reception/src/index.web.ts'
         ]
     },
     output: {
@@ -48,7 +48,7 @@ module.exports = [{
 }, {
     entry: {
         'app.electron': [
-            './reception/src/index.electron.js'
+            './reception/src/index.electron.ts'
         ]
     },
     target: 'electron-renderer',
@@ -86,6 +86,10 @@ module.exports = [{
                 test: /\.(ttf|eot|svg)(\?v=[0-9]\.[0-9]\.[0-9])?$/,
                 loader: 'file-loader',
             },
+            {
+                test: /\.ts$/,
+                loader: 'ts-loader'
+            }
         ],
 
         noParse: /\.elm$/,
