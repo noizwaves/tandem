@@ -1,10 +1,10 @@
 {
     "version": "1.0.0",
-    "summary": "remote pair programming tool",
+    "summary": "Remote pair programming tool",
     "repository": "https://github.com/user/project.git",
-    "license": "",
+    "license": "UNLICENSED",
     "source-directories": [
-        "src"
+        "reception/src"
     ],
     "exposed-modules": [],
     "dependencies": {

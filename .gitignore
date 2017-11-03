@@ -3,3 +3,4 @@ node_modules/*
 .DS_Store
 Display Champion-darwin-x64
 build/*
+elm-stuff/*

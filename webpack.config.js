@@ -1,19 +1,15 @@
 path = require("path");
 
-const elmSource = __dirname;
+const elmSource = path.resolve(__dirname);
 
 module.exports = [{
     entry: {
         'app.web': [
-            './src/index.web.js'
+            './reception/src/index.web.js'
         ]
     },
-    // node: {
-    //     fs: 'empty'
-    // },
-
     output: {
-        path: path.resolve(__dirname + '/dist'),
+        path: path.resolve(__dirname + '/reception/dist'),
         filename: '[name].js',
     },
 
@@ -52,16 +48,13 @@ module.exports = [{
 }, {
     entry: {
         'app.electron': [
-            './src/index.electron.js'
+            './reception/src/index.electron.js'
         ]
     },
     target: 'electron-renderer',
-    // node: {
-    //     fs: 'empty'
-    // },
 
     output: {
-        path: path.resolve(__dirname + '/dist'),
+        path: path.resolve(__dirname + '/reception/dist'),
         filename: '[name].js',
     },
 
