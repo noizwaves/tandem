@@ -1,7 +1,8 @@
+import {ipcRenderer as ipc} from 'electron';
+
 var Peer = require('simple-peer')
 const getScreenStream = require('./get-screen-media')();
 const robot = require("robotjs");
-const ipc = require("electron").ipcRenderer;
 
 document.querySelector("#host").addEventListener('click', function (ev) {
     ev.preventDefault();
@@ -27,7 +28,7 @@ document.querySelector("#join").addEventListener('click', function (ev) {
     hide("#buttons");
     show("#remote-screen");
 
-    establishConnection();
+    establishConnection(undefined);
 });
 
 function title(titleText) {
@@ -44,7 +45,7 @@ function hide(selector) {
 
 function transmitScreenMouseEvents(mouseMoveCallback) {
     const remoteScreen = document.querySelector('#remote-screen');
-    remoteScreen.addEventListener('mousemove', function (event) {
+    remoteScreen.addEventListener('mousemove', function (event: any) {
         mouseMoveCallback({
             x: event.offsetX,
             y: event.offsetY,
@@ -56,7 +57,7 @@ function transmitScreenMouseEvents(mouseMoveCallback) {
 
 function transmitScreenMouseDownEvents(mouseMoveCallback) {
     const remoteScreen = document.querySelector('#remote-screen');
-    remoteScreen.addEventListener('mousedown', function (event) {
+    remoteScreen.addEventListener('mousedown', function (event: any) {
         mouseMoveCallback({
             x: event.offsetX,
             y: event.offsetY,
@@ -67,7 +68,7 @@ function transmitScreenMouseDownEvents(mouseMoveCallback) {
 };
 
 function transmitKeyboardEvents(keyboardCallback) {
-    document.addEventListener('keyup', function (e) {
+    document.addEventListener('keyup', function (e: any) {
             keyboardCallback(e.key);
         },
         true
@@ -106,7 +107,7 @@ function toRobotKey(key) {
 
 function establishConnection(screenStream) {
     const isHost = !!screenStream;
-    const opts = {initiator: isHost, trickle: false};
+    const opts = {initiator: isHost, trickle: false, stream: null};
     if (screenStream) {
         opts.stream = screenStream;
     }
@@ -123,7 +124,8 @@ function establishConnection(screenStream) {
 
     document.querySelector('form').addEventListener('submit', function (ev) {
         ev.preventDefault()
-        p.signal(JSON.parse(document.querySelector('#incoming').value))
+        const incoming: any = document.querySelector('#incoming');
+        p.signal(JSON.parse(incoming.value))
     })
 
     p.on('connect', function () {
@@ -140,20 +142,20 @@ function establishConnection(screenStream) {
 
     p.on('stream', function (stream) {
         console.log('[peer,hosting=' + isHost + '].STREAM');
-        const remoteScreen = document.querySelector('#remote-screen');
+        const remoteScreen: any = document.querySelector('#remote-screen');
         remoteScreen.srcObject = stream
         remoteScreen.onloadedmetadata = function (e) {
             remoteScreen.play();
             if (!isHost) {
-                transmitScreenMouseEvents(function (mouseMove) {
+                transmitScreenMouseEvents(function (mouseMove: any) {
                     const data = {t: 'mousemove', x: mouseMove.x / mouseMove.width, y: mouseMove.y / mouseMove.height};
                     p.send(JSON.stringify(data));
                 })
-                transmitScreenMouseDownEvents(function (mouseDown) {
+                transmitScreenMouseDownEvents(function (mouseDown: any) {
                     const data = {t: 'mousedown', x: mouseDown.x / mouseDown.width, y: mouseDown.y / mouseDown.height};
                     p.send(JSON.stringify(data));
                 })
-                transmitKeyboardEvents(function (key) {
+                transmitKeyboardEvents(function (key: any) {
                     const data = {t: 'keyup', key: key};
                     p.send(JSON.stringify(data));
                 })
@@ -262,7 +264,7 @@ function createJoinPeer() {
 
     p.on('stream', function (stream) {
         console.log('[peer.STREAM]');
-        const remoteScreen = document.querySelector('#remote-screen');
+        const remoteScreen: any = document.querySelector('#remote-screen');
         remoteScreen.srcObject = stream
         remoteScreen.onloadedmetadata = function (e) {
             remoteScreen.play();

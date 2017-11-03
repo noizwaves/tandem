@@ -9,9 +9,6 @@ const mountNode = document.getElementById('main');
 
 const app = Elm.Main.embed(mountNode);
 
-
-// const ipc = require('electron').ipcRenderer;
-
 app.ports.requestOffer.subscribe(function () {
     ipc.send('request-offer');
 });

@@ -5,3 +5,5 @@ build/*
 elm-stuff/*
 dist/*
 .envrc
+main.js
+displaychampion.js
