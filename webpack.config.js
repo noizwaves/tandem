@@ -1,4 +1,5 @@
-const path = require("path");
+const path = require('path');
+const nodeExternals = require('webpack-node-externals');
 
 const elmSource = path.resolve(__dirname);
 
@@ -44,7 +45,8 @@ module.exports = [{
     ],
 
     noParse: /\.elm$/,
-  }
+  },
+  externals: [nodeExternals()]
 }, {
   entry: {
     'app.electron': [
@@ -93,7 +95,8 @@ module.exports = [{
     ],
 
     noParse: /\.elm$/,
-  }
+  },
+  externals: [nodeExternals()]
 }, {
   entry: {
     'main': ['./main.ts']
@@ -115,7 +118,8 @@ module.exports = [{
         exclude: /node_modules/
       }
     ]
-  }
+  },
+  externals: [nodeExternals()]
 }, {
   entry: {
     'displaychampion': ['./displaychampion.ts']
@@ -135,11 +139,8 @@ module.exports = [{
         test: /\.ts$/,
         loader: 'ts-loader',
         exclude: /node_modules/
-      },
-      {
-        test: /\.node$/,
-        use: 'node-loader'
       }
     ]
-  }
+  },
+  externals: [nodeExternals()]
 }];
