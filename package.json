@@ -1,7 +1,7 @@
 {
   "name": "display-champion",
   "version": "1.0.0",
-  "description": "Display Champion",
+  "description": "Remote pair programming tool",
   "productName": "Display Champion",
   "main": "main.js",
   "scripts": {
