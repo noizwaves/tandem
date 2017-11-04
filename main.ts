@@ -56,6 +56,8 @@ function openWebRtcInternalsWindow() {
   return webRtcWindow;
 }
 
+app.dock.setIcon(path.join(__dirname, 'icons', 'idle.png'));
+
 app.on('ready', () => {
   createReceptionWindow();
   createDisplayChampionWindow();
