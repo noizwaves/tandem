@@ -96,7 +96,18 @@ function toRobotKey(key) {
 }
 
 function createHostPeer(screenStream) {
-  const p = new Peer({initiator: true, trickle: false, stream: screenStream});
+  const p = new Peer({
+    config: {
+      iceServers: [{
+        url: 'stun:stun.l.google.com:19302'
+      }, {
+        url: 'stun:stun.services.mozilla.com'
+      }]
+    },
+    initiator: true,
+    trickle: false,
+    stream: screenStream
+  });
 
   p.on('connect', function () {
     console.log('[peer].CONNECT');
@@ -148,7 +159,17 @@ function createHostPeer(screenStream) {
 }
 
 function createJoinPeer() {
-  const p = new Peer({initiator: false, trickle: false});
+  const p = new Peer({
+    config: {
+      iceServers: [{
+        url: 'stun:stun.l.google.com:19302'
+      }, {
+        url: 'stun:stun.services.mozilla.com'
+      }]
+    },
+    initiator: false,
+    trickle: false
+  });
 
   p.on('connect', function () {
     console.log('[peer].CONNECT');
