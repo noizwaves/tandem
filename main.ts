@@ -44,6 +44,8 @@ function createWindow() {
     })
 
     Menu.setApplicationMenu(menu)
+
+  // createWebRtcInternalsWindow();
 }
 
 // This method will be called when Electron has finished
@@ -104,3 +106,9 @@ ipc.on('request-answer', function (event, offer) {
 ipc.on('give-answer', function (event, answer) {
     mainWindow.webContents.send('dc-give-answer', answer);
 });
+
+function createWebRtcInternalsWindow() {
+  const webRtcWindow = new BrowserWindow({width: 800, height: 600});
+  webRtcWindow.loadURL('chrome://webrtc-internals');
+  return webRtcWindow;
+}
