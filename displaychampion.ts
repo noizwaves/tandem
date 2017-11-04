@@ -1,331 +1,218 @@
-import {ipcRenderer as ipc} from 'electron';
+import {desktopCapturer, ipcRenderer as ipc} from 'electron';
+import * as Peer from 'simple-peer';
+import * as robot from 'robotjs';
 
-var Peer = require('simple-peer')
-const getScreenStream = require('./get-screen-media')();
-const robot = require("robotjs");
-
-document.querySelector("#host").addEventListener('click', function (ev) {
-    ev.preventDefault();
-
-    title('Hosting');
-
-    show("#connect-form");
-    hide("#buttons");
-
-
-    getScreenStream(function (screenStream) {
-        establishConnection(screenStream);
-    })
-
-});
-
-document.querySelector("#join").addEventListener('click', function (ev) {
-    ev.preventDefault();
-
-    title('Joining');
-
-    show("#connect-form");
-    hide("#buttons");
-    show("#remote-screen");
-
-    establishConnection(undefined);
-});
-
-function title(titleText) {
-    document.querySelector('h1').innerText = titleText;
+function getScreenStream(cb) {
+  desktopCapturer.getSources({types: ['window', 'screen']}, function (error, sources) {
+    if (error) {
+      throw error;
+    }
+    for (let i = 0; i < sources.length; ++i) {
+      if (sources[i].name === 'Entire screen') {
+        const video: MediaTrackConstraints = <MediaTrackConstraints> (<any> {
+          mandatory: {
+            chromeMediaSource: 'desktop',
+            chromeMediaSourceId: sources[i].id,
+            maxWidth: screen.width,
+            maxHeight: screen.height,
+            minFrameRate: 30
+          }
+        });
+        navigator.mediaDevices.getUserMedia(
+          {
+            audio: false,
+            video: video
+          })
+          .then(function (stream) {
+            cb(stream)
+          })
+          .catch(function (err) {
+            console.error('getUserMedia', err);
+          })
+      }
+    }
+  })
 }
 
 function show(selector) {
-    document.querySelector(selector).classList.remove('hidden');
-}
-
-function hide(selector) {
-    document.querySelector(selector).classList.add('hidden');
+  document.querySelector(selector).classList.remove('hidden');
 }
 
 function transmitScreenMouseEvents(mouseMoveCallback) {
-    const remoteScreen = document.querySelector('#remote-screen');
-    remoteScreen.addEventListener('mousemove', function (event: any) {
-        mouseMoveCallback({
-            x: event.offsetX,
-            y: event.offsetY,
-            width: remoteScreen.clientWidth,
-            height: remoteScreen.clientHeight
-        });
-    })
+  const remoteScreen = document.querySelector('#remote-screen');
+  remoteScreen.addEventListener('mousemove', function (event: any) {
+    mouseMoveCallback({
+      x: event.offsetX,
+      y: event.offsetY,
+      width: remoteScreen.clientWidth,
+      height: remoteScreen.clientHeight
+    });
+  })
 };
 
 function transmitScreenMouseDownEvents(mouseMoveCallback) {
-    const remoteScreen = document.querySelector('#remote-screen');
-    remoteScreen.addEventListener('mousedown', function (event: any) {
-        mouseMoveCallback({
-            x: event.offsetX,
-            y: event.offsetY,
-            width: remoteScreen.clientWidth,
-            height: remoteScreen.clientHeight
-        });
-    })
+  const remoteScreen = document.querySelector('#remote-screen');
+  remoteScreen.addEventListener('mousedown', function (event: any) {
+    mouseMoveCallback({
+      x: event.offsetX,
+      y: event.offsetY,
+      width: remoteScreen.clientWidth,
+      height: remoteScreen.clientHeight
+    });
+  })
 };
 
 function transmitKeyboardEvents(keyboardCallback) {
-    document.addEventListener('keyup', function (e: any) {
-            keyboardCallback(e.key);
-        },
-        true
-    );
-
-    // document.addEventListener('keydown',
-    //     function(e) { console.log('keydown capture', e); },
-    //     true /* grab event on tunnel, not on bubble */);
+  document.addEventListener('keyup', function (e: any) {
+      keyboardCallback(e.key);
+    },
+    true
+  );
 }
 
 function toRobotKey(key) {
-    switch (key) {
-        case 'Escape':
-            return 'escape';
-        case 'Shift':
-            return 'shift';
-        case ' ':
-            return 'space';
-        case 'Enter':
-            return 'enter';
-        case 'Tab':
-            return 'tab';
-        case 'Control':
-            return 'control';
-        case 'Alt':
-            return 'alt';
-        case 'Meta':
-            return 'command';
-        case 'Backspace':
-            return 'backspace';
-        default:
-            return key;
-    }
+  switch (key) {
+    case 'Escape':
+      return 'escape';
+    case 'Shift':
+      return 'shift';
+    case ' ':
+      return 'space';
+    case 'Enter':
+      return 'enter';
+    case 'Tab':
+      return 'tab';
+    case 'Control':
+      return 'control';
+    case 'Alt':
+      return 'alt';
+    case 'Meta':
+      return 'command';
+    case 'Backspace':
+      return 'backspace';
+    default:
+      return key;
+  }
 }
-
-
-function establishConnection(screenStream) {
-    const isHost = !!screenStream;
-    const opts = {initiator: isHost, trickle: false, stream: null};
-    if (screenStream) {
-        opts.stream = screenStream;
-    }
-    var p = new Peer(opts)
-
-    p.on('error', function (err) {
-        console.log('error', err)
-    })
-
-    p.on('signal', function (data) {
-        console.log('[peer]SIGNAL', JSON.stringify(data))
-        document.querySelector('#outgoing').textContent = JSON.stringify(data)
-    })
-
-    document.querySelector('form').addEventListener('submit', function (ev) {
-        ev.preventDefault()
-        const incoming: any = document.querySelector('#incoming');
-        p.signal(JSON.parse(incoming.value))
-    })
-
-    p.on('connect', function () {
-        console.log('[peer].CONNECT')
-    })
-
-    p.on('data', function (data) {
-        console.log('[peer].DATA');
-        const unhandled = handleMessage(data);
-        if (unhandled) {
-            document.querySelector('#data').textContent += "Received: " + data + ";\n";
-        }
-    })
-
-    p.on('stream', function (stream) {
-        console.log('[peer,hosting=' + isHost + '].STREAM');
-        const remoteScreen: any = document.querySelector('#remote-screen');
-        remoteScreen.srcObject = stream
-        remoteScreen.onloadedmetadata = function (e) {
-            remoteScreen.play();
-            if (!isHost) {
-                transmitScreenMouseEvents(function (mouseMove: any) {
-                    const data = {t: 'mousemove', x: mouseMove.x / mouseMove.width, y: mouseMove.y / mouseMove.height};
-                    p.send(JSON.stringify(data));
-                })
-                transmitScreenMouseDownEvents(function (mouseDown: any) {
-                    const data = {t: 'mousedown', x: mouseDown.x / mouseDown.width, y: mouseDown.y / mouseDown.height};
-                    p.send(JSON.stringify(data));
-                })
-                transmitKeyboardEvents(function (key: any) {
-                    const data = {t: 'keyup', key: key};
-                    p.send(JSON.stringify(data));
-                })
-            }
-
-            hide('#title');
-            hide("#connect-form");
-        }
-
-    })
-
-    function handleMessage(data) {
-        var message;
-        try {
-            message = JSON.parse(data);
-        } catch (err) {
-            console.log(err);
-        }
-        if (!message || !message.t) {
-            return;
-        }
-
-        var result = null;
-        switch (message.t) {
-            case 'mousemove':
-                robot.moveMouse(Math.round(message.x * screen.width), Math.round(message.y * screen.height));
-                break;
-            case 'mousedown':
-                robot.moveMouse(Math.round(message.x * screen.width), Math.round(message.y * screen.height));
-                robot.mouseClick();
-                break;
-            case 'keyup':
-                robot.keyTap(toRobotKey(message.key));
-                break;
-            default:
-                result = data;
-        }
-
-        return result;
-    }
-}
-
 
 function createHostPeer(screenStream) {
-    var p = new Peer({initiator: true, trickle: false, stream: screenStream});
+  const p = new Peer({initiator: true, trickle: false, stream: screenStream});
 
-    p.on('connect', function () {
-        console.log('[peer].CONNECT')
-    });
+  p.on('connect', function () {
+    console.log('[peer].CONNECT');
+  });
 
-    p.on('error', function (err) {
-        console.log('error', err)
-    });
+  p.on('error', function (err) {
+    console.log('[peer].ERROR', err);
+  });
 
-    p.on('data', function (data) {
-        console.log('[peer].DATA');
-        const unhandled = handleMessage(data);
-        if (unhandled) {
-            document.querySelector('#data').textContent += "Received: " + data + ";\n";
-        }
-    })
+  p.on('data', function (data) {
+    console.log('[peer].DATA');
+    const unhandled = handleMessage(data);
+    if (unhandled) {
+      document.querySelector('#data').textContent += "Received: " + data + ";\n";
+    }
+  });
 
-    function handleMessage(data) {
-        var message;
-        try {
-            message = JSON.parse(data);
-        } catch (err) {
-            console.log(err);
-        }
-        if (!message || !message.t) {
-            return;
-        }
-
-        var result = null;
-        switch (message.t) {
-            case 'mousemove':
-                robot.moveMouse(Math.round(message.x * screen.width), Math.round(message.y * screen.height));
-                break;
-            case 'mousedown':
-                robot.moveMouse(Math.round(message.x * screen.width), Math.round(message.y * screen.height));
-                robot.mouseClick();
-                break;
-            case 'keyup':
-                robot.keyTap(toRobotKey(message.key));
-                break;
-            default:
-                result = data;
-        }
-
-        return result;
+  function handleMessage(data) {
+    let message;
+    try {
+      message = JSON.parse(data);
+    } catch (err) {
+      console.log(err);
+    }
+    if (!message || !message.t) {
+      return;
     }
 
-    return p;
+    let result = null;
+    switch (message.t) {
+      case 'mousemove':
+        robot.moveMouse(Math.round(message.x * screen.width), Math.round(message.y * screen.height));
+        break;
+      case 'mousedown':
+        robot.moveMouse(Math.round(message.x * screen.width), Math.round(message.y * screen.height));
+        robot.mouseClick();
+        break;
+      case 'keyup':
+        robot.keyTap(toRobotKey(message.key));
+        break;
+      default:
+        result = data;
+    }
+
+    return result;
+  }
+
+  return p;
 }
 
 function createJoinPeer() {
-    var p = new Peer({initiator: false, trickle: false});
+  const p = new Peer({initiator: false, trickle: false});
 
-    p.on('connect', function () {
-        console.log('[peer].CONNECT')
-    });
+  p.on('connect', function () {
+    console.log('[peer].CONNECT');
+  });
 
-    p.on('error', function (err) {
-        console.log('error', err)
-    });
+  p.on('error', function (err) {
+    console.log('[peer].ERROR', err);
+  });
 
-    p.on('stream', function (stream) {
-        console.log('[peer.STREAM]');
-        const remoteScreen: any = document.querySelector('#remote-screen');
-        remoteScreen.srcObject = stream
-        remoteScreen.onloadedmetadata = function (e) {
-            remoteScreen.play();
-            transmitScreenMouseEvents(function (mouseMove) {
-                const data = {t: 'mousemove', x: mouseMove.x / mouseMove.width, y: mouseMove.y / mouseMove.height};
-                p.send(JSON.stringify(data));
-            })
-            transmitScreenMouseDownEvents(function (mouseDown) {
-                const data = {t: 'mousedown', x: mouseDown.x / mouseDown.width, y: mouseDown.y / mouseDown.height};
-                p.send(JSON.stringify(data));
-            })
-            transmitKeyboardEvents(function (key) {
-                const data = {t: 'keyup', key: key};
-                p.send(JSON.stringify(data));
-            })
+  p.on('stream', function (stream) {
+    const remoteScreen: any = document.querySelector('#remote-screen');
+    remoteScreen.srcObject = stream;
+    remoteScreen.onloadedmetadata = function () {
+      remoteScreen.play();
 
-        }
+      transmitScreenMouseEvents(function (mouseMove) {
+        const data = {t: 'mousemove', x: mouseMove.x / mouseMove.width, y: mouseMove.y / mouseMove.height};
+        p.send(JSON.stringify(data));
+      });
 
-    })
+      transmitScreenMouseDownEvents(function (mouseDown) {
+        const data = {t: 'mousedown', x: mouseDown.x / mouseDown.width, y: mouseDown.y / mouseDown.height};
+        p.send(JSON.stringify(data));
+      });
 
-    return p;
+      transmitKeyboardEvents(function (key) {
+        const data = {t: 'keyup', key: key};
+        p.send(JSON.stringify(data));
+      });
+    }
+  });
+
+  return p;
 }
 
-var peer;
+let peer;
 
 ipc.on('dc-request-offer', function (event) {
-    console.log('DC is starting up!');
+  console.log('DC is getting an offer');
+  getScreenStream(function (screenStream) {
+    peer = createHostPeer(screenStream);
 
-    hide("#buttons");
-    hide("#remote-screen");
-    hide('#title');
-    hide("#connect-form");
-
-    getScreenStream(function (screenStream) {
-        peer = createHostPeer(screenStream);
-
-        peer.on('signal', function (data) {
-            var offer = JSON.stringify(data);
-            event.sender.send('dc-receive-offer', offer);
-        })
-    })
+    peer.on('signal', function (data) {
+      const offer = JSON.stringify(data);
+      event.sender.send('dc-receive-offer', offer);
+    });
+  });
 });
 
 ipc.on('dc-request-answer', function (event, offer) {
-    console.log('DC is getting an answer...');
+  console.log('DC is getting an answer...');
+  show("#remote-screen");
+  peer = createJoinPeer();
 
-    hide("#buttons");
-    show("#remote-screen");
-    hide('#title');
-    hide("#connect-form");
+  peer.on('signal', function (data) {
+    const answer = JSON.stringify(data);
+    event.sender.send('dc-receive-answer', answer);
+  });
 
-    peer = createJoinPeer();
-
-    peer.on('signal', function (data) {
-        var answer = JSON.stringify(data);
-        event.sender.send('dc-receive-answer', answer);
-    })
-
-    peer.signal(JSON.parse(offer));
+  // accept the offer
+  peer.signal(JSON.parse(offer));
 });
 
 ipc.on('dc-give-answer', function (event, answer) {
-    peer.signal(JSON.parse(answer));
+  // accept the answer
+  peer.signal(JSON.parse(answer));
 });

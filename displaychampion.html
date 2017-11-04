@@ -1,44 +1,13 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <meta charset="UTF-8">
-    <title>Display Champion</title>
-    <link href="css/reset.css" rel="stylesheet" type="text/css">
+  <meta charset="UTF-8">
+  <title>Display Champion</title>
+  <link href="css/reset.css" rel="stylesheet" type="text/css">
 </head>
 <body>
-<h1 id="title">Display Champion</h1>
-<div id="simple-peer-example">
-    <style>
-        #outgoing {
-            width: 600px;
-            word-wrap: break-word;
-        }
-
-        .hidden {
-            display: none;
-        }
-
-        .screen {
-            width: 100%;
-        }
-    </style>
-
-    <div id="buttons">
-        <button id="host">Host</button>
-        <button id="join">Join</button>
-    </div>
-
-    <div id="connect-form" class="hidden">
-        <form>
-            <textarea id="incoming"></textarea>
-            <button type="submit">submit</button>
-        </form>
-        <pre id="outgoing"></pre>
-        <h4>Data:</h4>
-        <pre id="data"></pre>
-    </div>
-
-    <video id="remote-screen" class="screen hidden"></video>
+<div>
+  <video id="remote-screen" style="width: 100%;" class="screen hidden"></video>
 </div>
 
 <script src="displaychampion.js"></script>
