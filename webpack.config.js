@@ -1,4 +1,5 @@
 const path = require('path');
+const webpack = require('webpack');
 const nodeExternals = require('webpack-node-externals');
 
 const elmSource = path.resolve(__dirname);
@@ -119,7 +120,14 @@ module.exports = [{
       }
     ]
   },
-  externals: [nodeExternals()]
+  externals: [nodeExternals()],
+  plugins: [
+    new webpack.DefinePlugin({
+      'process.env': {
+        'DEBUG_TOOLS': JSON.stringify(process.env.DEBUG_TOOLS)
+      }
+    })
+  ]
 }, {
   entry: {
     'displaychampion': ['./displaychampion.ts']
@@ -142,5 +150,12 @@ module.exports = [{
       }
     ]
   },
-  externals: [nodeExternals()]
+  externals: [nodeExternals()],
+  plugins: [
+    new webpack.DefinePlugin({
+      'process.env': {
+        'NODE_ENV': JSON.stringify(process.env.TARGET_NODE_ENV)
+      }
+    })
+  ]
 }];

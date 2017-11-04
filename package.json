@@ -6,9 +6,9 @@
   "main": "main.js",
   "scripts": {
     "start": "webpack && electron .",
-    "start:reception": "webpack-dev-server --port 3000",
-    "build": "webpack && electron-packager . --no-prune --out dist --overwrite",
-    "build:reception": "webpack --display-error-details"
+    "build": "webpack --display-error-details",
+    "build:debug": "DEBUG_TOOLS=true webpack --display-error-details",
+    "package": "electron-packager . --no-prune --out dist --overwrite"
   },
   "repository": "",
   "keywords": [],

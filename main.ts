@@ -33,7 +33,9 @@ function createWindow() {
   }))
 
   // Open the DevTools.
-  mainWindow.webContents.openDevTools()
+  if (process.env.DEBUG_TOOLS) {
+    mainWindow.webContents.openDevTools()
+  }
 
   // Emitted when the window is closed.
   mainWindow.on('closed', function () {
@@ -45,7 +47,9 @@ function createWindow() {
 
   Menu.setApplicationMenu(menu)
 
-  // createWebRtcInternalsWindow();
+  if (process.env.DEBUG_TOOLS) {
+    createWebRtcInternalsWindow();
+  }
 }
 
 // This method will be called when Electron has finished
@@ -79,7 +83,9 @@ const receptionWindow = menubar({
 });
 
 receptionWindow.on('after-create-window', function () {
-  receptionWindow.window.webContents.openDevTools()
+  if (process.env.DEBUG_TOOLS) {
+    receptionWindow.window.webContents.openDevTools()
+  }
 });
 
 ipc.on('request-offer', function (event) {
