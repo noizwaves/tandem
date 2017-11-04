@@ -1,97 +1,91 @@
-import {app, BrowserWindow, ipcMain as ipc, Menu} from 'electron';
-import * as menubar from 'menubar';
+import {app, BrowserWindow, ipcMain as ipc, Menu, Tray} from 'electron';
 
-const path = require('path')
-const url = require('url')
+const path = require('path');
+const url = require('url');
 
-// Keep a global reference of the window object, if you don't, the window will
-// be closed automatically when the JavaScript object is garbage collected.
-var mainWindow
+const trayMenu = Menu.buildFromTemplate([{role: 'quit'}]);
 
-const template = [
-  {
-    label: 'Edit',
-    submenu: [
-      {role: 'copy'},
-      {role: 'paste'},
-      {role: 'quit'},
-    ]
-  },
-]
+let displayChampionWindow: BrowserWindow;
+let receptionWindow;
+let tray: Tray;
 
-const menu = Menu.buildFromTemplate(template)
-
-function createWindow() {
+function createDisplayChampionWindow() {
   // Create the browser window.
-  mainWindow = new BrowserWindow({width: 800, height: 600})
+  displayChampionWindow = new BrowserWindow({width: 800, height: 600, show: false});
 
   // and load the displaychampion.html of the app.
-  mainWindow.loadURL(url.format({
+  displayChampionWindow.loadURL(url.format({
     pathname: path.join(__dirname, 'displaychampion.html'),
     protocol: 'file:',
     slashes: true
-  }))
+  }));
 
   // Open the DevTools.
   if (process.env.DEBUG_TOOLS) {
-    mainWindow.webContents.openDevTools()
+    displayChampionWindow.webContents.openDevTools();
   }
 
-  // Emitted when the window is closed.
-  mainWindow.on('closed', function () {
-    // Dereference the window object, usually you would store windows
-    // in an array if your app supports multi windows, this is the time
-    // when you should delete the corresponding element.
-    mainWindow = null
-  })
-
-  Menu.setApplicationMenu(menu)
-
-  if (process.env.DEBUG_TOOLS) {
-    createWebRtcInternalsWindow();
-  }
+  displayChampionWindow.on('closed', function () {
+    displayChampionWindow = null
+  });
 }
 
-// This method will be called when Electron has finished
-// initialization and is ready to create browser windows.
-// Some APIs can only be used after this event occurs.
-app.on('ready', createWindow)
+function createReceptionWindow() {
+  receptionWindow = new BrowserWindow({width: 400, height: 400});
 
-// Quit when all windows are closed.
-app.on('window-all-closed', function () {
+  receptionWindow.loadURL(url.format({
+    pathname: path.join(__dirname, 'reception', 'dist', 'index.electron.html'),
+    protocol: 'file:',
+    slashes: true
+  }));
+
+  receptionWindow.on('after-create-window', function () {
+    if (process.env.DEBUG_TOOLS) {
+      receptionWindow.window.webContents.openDevTools();
+    }
+  });
+
+  receptionWindow.on('closed', () => {
+    receptionWindow = null
+  });
+}
+
+function openWebRtcInternalsWindow() {
+  const webRtcWindow = new BrowserWindow({width: 800, height: 600});
+  webRtcWindow.loadURL('chrome://webrtc-internals');
+  return webRtcWindow;
+}
+
+app.on('ready', () => {
+  createReceptionWindow();
+  createDisplayChampionWindow();
+
+  if (process.env.DEBUG_TOOLS) {
+    openWebRtcInternalsWindow();
+  }
+
+  tray = new Tray(path.join(__dirname, 'icons', 'idle.png'));
+  tray.setContextMenu(trayMenu);
+});
+
+app.on('window-all-closed', function () {// Quit when all windows are closed.
   // On OS X it is common for applications and their menu bar
   // to stay active until the user quits explicitly with Cmd + Q
   if (process.platform !== 'darwin') {
     app.quit()
   }
-})
-
-app.on('activate', function () {
-  // On OS X it's common to re-create a window in the app when the
-  // dock icon is clicked and there are no other windows open.
-  if (mainWindow === null) {
-    createWindow()
-  }
-})
-
-// In this file you can include the rest of your app's specific main process
-// code. You can also put them in separate files and require them here.
-
-const receptionWindow = menubar({
-  icon: path.join(__dirname, 'icons', 'idle.png'),
-  index: 'file://' + path.join(__dirname, 'reception', 'dist', 'index.electron.html')
 });
 
-receptionWindow.on('after-create-window', function () {
-  if (process.env.DEBUG_TOOLS) {
-    receptionWindow.window.webContents.openDevTools()
+app.on('activate', function () {
+  if (receptionWindow === null) {
+    createReceptionWindow();
   }
 });
 
 ipc.on('request-offer', function (event) {
   console.log('$$$$ Getting offer from DisplayChampion...');
 
-  mainWindow.webContents.send('dc-request-offer');
+  displayChampionWindow.webContents.send('dc-request-offer');
 
   ipc.on('dc-receive-offer', function (_event, offer) {
     console.log('$$$# Offer retrieved from DC')
@@ -102,7 +96,10 @@ ipc.on('request-offer', function (event) {
 ipc.on('request-answer', function (event, offer) {
   console.log('$$$$ Get answer from DisplayChampion...');
 
-  mainWindow.webContents.send('dc-request-answer', offer);
+  displayChampionWindow.show();
+  displayChampionWindow.maximize();
+
+  displayChampionWindow.webContents.send('dc-request-answer', offer);
 
   ipc.on('dc-receive-answer', function (_event, answer) {
     event.sender.send('receive-answer', answer);
@@ -110,11 +107,5 @@ ipc.on('request-answer', function (event, offer) {
 });
 
 ipc.on('give-answer', function (event, answer) {
-  mainWindow.webContents.send('dc-give-answer', answer);
+  displayChampionWindow.webContents.send('dc-give-answer', answer);
 });
-
-function createWebRtcInternalsWindow() {
-  const webRtcWindow = new BrowserWindow({width: 800, height: 600});
-  webRtcWindow.loadURL('chrome://webrtc-internals');
-  return webRtcWindow;
-}
