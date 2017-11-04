@@ -84,6 +84,7 @@ app.on('activate', function () {
 
 ipc.on('request-offer', function (event) {
   console.log('$$$$ Getting offer from DisplayChampion...');
+  tray.setImage(path.join(__dirname, 'icons', 'busy.png'));
 
   displayChampionWindow.webContents.send('dc-request-offer');
 
@@ -95,6 +96,7 @@ ipc.on('request-offer', function (event) {
 
 ipc.on('request-answer', function (event, offer) {
   console.log('$$$$ Get answer from DisplayChampion...');
+  tray.setImage(path.join(__dirname, 'icons', 'busy.png'));
 
   displayChampionWindow.show();
   displayChampionWindow.maximize();
