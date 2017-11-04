@@ -3,35 +3,25 @@ import * as Peer from 'simple-peer';
 import * as robot from 'robotjs';
 
 function getScreenStream(cb) {
-  desktopCapturer.getSources({types: ['window', 'screen']}, function (error, sources) {
-    if (error) {
-      throw error;
+  const video: MediaTrackConstraints = <MediaTrackConstraints> (<any> {
+    mandatory: {
+      chromeMediaSource: 'screen',
+      maxWidth: screen.width,
+      maxHeight: screen.height,
+      minFrameRate: 30
     }
-    for (let i = 0; i < sources.length; ++i) {
-      if (sources[i].name === 'Entire screen') {
-        const video: MediaTrackConstraints = <MediaTrackConstraints> (<any> {
-          mandatory: {
-            chromeMediaSource: 'desktop',
-            chromeMediaSourceId: sources[i].id,
-            maxWidth: screen.width,
-            maxHeight: screen.height,
-            minFrameRate: 30
-          }
-        });
-        navigator.mediaDevices.getUserMedia(
-          {
-            audio: false,
-            video: video
-          })
-          .then(function (stream) {
-            cb(stream)
-          })
-          .catch(function (err) {
-            console.error('getUserMedia', err);
-          })
-      }
-    }
-  })
+  });
+  navigator.mediaDevices.getUserMedia(
+    {
+      audio: false,
+      video: video
+    })
+    .then(function (stream) {
+      cb(stream)
+    })
+    .catch(function (err) {
+      console.error('getUserMedia', err);
+    });
 }
 
 function show(selector) {
