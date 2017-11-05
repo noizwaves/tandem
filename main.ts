@@ -3,7 +3,7 @@ import {app, BrowserWindow, ipcMain as ipc, Menu, Tray} from 'electron';
 const path = require('path');
 const url = require('url');
 
-const trayMenu = Menu.buildFromTemplate([{role: 'quit'}]);
+const minimalMenu = Menu.buildFromTemplate([{role: 'quit'}]);
 
 let displayChampionWindow: BrowserWindow;
 let receptionWindow;
@@ -58,6 +58,7 @@ function openWebRtcInternalsWindow() {
 }
 
 app.dock.setIcon(path.join(__dirname, 'icons', 'idle.png'));
+Menu.setApplicationMenu(minimalMenu);
 
 if (process.env.DEBUG_TOOLS) {
   app.commandLine.appendSwitch('--enable-logging');
@@ -73,7 +74,7 @@ app.on('ready', () => {
   }
 
   tray = new Tray(path.join(__dirname, 'icons', 'idle.png'));
-  tray.setContextMenu(trayMenu);
+  tray.setContextMenu(minimalMenu);
 });
 
 app.on('window-all-closed', function () {// Quit when all windows are closed.
