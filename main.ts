@@ -58,6 +58,11 @@ function openWebRtcInternalsWindow() {
 
 app.dock.setIcon(path.join(__dirname, 'icons', 'idle.png'));
 
+if (process.env.DEBUG_TOOLS) {
+  app.commandLine.appendSwitch('--enable-logging');
+  app.commandLine.appendSwitch('--v', '1');
+}
+
 app.on('ready', () => {
   createReceptionWindow();
   createDisplayChampionWindow();
