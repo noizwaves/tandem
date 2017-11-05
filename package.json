@@ -32,7 +32,8 @@
     "webpack-node-externals": "^1.6.0"
   },
   "dependencies": {
-    "robotjs": "^0.4.7",
-    "simple-peer": "^8.1.1"
+    "robotjs": "~0.4.7",
+    "rxjs": "~5.5.2",
+    "simple-peer": "~8.1.1"
   }
 }

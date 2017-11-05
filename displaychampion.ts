@@ -1,4 +1,6 @@
 import {desktopCapturer, ipcRenderer as ipc} from 'electron';
+
+import * as Rx from 'rxjs';
 import * as Peer from 'simple-peer';
 import * as robot from 'robotjs';
 
@@ -30,15 +32,21 @@ function show(selector) {
 
 function transmitScreenMouseEvents(mouseMoveCallback) {
   const remoteScreen = document.querySelector('#remote-screen');
+  const movements = new Rx.Subject();
+
   remoteScreen.addEventListener('mousemove', function (event: any) {
-    mouseMoveCallback({
+    movements.next({
       x: event.offsetX,
       y: event.offsetY,
       width: remoteScreen.clientWidth,
       height: remoteScreen.clientHeight
     });
-  })
-};
+  });
+
+  movements
+    .throttle(e => Rx.Observable.interval(33))
+    .subscribe(mouseMoveCallback);
+}
 
 function transmitScreenMouseDownEvents(mouseMoveCallback) {
   const remoteScreen = document.querySelector('#remote-screen');
@@ -50,7 +58,7 @@ function transmitScreenMouseDownEvents(mouseMoveCallback) {
       height: remoteScreen.clientHeight
     });
   })
-};
+}
 
 function transmitKeyboardEvents(keyboardCallback) {
   document.addEventListener('keyup', function (e: any) {
