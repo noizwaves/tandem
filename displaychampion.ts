@@ -4,6 +4,14 @@ import * as Rx from 'rxjs';
 import * as Peer from 'simple-peer';
 import * as robot from 'robotjs';
 
+const ICE_SERVERS = [{
+  url: 'stun:stun.l.google.com:19302'
+}, {
+  url: 'stun:stun.services.mozilla.com'
+}, {
+  urls: 'stun:global.stun.twilio.com:3478?transport=udp'
+}];
+
 function getScreenStream(cb) {
   const video: MediaTrackConstraints = <MediaTrackConstraints> (<any> {
     mandatory: {
@@ -104,11 +112,7 @@ function preferH264(sdp: string): string {
 function createHostPeer(screenStream) {
   const p = new Peer({
     config: {
-      iceServers: [{
-        url: 'stun:stun.l.google.com:19302'
-      }, {
-        url: 'stun:stun.services.mozilla.com'
-      }]
+      iceServers: ICE_SERVERS
     },
     sdpTransform: preferH264,
     initiator: true,
@@ -118,6 +122,10 @@ function createHostPeer(screenStream) {
 
   p.on('connect', function () {
     console.log('[peer].CONNECT');
+
+    // send screen size
+    const data = {t: 'screensize', h: screen.height, w: screen.width};
+    p.send(JSON.stringify(data));
   });
 
   p.on('error', function (err) {
@@ -125,10 +133,9 @@ function createHostPeer(screenStream) {
   });
 
   p.on('data', function (data) {
-    console.log('[peer].DATA');
     const unhandled = handleMessage(data);
     if (unhandled) {
-      document.querySelector('#data').textContent += "Received: " + data + ";\n";
+      console.log('Unhandled data', unhandled);
     }
   });
 
@@ -168,11 +175,7 @@ function createHostPeer(screenStream) {
 function createJoinPeer() {
   const p = new Peer({
     config: {
-      iceServers: [{
-        url: 'stun:stun.l.google.com:19302'
-      }, {
-        url: 'stun:stun.services.mozilla.com'
-      }]
+      iceServers: ICE_SERVERS
     },
     initiator: false,
     trickle: false
@@ -184,6 +187,13 @@ function createJoinPeer() {
 
   p.on('error', function (err) {
     console.log('[peer].ERROR', err);
+  });
+
+  p.on('data', function (data) {
+    const unhandled = handleMessageFromHost(data);
+    if (unhandled) {
+      console.log('Unhandled message', unhandled);
+    }
   });
 
   p.on('stream', function (stream) {
@@ -208,6 +218,31 @@ function createJoinPeer() {
       });
     }
   });
+
+  function handleMessageFromHost(data) {
+    let message;
+    try {
+      message = JSON.parse(data);
+    } catch (err) {
+      console.log(err);
+    }
+    if (!message || !message.t) {
+      return;
+    }
+
+    let result = null;
+    switch (message.t) {
+      case 'screensize':
+        const height = message.h;
+        const width = message.w;
+        ipc.send('dc-screensize', {height, width});
+        break;
+      default:
+        result = data;
+    }
+
+    return result;
+  }
 
   return p;
 }

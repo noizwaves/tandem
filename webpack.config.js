@@ -132,6 +132,7 @@ module.exports = [{
   entry: {
     'displaychampion': ['./displaychampion.ts']
   },
+  devtool: 'inline-source-map',
   target: 'electron-renderer',
   node: {
     __dirname: false,

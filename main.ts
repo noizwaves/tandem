@@ -22,6 +22,7 @@ function createDisplayChampionWindow() {
 
   // Open the DevTools.
   if (process.env.DEBUG_TOOLS) {
+    displayChampionWindow.show();
     displayChampionWindow.webContents.openDevTools();
   }
 
@@ -117,4 +118,10 @@ ipc.on('request-answer', function (event, offer) {
 
 ipc.on('give-answer', function (event, answer) {
   displayChampionWindow.webContents.send('dc-give-answer', answer);
+});
+
+ipc.on('dc-screensize', function (event, dimensions) {
+  if (displayChampionWindow) {
+    displayChampionWindow.setAspectRatio(dimensions.width / dimensions.height, undefined);
+  }
 });
