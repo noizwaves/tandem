@@ -1,6 +1,6 @@
-import Html exposing (Html, button, div, text, input)
-import Html.Attributes exposing (class, disabled, type_, placeholder)
-import Html.Events exposing (onClick, onInput)
+import Html exposing (Html, button, div, form, text, input)
+import Html.Attributes exposing (autofocus, class, disabled, type_, placeholder)
+import Html.Events exposing (onInput, onSubmit)
 
 import WebSocket
 
@@ -173,9 +173,20 @@ view model =
     inputValid = (String.length model.name) == 0 || isValidName model.name
     inputClass = if inputValid then "name" else "name invalid"
 
+    formAttrs = case model.intent of
+      Browsing (Just info) ->
+        if info.canHost then
+          [ class "start-form", onSubmit (HostSession info) ]
+        else if info.canJoin then
+          [ class "start-form", onSubmit (JoinSession info) ]
+        else
+          [ class "start-form" ]
+      _ ->
+        [ class "start-form" ]
+
   in
-    div [ class "start-form" ]
-      [ input [ class inputClass, placeholder "Type in a name", type_ "text", onInput NameChanged, disabled (not inputEnabled) ] [ ]
+    form formAttrs
+      [ input [ autofocus True, class inputClass, placeholder "Type in a name", type_ "text", onInput NameChanged, disabled (not inputEnabled) ] [ ]
       , div [ class "start-buttons" ] buttons
       ]
 
@@ -186,9 +197,9 @@ viewUnconnectedButtons information =
       [ text "Start" ]
     Just info ->
       if info.canHost then
-        [ button [ class "start-button", onClick (HostSession info) ] [ text "Host" ] ]
+        [ button [ class "start-button", type_ "submit" ] [ text "Host" ] ]
       else if info.canJoin then
-        [ button [ class "start-button", onClick (JoinSession info) ] [ text "Join" ] ]
+        [ button [ class "start-button", type_ "submit" ] [ text "Join" ] ]
       else
         [ text "Occupied" ]
 
