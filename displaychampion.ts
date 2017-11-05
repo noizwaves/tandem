@@ -69,35 +69,68 @@ function transmitScreenMouseDownEvents(mouseMoveCallback) {
 }
 
 function transmitKeyboardEvents(keyboardCallback) {
+  const heldModifiers = {};
+
+  document.addEventListener('keydown', function (e: any) {
+    if (isMeta(e.code)) {
+      heldModifiers[e.code] = true;
+      console.log(e.code + 'is down');
+    }
+  }, true);
+
   document.addEventListener('keyup', function (e: any) {
-      keyboardCallback(e.key);
-    },
-    true
-  );
+    if (isMeta(e.code)) {
+      delete heldModifiers[e.code];
+      console.log(e.code + 'is up');
+    } else {
+      keyboardCallback(e.code, Object.keys(heldModifiers));
+    }
+  }, true);
 }
 
-function toRobotKey(key) {
-  switch (key) {
+function isMeta(code: string): boolean {
+  switch (code) {
+    case 'ShiftLeft': case 'ShiftRight':
+      return true;
+    case 'ControlLeft': case 'ControlRight':
+      return true;
+    case 'AltLeft': case 'AltRight':
+      return true;
+    case 'MetaLeft': case 'MetaRight':
+      return true;
+    default:
+      return false;
+  }
+}
+
+function toRobotKey(code) {
+  if (code.startsWith('Key')) {
+    return code.substr(3).toLowerCase();
+  } else if (code.startsWith('Digit')) {
+    return code.substr(5);
+  }
+
+  switch (code) {
+    case 'ShiftLeft': case 'ShiftRight':
+      return 'shift';
+    case 'ControlLeft': case 'ControlRight':
+      return 'control';
+    case 'AltLeft': case 'AltRight':
+      return 'alt';
+    case 'MetaLeft': case 'MetaRight':
+      return 'command';
+    case 'Space':
+      return 'space';
     case 'Escape':
       return 'escape';
-    case 'Shift':
-      return 'shift';
-    case ' ':
-      return 'space';
     case 'Enter':
       return 'enter';
     case 'Tab':
       return 'tab';
-    case 'Control':
-      return 'control';
-    case 'Alt':
-      return 'alt';
-    case 'Meta':
-      return 'command';
     case 'Backspace':
       return 'backspace';
     default:
-      return key;
+      return code;
   }
 }
 
@@ -160,7 +193,9 @@ function createHostPeer(screenStream) {
         robot.mouseClick();
         break;
       case 'keyup':
-        robot.keyTap(toRobotKey(message.key));
+        console.log('received', message);
+        console.log('robot.keyTap', toRobotKey(message.code), message.modifiers.map(toRobotKey));
+        robot.keyTap(toRobotKey(message.code), message.modifiers.map(toRobotKey));
         break;
       default:
         result = data;
@@ -212,8 +247,8 @@ function createJoinPeer() {
         p.send(JSON.stringify(data));
       });
 
-      transmitKeyboardEvents(function (key) {
-        const data = {t: 'keyup', key: key};
+      transmitKeyboardEvents(function (code: string, modifiers: string[]) {
+        const data = {t: 'keyup', code: code, modifiers: modifiers};
         p.send(JSON.stringify(data));
       });
     }
