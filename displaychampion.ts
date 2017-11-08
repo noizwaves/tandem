@@ -4,13 +4,12 @@ import * as Rx from 'rxjs';
 import * as Peer from 'simple-peer';
 import * as robot from 'robotjs';
 
-const ICE_SERVERS = [{
-  url: 'stun:stun.l.google.com:19302'
-}, {
-  url: 'stun:stun.services.mozilla.com'
-}, {
-  urls: 'stun:global.stun.twilio.com:3478?transport=udp'
-}];
+const ICE_SERVERS = [
+  // {url: 'stun:stun.l.google.com:19302'},
+  // {url: 'stun:stun.services.mozilla.com'},
+  // {urls: 'stun:global.stun.twilio.com:3478?transport=udp'},
+  {urls: 'turn:54.219.175.205:3478?transport=udp', username: 'displaychampion', credential: 'displaychampion'},
+];
 
 function getScreenStream(cb) {
   const video: MediaTrackConstraints = <MediaTrackConstraints> (<any> {
@@ -90,13 +89,17 @@ function transmitKeyboardEvents(keyboardCallback) {
 
 function isMeta(code: string): boolean {
   switch (code) {
-    case 'ShiftLeft': case 'ShiftRight':
+    case 'ShiftLeft':
+    case 'ShiftRight':
       return true;
-    case 'ControlLeft': case 'ControlRight':
+    case 'ControlLeft':
+    case 'ControlRight':
       return true;
-    case 'AltLeft': case 'AltRight':
+    case 'AltLeft':
+    case 'AltRight':
       return true;
-    case 'MetaLeft': case 'MetaRight':
+    case 'MetaLeft':
+    case 'MetaRight':
       return true;
     default:
       return false;
@@ -111,13 +114,17 @@ function toRobotKey(code) {
   }
 
   switch (code) {
-    case 'ShiftLeft': case 'ShiftRight':
+    case 'ShiftLeft':
+    case 'ShiftRight':
       return 'shift';
-    case 'ControlLeft': case 'ControlRight':
+    case 'ControlLeft':
+    case 'ControlRight':
       return 'control';
-    case 'AltLeft': case 'AltRight':
+    case 'AltLeft':
+    case 'AltRight':
       return 'alt';
-    case 'MetaLeft': case 'MetaRight':
+    case 'MetaLeft':
+    case 'MetaRight':
       return 'command';
     case 'Space':
       return 'space';
