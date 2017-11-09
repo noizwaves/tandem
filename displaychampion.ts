@@ -8,7 +8,7 @@ const ICE_SERVERS = [
   // {url: 'stun:stun.l.google.com:19302'},
   // {url: 'stun:stun.services.mozilla.com'},
   // {urls: 'stun:global.stun.twilio.com:3478?transport=udp'},
-  {urls: 'turn:54.219.175.205:3478?transport=udp', username: 'displaychampion', credential: 'displaychampion'},
+  {urls: 'turn:crank.tandem.stream:3478?transport=udp', username: 'displaychampion', credential: 'displaychampion'},
 ];
 
 function getScreenStream(cb) {
