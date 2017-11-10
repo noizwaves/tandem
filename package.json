@@ -1,14 +1,31 @@
 {
-  "name": "display-champion",
-  "version": "1.0.0",
+  "name": "displaychampion",
+  "version": "0.1.0",
   "description": "Remote pair programming tool",
   "productName": "Display Champion",
   "main": "main.js",
+  "build": {
+    "appId": "app.tandem.stream",
+    "files": [
+      "css/",
+      "icons/",
+      "node_modules/",
+      "reception/dist/",
+      "displaychampion.html",
+      "displaychampion.js",
+      "main.js",
+      "package.json"
+    ],
+    "mac": {
+      "target": ["zip"]
+    }
+  },
   "scripts": {
+    "postinstall": "electron-builder install-app-deps",
     "start": "webpack && electron .",
     "build": "webpack --display-error-details",
     "build:debug": "DEBUG_TOOLS=true webpack --display-error-details",
-    "package": "electron-packager . --no-prune --out dist --overwrite"
+    "dist": "electron-builder"
   },
   "repository": "",
   "keywords": [],
@@ -17,7 +34,7 @@
   "devDependencies": {
     "css-loader": "^0.28.4",
     "electron": "~1.7.8",
-    "electron-packager": "^9.1.0",
+    "electron-builder": "^19.45.4",
     "elm": "^0.18.0",
     "elm-webpack-loader": "^4.3.1",
     "file-loader": "^0.11.2",
