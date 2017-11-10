@@ -1,11 +1,11 @@
 {
-  "name": "displaychampion",
+  "name": "tandem",
   "version": "0.1.0",
   "description": "Remote pair programming tool",
-  "productName": "Display Champion",
+  "productName": "Tandem",
   "main": "main.js",
   "build": {
-    "appId": "app.tandem.stream",
+    "appId": "stream.tandem.app",
     "files": [
       "css/",
       "icons/",
@@ -17,7 +17,9 @@
       "package.json"
     ],
     "mac": {
-      "target": ["zip"]
+      "icon": "icons/app.icns",
+      "category": "public.app-category.developer-tools",
+      "target": ["dmg"]
     }
   },
   "scripts": {
