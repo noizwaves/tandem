@@ -128,6 +128,7 @@ ipc.on('request-answer', function (event, offer) {
   console.log('$$$$ Get answer from DisplayChampion...');
   tray.setImage(path.join(__dirname, 'icons', 'busy.png'));
 
+  sessionActive = true;
   displayChampionWindow.show();
   displayChampionWindow.maximize();
 
@@ -146,9 +147,4 @@ ipc.on('dc-screensize', function (event, dimensions) {
   if (displayChampionWindow) {
     displayChampionWindow.setAspectRatio(dimensions.width / dimensions.height, undefined);
   }
-});
-
-ipc.on('dc-session-active', function(event) {
-  sessionActive = true;
-  console.log('Session is active!');
 });
