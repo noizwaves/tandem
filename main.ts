@@ -64,6 +64,11 @@ function createReceptionWindow() {
   receptionWindow.on('closed', () => {
     receptionWindow = null
   });
+
+  // Open the DevTools.
+  if (process.env.DEBUG_TOOLS) {
+    receptionWindow.webContents.openDevTools();
+  }
 }
 
 function openWebRtcInternalsWindow() {
