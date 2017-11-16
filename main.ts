@@ -1,7 +1,9 @@
 import {app, BrowserWindow, ipcMain as ipc, Menu, Tray} from 'electron';
+import {canDisableShortcuts, deInit, disableShortcuts, restoreShortcuts} from './macos';
 
 const path = require('path');
 const url = require('url');
+
 
 const minimalMenu = Menu.buildFromTemplate([{role: 'quit'}]);
 
@@ -26,7 +28,20 @@ function createDisplayChampionWindow() {
     displayChampionWindow.webContents.openDevTools();
   }
 
+  displayChampionWindow.on('focus', function () {
+    if (canDisableShortcuts()) {
+      disableShortcuts();
+    }
+  });
+
+  displayChampionWindow.on('blur', function () {
+    if (canDisableShortcuts()) {
+      restoreShortcuts();
+    }
+  });
+
   displayChampionWindow.on('closed', function () {
+    deInit();
     displayChampionWindow = null
   });
 }
