@@ -111,6 +111,9 @@ module.exports = [{
     path: path.resolve(__dirname) + '/',
     filename: '[name].js'
   },
+  resolve: {
+    extensions: [ '.ts','.js']
+  },
   module: {
     rules: [
       {
@@ -141,6 +144,9 @@ module.exports = [{
   output: {
     path: path.resolve(__dirname) + '/',
     filename: '[name].js'
+  },
+  resolve: {
+    extensions: [ '.ts','.js']
   },
   module: {
     rules: [
