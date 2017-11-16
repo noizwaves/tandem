@@ -70,14 +70,14 @@ function transmitScreenMouseDownEvents(mouseMoveCallback) {
 function transmitKeyboardEvents(keyboardCallback) {
   const heldModifiers = {};
 
-  document.addEventListener('keydown', function (e: any) {
+  window.addEventListener('keydown', function (e: any) {
     if (isMeta(e.code)) {
       heldModifiers[e.code] = true;
       console.log(e.code + 'is down');
     }
   }, true);
 
-  document.addEventListener('keyup', function (e: any) {
+  window.addEventListener('keyup', function (e: any) {
     if (isMeta(e.code)) {
       delete heldModifiers[e.code];
       console.log(e.code + 'is up');
