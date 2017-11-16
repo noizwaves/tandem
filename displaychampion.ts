@@ -258,8 +258,6 @@ function createJoinPeer() {
         const data = {t: 'keyup', code: code, modifiers: modifiers};
         p.send(JSON.stringify(data));
       });
-
-      ipc.send('dc-session-active');
     }
   });
 
