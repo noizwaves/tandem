@@ -20,7 +20,7 @@
       "icon": "icons/app.icns",
       "category": "public.app-category.developer-tools",
       "target": [
-        "dmg"
+        "dir"
       ]
     }
   },

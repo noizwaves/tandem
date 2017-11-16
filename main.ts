@@ -11,6 +11,7 @@ let displayChampionWindow: BrowserWindow;
 let receptionWindow;
 let tray: Tray;
 
+let sessionActive = false;
 function createDisplayChampionWindow() {
   // Create the browser window.
   displayChampionWindow = new BrowserWindow({width: 800, height: 600, show: false});
@@ -29,13 +30,13 @@ function createDisplayChampionWindow() {
   }
 
   displayChampionWindow.on('focus', function () {
-    if (canDisableShortcuts()) {
+    if (sessionActive && canDisableShortcuts()) {
       disableShortcuts();
     }
   });
 
   displayChampionWindow.on('blur', function () {
-    if (canDisableShortcuts()) {
+    if (sessionActive && canDisableShortcuts()) {
       restoreShortcuts();
     }
   });
@@ -145,4 +146,9 @@ ipc.on('dc-screensize', function (event, dimensions) {
   if (displayChampionWindow) {
     displayChampionWindow.setAspectRatio(dimensions.width / dimensions.height, undefined);
   }
+});
+
+ipc.on('dc-session-active', function(event) {
+  sessionActive = true;
+  console.log('Session is active!');
 });
