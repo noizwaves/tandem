@@ -1,5 +1,8 @@
 import {app, BrowserWindow, ipcMain as ipc, Menu, Tray} from 'electron';
-import {canDisableShortcuts, deInit, disableShortcuts, restoreShortcuts} from './macos';
+import {
+  canDisableShortcuts, captureKeyEvents, deInit, disableShortcuts, restoreShortcuts,
+  stopCaptureKeyEvents
+} from './macos';
 
 const path = require('path');
 const url = require('url');
@@ -31,13 +34,25 @@ function createDisplayChampionWindow() {
 
   displayChampionWindow.on('focus', function () {
     if (sessionActive && canDisableShortcuts()) {
+      const kbEvents = captureKeyEvents();
       disableShortcuts();
+      console.log('Enabling MacOS integrations');
+
+      kbEvents.on('keyup', function(key, modifiers) {
+        displayChampionWindow.webContents.send('kb-keyup', key, modifiers);
+      });
+
+      kbEvents.on('modifier', function(modifiers) {
+        displayChampionWindow.webContents.send('kb-modifier', modifiers);
+      })
     }
   });
 
   displayChampionWindow.on('blur', function () {
     if (sessionActive && canDisableShortcuts()) {
+      stopCaptureKeyEvents();
       restoreShortcuts();
+      console.log('Disabling MacOS integrations');
     }
   });
 
@@ -82,8 +97,8 @@ app.dock.setIcon(path.join(__dirname, 'icons', 'idle.png'));
 Menu.setApplicationMenu(minimalMenu);
 
 if (process.env.DEBUG_TOOLS) {
-  app.commandLine.appendSwitch('--enable-logging');
-  app.commandLine.appendSwitch('--v', '1');
+  // app.commandLine.appendSwitch('--enable-logging');
+  // app.commandLine.appendSwitch('--v', '1');
 }
 
 app.on('ready', () => {
