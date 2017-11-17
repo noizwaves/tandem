@@ -80,11 +80,21 @@ function transmitKeyboardEvents(keyboardCallback) {
   window.addEventListener('keyup', function (e: any) {
     if (isMeta(e.code)) {
       delete heldModifiers[e.code];
-      console.log(e.code + 'is up');
     } else {
       keyboardCallback(e.code, Object.keys(heldModifiers));
     }
   }, true);
+}
+
+function transmitMacKeyboardEvents(keyboardCallback) {
+  ipc.on('kb-keyup', function(event, key, modifiers) {
+    console.log('kb-keyup', key, modifiers);
+    keyboardCallback(key, modifiers);
+  });
+
+  ipc.on('kb-modifier', function(event, modifiers) {
+    console.log('kb-modifier', modifiers);
+  });
 }
 
 function isMeta(code: string): boolean {
@@ -111,6 +121,8 @@ function toRobotKey(code) {
     return code.substr(3).toLowerCase();
   } else if (code.startsWith('Digit')) {
     return code.substr(5);
+  } else if (code.startsWith('F') && (code.length === 2 || code.length === 3)) {
+    return code.toLowerCase();
   }
 
   switch (code) {
@@ -136,8 +148,43 @@ function toRobotKey(code) {
       return 'tab';
     case 'Backspace':
       return 'backspace';
+    case 'ArrowRight':
+      return 'right';
+    case 'ArrowUp':
+      return 'up';
+    case 'ArrowLeft':
+      return 'left';
+    case 'ArrowDown':
+      return 'down';
+
+    // Unsupported
+    case 'CapsLock':
+      return null;
+    case 'Function':
+      return null;
+    case 'Backslash':
+      return null;
+    case 'Comma':
+      return null;
+    case 'Equal':
+      return null;
+    case 'BracketLeft':
+      return null;
+    case 'Minus':
+      return null;
+    case 'Period':
+      return null;
+    case 'Quote':
+      return '';
+    case 'BracketRight':
+      return null;
+    case 'Semicolon':
+      return null;
+    case 'Slash':
+      return null;
+
     default:
-      return code;
+      return null;
   }
 }
 
@@ -201,8 +248,14 @@ function createHostPeer(screenStream) {
         break;
       case 'keyup':
         console.log('received', message);
-        console.log('robot.keyTap', toRobotKey(message.code), message.modifiers.map(toRobotKey));
-        robot.keyTap(toRobotKey(message.code), message.modifiers.map(toRobotKey));
+        const robotKey = toRobotKey(message.code);
+        if (!robotKey) {
+          console.log(`RobotJS lacks support for ${message.code}`);
+          break;
+        }
+
+        console.log('robot.keyTap', robotKey, message.modifiers.map(toRobotKey));
+        robot.keyTap(robotKey, message.modifiers.map(toRobotKey));
         break;
       default:
         result = data;
@@ -254,7 +307,7 @@ function createJoinPeer() {
         p.send(JSON.stringify(data));
       });
 
-      transmitKeyboardEvents(function (code: string, modifiers: string[]) {
+      transmitMacKeyboardEvents(function (code: string, modifiers: string[]) {
         const data = {t: 'keyup', code: code, modifiers: modifiers};
         p.send(JSON.stringify(data));
       });
