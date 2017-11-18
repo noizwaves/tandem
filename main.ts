@@ -2,6 +2,8 @@ import {app, BrowserWindow, ipcMain as ipc, Menu, Tray} from 'electron';
 import {deInit, MacOsKeyboard} from './macos';
 import {Keyboard} from './keyboard';
 import {sendKeyDown, sendKeyUp, sendModifiers} from './keyboard.ipc';
+import DisplayChampionIPC from './displaychampion.ipc';
+import ReceptionIPC from './reception.ipc';
 
 const path = require('path');
 const url = require('url');
@@ -10,10 +12,11 @@ const url = require('url');
 const minimalMenu = Menu.buildFromTemplate([{role: 'quit'}]);
 
 let displayChampionWindow: BrowserWindow;
-let receptionWindow;
+let receptionWindow: BrowserWindow;
 let tray: Tray;
 
 let sessionActive = false;
+
 function createDisplayChampionWindow() {
   // Create the browser window.
   displayChampionWindow = new BrowserWindow({width: 800, height: 600, show: false});
@@ -65,12 +68,6 @@ function createReceptionWindow() {
     slashes: true
   }));
 
-  receptionWindow.on('after-create-window', function () {
-    if (process.env.DEBUG_TOOLS) {
-      receptionWindow.window.webContents.openDevTools();
-    }
-  });
-
   receptionWindow.on('closed', () => {
     receptionWindow = null
   });
@@ -121,19 +118,19 @@ app.on('activate', function () {
   }
 });
 
-ipc.on('request-offer', function (event) {
+ReceptionIPC.onRequestOffer(ipc, function (event) {
   console.log('$$$$ Getting offer from DisplayChampion...');
   tray.setImage(path.join(__dirname, 'icons', 'busy.png'));
 
-  displayChampionWindow.webContents.send('dc-request-offer');
+  DisplayChampionIPC.sendRequestOffer(displayChampionWindow);
 
-  ipc.on('dc-receive-offer', function (_event, offer) {
-    console.log('$$$# Offer retrieved from DC')
-    event.sender.send('receive-offer', offer);
+  DisplayChampionIPC.onReceiveOffer(ipc, function (offer) {
+    console.log('$$$$ Offer retrieved from DC');
+    ReceptionIPC.sendReceiveOffer(event.sender, offer);
   });
 });
 
-ipc.on('request-answer', function (event, offer) {
+ReceptionIPC.onRequestAnswer(ipc, function(event, offer) {
   console.log('$$$$ Get answer from DisplayChampion...');
   tray.setImage(path.join(__dirname, 'icons', 'busy.png'));
 
@@ -141,19 +138,19 @@ ipc.on('request-answer', function (event, offer) {
   displayChampionWindow.show();
   displayChampionWindow.maximize();
 
-  displayChampionWindow.webContents.send('dc-request-answer', offer);
+  DisplayChampionIPC.sendRequestAnswer(displayChampionWindow, offer);
 
-  ipc.on('dc-receive-answer', function (_event, answer) {
-    event.sender.send('receive-answer', answer);
+  DisplayChampionIPC.onReceiveAnswer(ipc, function (answer) {
+    ReceptionIPC.sendReceiveAnswer(event.sender, answer);
   });
 });
 
-ipc.on('give-answer', function (event, answer) {
-  displayChampionWindow.webContents.send('dc-give-answer', answer);
+ReceptionIPC.onGiveAnswer(ipc, function (answer) {
+  DisplayChampionIPC.sendGiveAnswer(displayChampionWindow, answer);
 });
 
-ipc.on('dc-screensize', function (event, dimensions) {
+DisplayChampionIPC.onScreenSize(ipc, function (height, width) {
   if (displayChampionWindow) {
-    displayChampionWindow.setAspectRatio(dimensions.width / dimensions.height, undefined);
+    displayChampionWindow.setAspectRatio(width / height, undefined);
   }
 });

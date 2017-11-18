@@ -38,12 +38,13 @@ export function unpackMouseDown(message): { x: number, y: number } {
 export const KEYUP = 'keyup';
 
 export function sendKeyUp(peer, code: KeyCode, modifiers: Modifiers) {
-  const data = {
+  const message = {
     t: KEYUP,
     code: code.toString(),
     modifiers: modifiers.map(m => m.toString())
   };
-  peer.send(JSON.stringify(data));
+  const data = JSON.stringify(message);
+  peer.send(data);
 }
 
 export function unpackKeyUp(message): { code: KeyCode, modifiers: Modifiers } {
@@ -51,4 +52,24 @@ export function unpackKeyUp(message): { code: KeyCode, modifiers: Modifiers } {
   const modifiers = <Modifiers> message.modifiers;
 
   return {code, modifiers};
+}
+
+
+export const SCREEN_SIZE = 'screensize';
+
+export function sendScreenSize(peer, height: number, width: number) {
+  const message = {
+    t: SCREEN_SIZE,
+    h: height,
+    w: width
+  };
+  const data = JSON.stringify(message);
+  peer.send(data);
+}
+
+export function unpackScreenSize(message): { height: number, width: number } {
+  const height = <number> message.h;
+  const width = <number> message.w;
+
+  return {height, width};
 }
