@@ -1,4 +1,5 @@
-import { ipcRenderer as ipc } from 'electron';
+import {ipcRenderer as ipc} from 'electron';
+import ReceptionIPC from '../../reception.ipc';
 
 require('./style/main.scss');
 
@@ -10,23 +11,21 @@ const mountNode = document.getElementById('main');
 const app = Elm.Main.embed(mountNode);
 
 app.ports.requestOffer.subscribe(function () {
-    ipc.send('request-offer');
+  ReceptionIPC.sendRequestOffer(ipc);
 });
 
-ipc.on('receive-offer', (event, offer) => {
-    // console.log('$$$$ Offer created, sending to Elm');
-    app.ports.receiveOffer.send(offer);
+ReceptionIPC.onReceiveOffer(ipc, (offer) => {
+  app.ports.receiveOffer.send(offer);
 });
 
 app.ports.requestAnswer.subscribe(function (offer) {
-    ipc.send('request-answer', offer);
+  ReceptionIPC.sendRequestAnswer(ipc, offer);
 });
 
-ipc.on('receive-answer', function (event, answer) {
-    console.log('$$$$ Answer created, sending to Elm');
-    app.ports.receiveAnswer.send(answer);
+ReceptionIPC.onReceiveAnswer(ipc, function (answer) {
+  app.ports.receiveAnswer.send(answer);
 });
 
-app.ports.giveAnswer.subscribe(function(answer) {
-    ipc.send('give-answer', answer);
+app.ports.giveAnswer.subscribe(function (answer) {
+  ReceptionIPC.sendGiveAnswer(ipc, answer);
 });

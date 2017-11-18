@@ -1,11 +1,12 @@
-import {desktopCapturer, ipcRenderer as ipc} from 'electron';
+import {desktopCapturer, ipcRenderer as ipc, IpcRenderer} from 'electron';
 
 import * as Rx from 'rxjs';
 import * as Peer from 'simple-peer';
 import * as robot from 'robotjs';
 
 import {onKeyUp} from './keyboard.ipc';
-import {KeyCode, ModifierCode, Modifiers} from './keyboard';
+import DisplayChampionIPC from './displaychampion.ipc';
+import {KeyCode, ModifierCode, Modifiers, KeyUpEvent} from './keyboard';
 import * as PeerMsgs from './peer-msgs';
 
 const ICE_SERVERS = [
@@ -71,40 +72,74 @@ function transmitScreenMouseDownEvents(mouseMoveCallback) {
   })
 }
 
+interface KeyboardEventTransmitter {
+  readonly keyUp: Rx.Observable<KeyUpEvent>;
+}
+
+class WindowTransmitter implements KeyboardEventTransmitter {
+  readonly keyUp: Rx.Observable<KeyUpEvent>;
+
+  private readonly _keyUp: Rx.Subject<KeyUpEvent>;
+  private readonly _heldModifiers: Set<ModifierCode>;
+
+  constructor(window: Window) {
+    this._keyUp = new Rx.Subject<KeyUpEvent>();
+    this.keyUp = this._keyUp;
+
+    this._heldModifiers = new Set<ModifierCode>();
+
+    window.addEventListener('keydown', (e: any) =>{
+      const rawCode = <string> e.code;
+      if (!(rawCode in KeyCode)) {
+        console.log(`Unhandled window.keydown event with code ${rawCode}, ignoring`);
+        return;
+      }
+
+      if (isMeta(rawCode)) {
+        this._heldModifiers.add(<ModifierCode> rawCode);
+      }
+    }, true);
+
+    window.addEventListener('keyup', (e: any) => {
+      const rawCode = <string> e.code;
+      if (!(rawCode in KeyCode)) {
+        console.log(`Unhandled window.keyup event with code ${rawCode}, ignoring`);
+        return;
+      }
+
+      if (isMeta(rawCode)) {
+        this._heldModifiers.delete(<ModifierCode> rawCode);
+      } else {
+        const modifiers = Array.from(this._heldModifiers.values());
+
+        this._keyUp.next({key: <KeyCode> rawCode, modifiers});
+      }
+    }, true);
+  }
+}
+
+class ExternalTransmitter implements KeyboardEventTransmitter {
+  readonly keyUp: Rx.Observable<KeyUpEvent>;
+
+  private readonly _keyUp: Rx.Subject<KeyUpEvent>;
+
+  constructor(ipc: IpcRenderer) {
+    this._keyUp = new Rx.Subject<KeyUpEvent>();
+    this.keyUp = this._keyUp;
+
+    onKeyUp(ipc, (key, modifiers) => this._keyUp.next({key, modifiers}));
+  }
+}
+
 // Key event transmitters
 function transmitInternalKeyboardEvents(keyUpCallback: (key: KeyCode, modifiers: Modifiers) => void) {
-  const heldModifiers = new Set<ModifierCode>();
-
-  window.addEventListener('keydown', function (e: any) {
-    const rawCode = <string> e.code;
-    if (!(rawCode in KeyCode)) {
-      console.log(`Unhandled window.keydown event with code ${rawCode}, ignoring`);
-      return;
-    }
-
-    if (isMeta(rawCode)) {
-      heldModifiers.add(<ModifierCode> rawCode);
-    }
-  }, true);
-
-  window.addEventListener('keyup', function (e: any) {
-    const rawCode = <string> e.code;
-    if (!(rawCode in KeyCode)) {
-      console.log(`Unhandled window.keyup event with code ${rawCode}, ignoring`);
-      return;
-    }
-
-    if (isMeta(rawCode)) {
-      heldModifiers.delete(<ModifierCode> rawCode);
-    } else {
-      const modifiers = Array.from(heldModifiers.values());
-      keyUpCallback(<KeyCode> rawCode, modifiers);
-    }
-  }, true);
+  const transmitter = new WindowTransmitter(window);
+  transmitter.keyUp.subscribe(e => keyUpCallback(e.key, e.modifiers));
 }
 
 function transmitExternalKeyboardEvents(keyUpCallback: (key: KeyCode, modifiers: Modifiers) => void) {
-  onKeyUp(ipc, (key, modifiers) => keyUpCallback(key, modifiers));
+  const transmitter = new ExternalTransmitter(ipc);
+  transmitter.keyUp.subscribe(e => keyUpCallback(e.key, e.modifiers));
 }
 
 function isMeta(rawCode: string): boolean {
@@ -272,9 +307,7 @@ function createHostPeer(screenStream) {
   p.on('connect', function () {
     console.log('[peer].CONNECT');
 
-    // send screen size
-    const data = {t: 'screensize', h: screen.height, w: screen.width};
-    p.send(JSON.stringify(data));
+    PeerMsgs.sendScreenSize(peer, screen.height, screen.width);
   });
 
   p.on('error', function (err) {
@@ -392,10 +425,9 @@ function createJoinPeer() {
 
     let result = null;
     switch (message.t) {
-      case 'screensize':
-        const height = message.h;
-        const width = message.w;
-        ipc.send('dc-screensize', {height, width});
+      case PeerMsgs.SCREEN_SIZE:
+        const { height, width } = PeerMsgs.unpackScreenSize(message);
+        DisplayChampionIPC.sendScreenSize(ipc, height, width);
         break;
       default:
         result = data;
@@ -409,33 +441,33 @@ function createJoinPeer() {
 
 let peer;
 
-ipc.on('dc-request-offer', function (event) {
+DisplayChampionIPC.onRequestOffer(ipc, function(event) {
   console.log('DC is getting an offer');
   getScreenStream(function (screenStream) {
     peer = createHostPeer(screenStream);
 
     peer.on('signal', function (data) {
       const offer = JSON.stringify(data);
-      event.sender.send('dc-receive-offer', offer);
+      DisplayChampionIPC.sendReceiveOffer(event.sender, offer);
     });
   });
 });
 
-ipc.on('dc-request-answer', function (event, offer) {
+DisplayChampionIPC.onRequestAnswer(ipc, function (event, offer) {
   console.log('DC is getting an answer...');
   show("#remote-screen");
   peer = createJoinPeer();
 
   peer.on('signal', function (data) {
     const answer = JSON.stringify(data);
-    event.sender.send('dc-receive-answer', answer);
+    DisplayChampionIPC.sendReceiveAnswer(event.sender, answer);
   });
 
   // accept the offer
   peer.signal(JSON.parse(offer));
 });
 
-ipc.on('dc-give-answer', function (event, answer) {
+DisplayChampionIPC.onGiveAnswer(ipc, function (answer) {
   // accept the answer
   peer.signal(JSON.parse(answer));
 });

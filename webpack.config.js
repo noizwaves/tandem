@@ -55,7 +55,9 @@ module.exports = [{
     ]
   },
   target: 'electron-renderer',
-
+  resolve: {
+    extensions: [ '.ts','.js']
+  },
   output: {
     path: path.resolve(__dirname + '/reception/dist'),
     filename: '[name].js',
