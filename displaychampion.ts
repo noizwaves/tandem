@@ -4,6 +4,10 @@ import * as Rx from 'rxjs';
 import * as Peer from 'simple-peer';
 import * as robot from 'robotjs';
 
+import {onKeyUp} from './keyboard.ipc';
+import {KeyCode, ModifierCode, Modifiers} from './keyboard';
+import * as PeerMsgs from './peer-msgs';
+
 const ICE_SERVERS = [
   // {url: 'stun:stun.l.google.com:19302'},
   // {url: 'stun:stun.services.mozilla.com'},
@@ -67,39 +71,45 @@ function transmitScreenMouseDownEvents(mouseMoveCallback) {
   })
 }
 
-function transmitKeyboardEvents(keyboardCallback) {
-  const heldModifiers = {};
+// Key event transmitters
+function transmitInternalKeyboardEvents(keyUpCallback: (key: KeyCode, modifiers: Modifiers) => void) {
+  const heldModifiers = new Set<ModifierCode>();
 
   window.addEventListener('keydown', function (e: any) {
-    if (isMeta(e.code)) {
-      heldModifiers[e.code] = true;
-      console.log(e.code + 'is down');
+    const rawCode = <string> e.code;
+    if (!(rawCode in KeyCode)) {
+      console.log(`Unhandled window.keydown event with code ${rawCode}, ignoring`);
+      return;
+    }
+
+    if (isMeta(rawCode)) {
+      heldModifiers.add(<ModifierCode> rawCode);
     }
   }, true);
 
   window.addEventListener('keyup', function (e: any) {
-    if (isMeta(e.code)) {
-      delete heldModifiers[e.code];
+    const rawCode = <string> e.code;
+    if (!(rawCode in KeyCode)) {
+      console.log(`Unhandled window.keyup event with code ${rawCode}, ignoring`);
+      return;
+    }
+
+    if (isMeta(rawCode)) {
+      heldModifiers.delete(<ModifierCode> rawCode);
     } else {
-      keyboardCallback(e.code, Object.keys(heldModifiers));
+      const modifiers = Array.from(heldModifiers.values());
+      keyUpCallback(<KeyCode> rawCode, modifiers);
     }
   }, true);
 }
 
-function transmitMacKeyboardEvents(keyboardCallback) {
-  ipc.on('kb-keyup', function(event, key, modifiers) {
-    console.log('kb-keyup', key, modifiers);
-    keyboardCallback(key, modifiers);
-  });
-
-  ipc.on('kb-modifier', function(event, modifiers) {
-    console.log('kb-modifier', modifiers);
-  });
+function transmitExternalKeyboardEvents(keyUpCallback: (key: KeyCode, modifiers: Modifiers) => void) {
+  onKeyUp(ipc, (key, modifiers) => keyUpCallback(key, modifiers));
 }
 
-function isMeta(code: string): boolean {
-  switch (code) {
-    case 'ShiftLeft':
+function isMeta(rawCode: string): boolean {
+  switch (rawCode) {
+    case 'ShiftRight':
     case 'ShiftRight':
       return true;
     case 'ControlLeft':
@@ -116,73 +126,125 @@ function isMeta(code: string): boolean {
   }
 }
 
-function toRobotKey(code) {
-  if (code.startsWith('Key')) {
-    return code.substr(3).toLowerCase();
-  } else if (code.startsWith('Digit')) {
-    return code.substr(5);
-  } else if (code.startsWith('F') && (code.length === 2 || code.length === 3)) {
-    return code.toLowerCase();
+function toRobotKey(code: KeyCode): string {
+  const codeStr = code.toString();
+  if (codeStr.startsWith('Key')) {
+    return codeStr.substr(3).toLowerCase();
+  } else if (codeStr.startsWith('Digit')) {
+    return codeStr.substr(5);
+  } else if (codeStr.startsWith('F') && (codeStr.length === 2 || codeStr.length === 3)) {
+    return codeStr.toLowerCase();
   }
 
   switch (code) {
-    case 'ShiftLeft':
-    case 'ShiftRight':
+    case KeyCode.ShiftLeft:
+    case KeyCode.ShiftRight:
       return 'shift';
-    case 'ControlLeft':
-    case 'ControlRight':
+    case KeyCode.ControlLeft:
+    case KeyCode.ControlRight:
       return 'control';
-    case 'AltLeft':
-    case 'AltRight':
+    case KeyCode.AltLeft:
+    case KeyCode.AltRight:
       return 'alt';
-    case 'MetaLeft':
-    case 'MetaRight':
+    case KeyCode.MetaLeft:
+    case KeyCode.MetaRight:
       return 'command';
-    case 'Space':
+    case KeyCode.Space:
       return 'space';
-    case 'Escape':
+    case KeyCode.Escape:
       return 'escape';
-    case 'Enter':
+    case KeyCode.Enter:
       return 'enter';
-    case 'Tab':
+    case KeyCode.Tab:
       return 'tab';
-    case 'Backspace':
+    case KeyCode.Backspace:
       return 'backspace';
-    case 'ArrowRight':
+    case KeyCode.Delete:
+      return 'delete';
+    case KeyCode.ArrowRight:
       return 'right';
-    case 'ArrowUp':
+    case KeyCode.ArrowUp:
       return 'up';
-    case 'ArrowLeft':
+    case KeyCode.ArrowLeft:
       return 'left';
-    case 'ArrowDown':
+    case KeyCode.ArrowDown:
       return 'down';
 
+    case KeyCode.Home:
+      return 'home';
+    case KeyCode.End:
+      return 'end';
+    case KeyCode.PageUp:
+      return 'pageup';
+    case KeyCode.PageDown:
+      return 'pagedown';
+
+    case KeyCode.Numpad0:
+      return 'numpad_0';
+    case KeyCode.Numpad1:
+      return 'numpad_1';
+    case KeyCode.Numpad2:
+      return 'numpad_2';
+    case KeyCode.Numpad3:
+      return 'numpad_3';
+    case KeyCode.Numpad4:
+      return 'numpad_4';
+    case KeyCode.Numpad5:
+      return 'numpad_5';
+    case KeyCode.Numpad6:
+      return 'numpad_6';
+    case KeyCode.Numpad7:
+      return 'numpad_7';
+    case KeyCode.Numpad8:
+      return 'numpad_8';
+    case KeyCode.Numpad9:
+      return 'numpad_9';
+
     // Unsupported
-    case 'CapsLock':
+    case KeyCode.CapsLock:
       return null;
-    case 'Function':
+    case KeyCode.Function:
       return null;
-    case 'Backslash':
+    case KeyCode.Backslash:
       return null;
-    case 'Comma':
+    case KeyCode.Comma:
       return null;
-    case 'Equal':
+    case KeyCode.Equal:
       return null;
-    case 'BracketLeft':
+    case KeyCode.BracketLeft:
       return null;
-    case 'Minus':
+    case KeyCode.Minus:
       return null;
-    case 'Period':
+    case KeyCode.Period:
       return null;
-    case 'Quote':
+    case KeyCode.Quote:
       return '';
-    case 'BracketRight':
+    case KeyCode.BracketRight:
       return null;
-    case 'Semicolon':
+    case KeyCode.Semicolon:
       return null;
-    case 'Slash':
+    case KeyCode.Slash:
       return null;
 
+    default:
+      return null;
+  }
+}
+
+function toRobotKeyModifier(code: ModifierCode): string {
+  switch (code) {
+    case ModifierCode.ShiftLeft:
+    case ModifierCode.ShiftRight:
+      return 'shift';
+    case ModifierCode.ControlLeft:
+    case ModifierCode.ControlRight:
+      return 'control';
+    case ModifierCode.AltLeft:
+    case ModifierCode.AltRight:
+      return 'alt';
+    case ModifierCode.MetaLeft:
+    case ModifierCode.MetaRight:
+      return 'command';
     default:
       return null;
   }
@@ -239,23 +301,25 @@ function createHostPeer(screenStream) {
 
     let result = null;
     switch (message.t) {
-      case 'mousemove':
-        robot.moveMouse(Math.round(message.x * screen.width), Math.round(message.y * screen.height));
+      case PeerMsgs.MOUSEMOVE:
+        const mouseMove = PeerMsgs.unpackMouseMove(message);
+        robot.moveMouse(Math.round(mouseMove.x * screen.width), Math.round(mouseMove.y * screen.height));
         break;
-      case 'mousedown':
-        robot.moveMouse(Math.round(message.x * screen.width), Math.round(message.y * screen.height));
+      case PeerMsgs.MOUSEDOWN:
+        const mouseDown = PeerMsgs.unpackMouseDown(message);
+        robot.moveMouse(Math.round(mouseDown.x * screen.width), Math.round(mouseDown.y * screen.height));
         robot.mouseClick();
         break;
-      case 'keyup':
-        console.log('received', message);
-        const robotKey = toRobotKey(message.code);
+      case PeerMsgs.KEYUP:
+        const {code, modifiers} = PeerMsgs.unpackKeyUp(message);
+        const robotKey = toRobotKey(code);
         if (!robotKey) {
           console.log(`RobotJS lacks support for ${message.code}`);
           break;
         }
 
-        console.log('robot.keyTap', robotKey, message.modifiers.map(toRobotKey));
-        robot.keyTap(robotKey, message.modifiers.map(toRobotKey));
+        const robotModifiers = modifiers.map(toRobotKeyModifier);
+        robot.keyTap(robotKey, robotModifiers);
         break;
       default:
         result = data;
@@ -298,18 +362,19 @@ function createJoinPeer() {
       remoteScreen.play();
 
       transmitScreenMouseEvents(function (mouseMove) {
-        const data = {t: 'mousemove', x: mouseMove.x / mouseMove.width, y: mouseMove.y / mouseMove.height};
-        p.send(JSON.stringify(data));
+        const xMove = mouseMove.x / mouseMove.width;
+        const yMove = mouseMove.y / mouseMove.height;
+        PeerMsgs.sendMouseMove(p, xMove, yMove);
       });
 
       transmitScreenMouseDownEvents(function (mouseDown) {
-        const data = {t: 'mousedown', x: mouseDown.x / mouseDown.width, y: mouseDown.y / mouseDown.height};
-        p.send(JSON.stringify(data));
+        const xDown = mouseDown.x / mouseDown.width;
+        const yDown = mouseDown.y / mouseDown.height;
+        PeerMsgs.sendMouseDown(p, xDown, yDown)
       });
 
-      transmitMacKeyboardEvents(function (code: string, modifiers: string[]) {
-        const data = {t: 'keyup', code: code, modifiers: modifiers};
-        p.send(JSON.stringify(data));
+      transmitExternalKeyboardEvents(function (code, modifiers) {
+        PeerMsgs.sendKeyUp(p, code, modifiers);
       });
     }
   });

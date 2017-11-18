@@ -1,8 +1,7 @@
 import {app, BrowserWindow, ipcMain as ipc, Menu, Tray} from 'electron';
-import {
-  canDisableShortcuts, captureKeyEvents, deInit, disableShortcuts, restoreShortcuts,
-  stopCaptureKeyEvents
-} from './macos';
+import {deInit, MacOsKeyboard} from './macos';
+import {Keyboard} from './keyboard';
+import {sendKeyDown, sendKeyUp, sendModifiers} from './keyboard.ipc';
 
 const path = require('path');
 const url = require('url');
@@ -32,27 +31,22 @@ function createDisplayChampionWindow() {
     displayChampionWindow.webContents.openDevTools();
   }
 
+  // Use an "external" keyboard!
+  const keyboard: Keyboard = new MacOsKeyboard();
+
+  keyboard.keyUp.subscribe(e => sendKeyUp(displayChampionWindow, e));
+  keyboard.keyDown.subscribe(e => sendKeyDown(displayChampionWindow, e));
+  keyboard.modifiers.subscribe(e => sendModifiers(displayChampionWindow, e));
+
   displayChampionWindow.on('focus', function () {
-    if (sessionActive && canDisableShortcuts()) {
-      const kbEvents = captureKeyEvents();
-      disableShortcuts();
-      console.log('Enabling MacOS integrations');
-
-      kbEvents.on('keyup', function(key, modifiers) {
-        displayChampionWindow.webContents.send('kb-keyup', key, modifiers);
-      });
-
-      kbEvents.on('modifier', function(modifiers) {
-        displayChampionWindow.webContents.send('kb-modifier', modifiers);
-      })
+    if (sessionActive) {
+      keyboard.plugIn();
     }
   });
 
   displayChampionWindow.on('blur', function () {
-    if (sessionActive && canDisableShortcuts()) {
-      stopCaptureKeyEvents();
-      restoreShortcuts();
-      console.log('Disabling MacOS integrations');
+    if (sessionActive) {
+      keyboard.unplug();
     }
   });
 

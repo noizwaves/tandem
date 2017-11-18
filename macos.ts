@@ -1,4 +1,5 @@
-import {EventEmitter} from 'events';
+import {Observable, Subject} from "rxjs";
+import {Keyboard, KeyCode, KeyDownEvent, KeyUpEvent, ModifiersEvent, Modifiers, ModifierCode} from "./keyboard";
 
 const $ = require('NodObjC');
 
@@ -21,70 +22,142 @@ export function canDisableShortcuts(): boolean {
   return $.AXIsProcessTrusted();
 }
 
-
-let previous;
-
-export function disableShortcuts(): void {
-  if (previous) {
-    return;
-  }
-
-  previous = $.PushSymbolicHotKeyMode($.kHIHotKeyModeAllDisabled);
+function disableShortcuts(): void {
+  return $.PushSymbolicHotKeyMode($.kHIHotKeyModeAllDisabled);
 }
 
-export function restoreShortcuts(): void {
+function restoreShortcuts(previous): void {
   if (!previous) {
     return;
   }
 
   $.PopSymbolicHotKeyMode(previous);
-  previous = null;
 }
 
+// TODO: model this better
+type MacModifierFlags = number;
 
-function isShiftModifier(modifierFlags) {
-  return ($.NSEventModifierFlagShift & modifierFlags) === $.NSEventModifierFlagShift;
-}
+enum MacKeyCode {
+  kVK_ANSI_A = $.kVK_ANSI_A,
+  kVK_ANSI_B = $.kVK_ANSI_B,
+  kVK_ANSI_C = $.kVK_ANSI_C,
+  kVK_ANSI_D = $.kVK_ANSI_D,
+  kVK_ANSI_E = $.kVK_ANSI_E,
+  kVK_ANSI_F = $.kVK_ANSI_F,
+  kVK_ANSI_G = $.kVK_ANSI_G,
+  kVK_ANSI_H = $.kVK_ANSI_H,
+  kVK_ANSI_I = $.kVK_ANSI_I,
+  kVK_ANSI_J = $.kVK_ANSI_J,
+  kVK_ANSI_K = $.kVK_ANSI_K,
+  kVK_ANSI_L = $.kVK_ANSI_L,
+  kVK_ANSI_M = $.kVK_ANSI_M,
+  kVK_ANSI_N = $.kVK_ANSI_N,
+  kVK_ANSI_O = $.kVK_ANSI_O,
+  kVK_ANSI_P = $.kVK_ANSI_P,
+  kVK_ANSI_Q = $.kVK_ANSI_Q,
+  kVK_ANSI_R = $.kVK_ANSI_R,
+  kVK_ANSI_S = $.kVK_ANSI_S,
+  kVK_ANSI_T = $.kVK_ANSI_T,
+  kVK_ANSI_U = $.kVK_ANSI_U,
+  kVK_ANSI_V = $.kVK_ANSI_V,
+  kVK_ANSI_W = $.kVK_ANSI_W,
+  kVK_ANSI_X = $.kVK_ANSI_X,
+  kVK_ANSI_Y = $.kVK_ANSI_Y,
+  kVK_ANSI_Z = $.kVK_ANSI_Z,
+  kVK_ANSI_0 = $.kVK_ANSI_0,
+  kVK_ANSI_1 = $.kVK_ANSI_1,
+  kVK_ANSI_2 = $.kVK_ANSI_2,
+  kVK_ANSI_3 = $.kVK_ANSI_3,
+  kVK_ANSI_4 = $.kVK_ANSI_4,
+  kVK_ANSI_5 = $.kVK_ANSI_5,
+  kVK_ANSI_6 = $.kVK_ANSI_6,
+  kVK_ANSI_7 = $.kVK_ANSI_7,
+  kVK_ANSI_8 = $.kVK_ANSI_8,
+  kVK_ANSI_9 = $.kVK_ANSI_9,
 
-function isOptionModifier(modifierFlags) {
-  return ($.NSEventModifierFlagOption & modifierFlags) === $.NSEventModifierFlagOption;
-}
+  kVK_F1 = $.kVK_F1,
+  kVK_F2 = $.kVK_F2,
+  kVK_F3 = $.kVK_F3,
+  kVK_F4 = $.kVK_F4,
+  kVK_F5 = $.kVK_F5,
+  kVK_F6 = $.kVK_F6,
+  kVK_F7 = $.kVK_F7,
+  kVK_F8 = $.kVK_F8,
+  kVK_F9 = $.kVK_F9,
+  kVK_F10 = $.kVK_F10,
+  kVK_F11 = $.kVK_F11,
+  kVK_F12 = $.kVK_F12,
 
-function isCommandModifier(modifierFlags) {
-  return ($.NSEventModifierFlagCommand & modifierFlags) === $.NSEventModifierFlagCommand;
-}
+  kVK_F13 = $.kVK_F13,
+  kVK_F14 = $.kVK_F14,
+  kVK_F15 = $.kVK_F15,
+  kVK_F16 = $.kVK_F16,
+  kVK_F17 = $.kVK_F17,
+  kVK_F18 = $.kVK_F18,
+  kVK_F19 = $.kVK_F19,
+  kVK_F20 = $.kVK_F20,
 
-function isControlModifier(modifierFlags) {
-  return ($.NSEventModifierFlagControl & modifierFlags) === $.NSEventModifierFlagControl;
-}
+  kVK_Command = $.kVK_Command,
+  kVK_Option = $.kVK_Option,
+  kVK_Shift = $.kVK_Shift,
+  kVK_Control = $.kVK_Control,
 
-let monitor = null;
+  kVK_RightCommand = $.kVK_RightCommand,
+  kVK_RightOption = $.kVK_RightOption,
+  kVK_RightShift = $.kVK_RightShift,
+  kVK_RightControl = $.kVK_RightControl,
 
-function convertFlagsToModifiersList(flags) {
-  const output = [];
+  kVK_RightArrow = $.kVK_RightArrow,
+  kVK_UpArrow = $.kVK_UpArrow,
+  kVK_LeftArrow = $.kVK_LeftArrow,
+  kVK_DownArrow = $.kVK_DownArrow,
 
-  if (isCommandModifier(flags)) {
-    // go with left
-    output.push('MetaLeft');
-  }
+  kVK_Function = $.kVK_Function,
+  kVK_ForwardDelete = $.kVK_ForwardDelete,
+  kVK_Home = $.kVK_Home,
+  kVK_End = $.kVK_End,
+  kVK_PageUp = $.kVK_PageUp,
+  kVK_PageDown = $.kVK_PageDown,
 
-  if (isControlModifier(flags)) {
-    output.push('ControlLeft');
-  }
+  kVK_ANSI_Grave = $.kVK_ANSI_Grave,
+  kVK_CapsLock = $.kVK_CapsLock,
+  kVK_Tab = $.kVK_Tab,
+  kVK_Space = $.kVK_Space,
+  kVK_Delete = $.kVK_Delete,
+  kVK_Return = $.kVK_Return,
+  kVK_Escape = $.kVK_Escape,
+  kVK_ANSI_Backslash = $.kVK_ANSI_Backslash,
+  kVK_ANSI_Comma = $.kVK_ANSI_Comma,
+  kVK_ANSI_Equal = $.kVK_ANSI_Equal,
+  kVK_ANSI_LeftBracket = $.kVK_ANSI_LeftBracket,
+  kVK_ANSI_Minus = $.kVK_ANSI_Minus,
+  kVK_ANSI_Period = $.kVK_ANSI_Period,
+  kVK_ANSI_Quote = $.kVK_ANSI_Quote,
+  kVK_ANSI_RightBracket = $.kVK_ANSI_RightBracket,
+  kVK_ANSI_Semicolon = $.kVK_ANSI_Semicolon,
+  kVK_ANSI_Slash = $.kVK_ANSI_Slash,
 
-  if (isOptionModifier(flags)) {
-    output.push('AltLeft');
-  }
+  kVK_ANSI_Keypad0 = $.kVK_ANSI_Keypad0,
+  kVK_ANSI_Keypad1 = $.kVK_ANSI_Keypad1,
+  kVK_ANSI_Keypad2 = $.kVK_ANSI_Keypad2,
+  kVK_ANSI_Keypad3 = $.kVK_ANSI_Keypad3,
+  kVK_ANSI_Keypad4 = $.kVK_ANSI_Keypad4,
+  kVK_ANSI_Keypad5 = $.kVK_ANSI_Keypad5,
+  kVK_ANSI_Keypad6 = $.kVK_ANSI_Keypad6,
+  kVK_ANSI_Keypad7 = $.kVK_ANSI_Keypad7,
+  kVK_ANSI_Keypad8 = $.kVK_ANSI_Keypad8,
+  kVK_ANSI_Keypad9 = $.kVK_ANSI_Keypad9,
 
-  if (isShiftModifier(flags)) {
-    output.push('ShiftLeft');
-  }
+  kVK_ANSI_KeypadClear = $.kVK_ANSI_KeypadClear,
+  kVK_ANSI_KeypadDecimal = $.kVK_ANSI_KeypadDecimal,
+  kVK_ANSI_KeypadDivide = $.kVK_ANSI_KeypadDivide,
+  kVK_ANSI_KeypadEnter = $.kVK_ANSI_KeypadEnter,
+  kVK_ANSI_KeypadEquals = $.kVK_ANSI_KeypadEquals,
+  kVK_ANSI_KeypadMinus = $.kVK_ANSI_KeypadMinus,
+  kVK_ANSI_KeypadMultiply = $.kVK_ANSI_KeypadMultiply,
+  kVK_ANSI_KeypadPlus = $.kVK_ANSI_KeypadPlus,
 
-  return output;
-}
-
-function buildKeyMap() {
-  //   kVK_ForwardDelete: 117,
+  // ## Unhandled but known
   //   kVK_Help: 114,
   //   kVK_ISO_Section: 10,
   //   kVK_JIS_Eisu: 102,
@@ -95,191 +168,359 @@ function buildKeyMap() {
   //   kVK_Mute: 74,
   //   kVK_VolumeDown: 73,
   //   kVK_VolumeUp: 72,
-
-  const keymap = {};
-
-  keymap[$.kVK_ANSI_A] = 'KeyA';
-  keymap[$.kVK_ANSI_B] = 'KeyB';
-  keymap[$.kVK_ANSI_C] = 'KeyC';
-  keymap[$.kVK_ANSI_D] = 'KeyD';
-  keymap[$.kVK_ANSI_E] = 'KeyE';
-  keymap[$.kVK_ANSI_F] = 'KeyF';
-  keymap[$.kVK_ANSI_G] = 'KeyG';
-  keymap[$.kVK_ANSI_H] = 'KeyH';
-  keymap[$.kVK_ANSI_I] = 'KeyI';
-  keymap[$.kVK_ANSI_J] = 'KeyJ';
-  keymap[$.kVK_ANSI_K] = 'KeyK';
-  keymap[$.kVK_ANSI_L] = 'KeyL';
-  keymap[$.kVK_ANSI_M] = 'KeyM';
-  keymap[$.kVK_ANSI_N] = 'KeyN';
-  keymap[$.kVK_ANSI_O] = 'KeyO';
-  keymap[$.kVK_ANSI_P] = 'KeyP';
-  keymap[$.kVK_ANSI_Q] = 'KeyQ';
-  keymap[$.kVK_ANSI_R] = 'KeyR';
-  keymap[$.kVK_ANSI_S] = 'KeyS';
-  keymap[$.kVK_ANSI_T] = 'KeyT';
-  keymap[$.kVK_ANSI_U] = 'KeyU';
-  keymap[$.kVK_ANSI_V] = 'KeyV';
-  keymap[$.kVK_ANSI_W] = 'KeyW';
-  keymap[$.kVK_ANSI_X] = 'KeyX';
-  keymap[$.kVK_ANSI_Y] = 'KeyY';
-  keymap[$.kVK_ANSI_Z] = 'KeyZ';
-
-  keymap[$.kVK_ANSI_0] = 'Digit0';
-  keymap[$.kVK_ANSI_1] = 'Digit1';
-  keymap[$.kVK_ANSI_2] = 'Digit2';
-  keymap[$.kVK_ANSI_3] = 'Digit3';
-  keymap[$.kVK_ANSI_4] = 'Digit4';
-  keymap[$.kVK_ANSI_5] = 'Digit5';
-  keymap[$.kVK_ANSI_6] = 'Digit6';
-  keymap[$.kVK_ANSI_7] = 'Digit7';
-  keymap[$.kVK_ANSI_8] = 'Digit8';
-  keymap[$.kVK_ANSI_9] = 'Digit9';
-
-  keymap[$.kVK_F1] = 'F1';
-  keymap[$.kVK_F2] = 'F2';
-  keymap[$.kVK_F3] = 'F3';
-  keymap[$.kVK_F4] = 'F4';
-  keymap[$.kVK_F5] = 'F5';
-  keymap[$.kVK_F6] = 'F6';
-  keymap[$.kVK_F7] = 'F7';
-  keymap[$.kVK_F8] = 'F8';
-  keymap[$.kVK_F9] = 'F9';
-  keymap[$.kVK_F10] = 'F10';
-  keymap[$.kVK_F11] = 'F11';
-  keymap[$.kVK_F12] = 'F12';
-  // keymap[$.kVK_F13] = 'F13';
-  // keymap[$.kVK_F14] = 'F14';
-  // keymap[$.kVK_F15] = 'F15';
-  // keymap[$.kVK_F16] = 'F16';
-  // keymap[$.kVK_F17] = 'F17';
-  // keymap[$.kVK_F18] = 'F18';
-  // keymap[$.kVK_F19] = 'F19';
-  // keymap[$.kVK_F20] = 'F20';
-
-  keymap[$.kVK_Command] = 'MetaLeft';
-  keymap[$.kVK_Option] = 'AltLeft';
-  keymap[$.kVK_Shift] = 'ShiftLeft';
-  keymap[$.kVK_Control] = 'ControlLeft';
-
-  keymap[$.kVK_RightCommand] = 'MetaRight';
-  keymap[$.kVK_RightOption] = 'AltRight';
-  keymap[$.kVK_RightShift] = 'ShiftRight';
-  keymap[$.kVK_RightControl] = 'ControlRight';
-
-  //   kVK_End: 119,
-  //   kVK_Home: 115,
-  //   kVK_PageDown: 121,
-  //   kVK_PageUp: 116,
-
-  keymap[$.kVK_RightArrow] = 'ArrowRight';
-  keymap[$.kVK_UpArrow] = 'ArrowUp';
-  keymap[$.kVK_LeftArrow] = 'ArrowLeft';
-  keymap[$.kVK_DownArrow] = 'ArrowDown';
-
-  keymap[$.kVK_CapsLock] = 'CapsLock';
-  keymap[$.kVK_Function] = 'Function';
-
-  keymap[$.kVK_Tab] = 'Tab';
-  keymap[$.kVK_Space] = 'Space';
-  keymap[$.kVK_Delete] = 'Backspace';
-  keymap[$.kVK_Return] = 'Enter';
-  keymap[$.kVK_Escape] = 'Escape';
-
-  keymap[$.kVK_ANSI_Backslash] = 'Backslash';
-  keymap[$.kVK_ANSI_Comma] = 'Comma';
-  keymap[$.kVK_ANSI_Equal] = 'Equal';
-  // keymap[$.kVK_ANSI_Grave] = '';
-  keymap[$.kVK_ANSI_LeftBracket] = 'BracketLeft';
-  keymap[$.kVK_ANSI_Minus] = 'Minus';
-  keymap[$.kVK_ANSI_Period] = 'Period';
-  keymap[$.kVK_ANSI_Quote] = 'Quote';
-  keymap[$.kVK_ANSI_RightBracket] = 'BracketRight';
-  keymap[$.kVK_ANSI_Semicolon] = 'Semicolon';
-  keymap[$.kVK_ANSI_Slash] = 'Slash';
-
-  //   kVK_ANSI_Keypad0: 82,
-  //   kVK_ANSI_Keypad1: 83,
-  //   kVK_ANSI_Keypad2: 84,
-  //   kVK_ANSI_Keypad3: 85,
-  //   kVK_ANSI_Keypad4: 86,
-  //   kVK_ANSI_Keypad5: 87,
-  //   kVK_ANSI_Keypad6: 88,
-  //   kVK_ANSI_Keypad7: 89,
-  //   kVK_ANSI_Keypad8: 91,
-  //   kVK_ANSI_Keypad9: 92,
-
-  //   kVK_ANSI_KeypadClear: 71,
-  //   kVK_ANSI_KeypadDecimal: 65,
-  //   kVK_ANSI_KeypadDivide: 75,
-  //   kVK_ANSI_KeypadEnter: 76,
-  //   kVK_ANSI_KeypadEquals: 81,
-  //   kVK_ANSI_KeypadMinus: 78,
-  //   kVK_ANSI_KeypadMultiply: 67,
-  //   kVK_ANSI_KeypadPlus: 69,
-
-  return keymap;
 }
 
-const keyMap = buildKeyMap();
-
-function convertKeyCodeToKey(keyCode) {
-  return keyMap[keyCode];
+function isShiftModifier(modifierFlags: MacModifierFlags): boolean {
+  return ($.NSEventModifierFlagShift & modifierFlags) === $.NSEventModifierFlagShift;
 }
 
-// TODO: score this handler somewhere as it's being GC'ed
-// TODO: pull this into a class instance soon
-let handler;
-export function captureKeyEvents() {
-  const emitter = new EventEmitter();
+function isOptionModifier(modifierFlags: MacModifierFlags): boolean {
+  return ($.NSEventModifierFlagOption & modifierFlags) === $.NSEventModifierFlagOption;
+}
 
-  const func = function (self, event) {
-    const eventType = event('type');
+function isCommandModifier(modifierFlags: MacModifierFlags): boolean {
+  return ($.NSEventModifierFlagCommand & modifierFlags) === $.NSEventModifierFlagCommand;
+}
 
-    if (eventType === $.NSEventTypeFlagsChanged) {
-      flagsChangedFunc(self, event);
-    } else if (eventType === $.NSEventTypeKeyUp) {
-      keyUpFunc(self, event);
+function isControlModifier(modifierFlags: MacModifierFlags): boolean {
+  return ($.NSEventModifierFlagControl & modifierFlags) === $.NSEventModifierFlagControl;
+}
+
+function convertToModifiers(flags: MacModifierFlags): Modifiers {
+  const output: Modifiers = [];
+
+  if (isCommandModifier(flags)) {
+    // go with left
+    output.push(ModifierCode.MetaLeft);
+  }
+
+  if (isControlModifier(flags)) {
+    output.push(ModifierCode.ControlLeft);
+  }
+
+  if (isOptionModifier(flags)) {
+    output.push(ModifierCode.AltLeft);
+  }
+
+  if (isShiftModifier(flags)) {
+    output.push(ModifierCode.ShiftLeft);
+  }
+
+  return output;
+}
+
+function convertToKeyCode(code: MacKeyCode): KeyCode {
+  switch (code) {
+    case MacKeyCode.kVK_ANSI_A:
+      return KeyCode.KeyA;
+    case MacKeyCode.kVK_ANSI_B:
+      return KeyCode.KeyB;
+    case MacKeyCode.kVK_ANSI_C:
+      return KeyCode.KeyC;
+    case MacKeyCode.kVK_ANSI_D:
+      return KeyCode.KeyD;
+    case MacKeyCode.kVK_ANSI_E:
+      return KeyCode.KeyE;
+    case MacKeyCode.kVK_ANSI_F:
+      return KeyCode.KeyF;
+    case MacKeyCode.kVK_ANSI_G:
+      return KeyCode.KeyG;
+    case MacKeyCode.kVK_ANSI_H:
+      return KeyCode.KeyH;
+    case MacKeyCode.kVK_ANSI_I:
+      return KeyCode.KeyI;
+    case MacKeyCode.kVK_ANSI_J:
+      return KeyCode.KeyJ;
+    case MacKeyCode.kVK_ANSI_K:
+      return KeyCode.KeyK;
+    case MacKeyCode.kVK_ANSI_L:
+      return KeyCode.KeyL;
+    case MacKeyCode.kVK_ANSI_M:
+      return KeyCode.KeyM;
+    case MacKeyCode.kVK_ANSI_N:
+      return KeyCode.KeyN;
+    case MacKeyCode.kVK_ANSI_O:
+      return KeyCode.KeyO;
+    case MacKeyCode.kVK_ANSI_P:
+      return KeyCode.KeyP;
+    case MacKeyCode.kVK_ANSI_Q:
+      return KeyCode.KeyQ;
+    case MacKeyCode.kVK_ANSI_R:
+      return KeyCode.KeyR;
+    case MacKeyCode.kVK_ANSI_S:
+      return KeyCode.KeyS;
+    case MacKeyCode.kVK_ANSI_T:
+      return KeyCode.KeyT;
+    case MacKeyCode.kVK_ANSI_U:
+      return KeyCode.KeyU;
+    case MacKeyCode.kVK_ANSI_V:
+      return KeyCode.KeyV;
+    case MacKeyCode.kVK_ANSI_W:
+      return KeyCode.KeyW;
+    case MacKeyCode.kVK_ANSI_X:
+      return KeyCode.KeyX;
+    case MacKeyCode.kVK_ANSI_Y:
+      return KeyCode.KeyY;
+    case MacKeyCode.kVK_ANSI_Z:
+      return KeyCode.KeyZ;
+
+    case MacKeyCode.kVK_ANSI_0:
+      return KeyCode.Digit0;
+    case MacKeyCode.kVK_ANSI_1:
+      return KeyCode.Digit1;
+    case MacKeyCode.kVK_ANSI_2:
+      return KeyCode.Digit2;
+    case MacKeyCode.kVK_ANSI_3:
+      return KeyCode.Digit3;
+    case MacKeyCode.kVK_ANSI_4:
+      return KeyCode.Digit4;
+    case MacKeyCode.kVK_ANSI_5:
+      return KeyCode.Digit5;
+    case MacKeyCode.kVK_ANSI_6:
+      return KeyCode.Digit6;
+    case MacKeyCode.kVK_ANSI_7:
+      return KeyCode.Digit7;
+    case MacKeyCode.kVK_ANSI_8:
+      return KeyCode.Digit8;
+    case MacKeyCode.kVK_ANSI_9:
+      return KeyCode.Digit9;
+
+    case MacKeyCode.kVK_F1:
+      return KeyCode.F1;
+    case MacKeyCode.kVK_F2:
+      return KeyCode.F2;
+    case MacKeyCode.kVK_F3:
+      return KeyCode.F3;
+    case MacKeyCode.kVK_F4:
+      return KeyCode.F4;
+    case MacKeyCode.kVK_F5:
+      return KeyCode.F5;
+    case MacKeyCode.kVK_F6:
+      return KeyCode.F6;
+    case MacKeyCode.kVK_F7:
+      return KeyCode.F7;
+    case MacKeyCode.kVK_F8:
+      return KeyCode.F8;
+    case MacKeyCode.kVK_F9:
+      return KeyCode.F9;
+    case MacKeyCode.kVK_F10:
+      return KeyCode.F10;
+    case MacKeyCode.kVK_F11:
+      return KeyCode.F11;
+    case MacKeyCode.kVK_F12:
+      return KeyCode.F12;
+
+    case MacKeyCode.kVK_F13:
+      return KeyCode.F13;
+    case MacKeyCode.kVK_F14:
+      return KeyCode.F14;
+    case MacKeyCode.kVK_F15:
+      return KeyCode.F15;
+    case MacKeyCode.kVK_F16:
+      return KeyCode.F16;
+    case MacKeyCode.kVK_F17:
+      return KeyCode.F17;
+    case MacKeyCode.kVK_F18:
+      return KeyCode.F18;
+    case MacKeyCode.kVK_F19:
+      return KeyCode.F19;
+    case MacKeyCode.kVK_F20:
+      return KeyCode.F20;
+
+    case MacKeyCode.kVK_Command:
+      return KeyCode.MetaLeft;
+    case MacKeyCode.kVK_Option:
+      return KeyCode.AltLeft;
+    case MacKeyCode.kVK_Shift:
+      return KeyCode.ShiftLeft;
+    case MacKeyCode.kVK_Control:
+      return KeyCode.ControlLeft;
+
+    case MacKeyCode.kVK_RightCommand:
+      return KeyCode.MetaRight;
+    case MacKeyCode.kVK_RightOption:
+      return KeyCode.AltRight;
+    case MacKeyCode.kVK_RightShift:
+      return KeyCode.ShiftRight;
+    case MacKeyCode.kVK_RightControl:
+      return KeyCode.ControlRight;
+
+    case MacKeyCode.kVK_RightArrow:
+      return KeyCode.ArrowRight;
+    case MacKeyCode.kVK_UpArrow:
+      return KeyCode.ArrowUp;
+    case MacKeyCode.kVK_LeftArrow:
+      return KeyCode.ArrowLeft;
+    case MacKeyCode.kVK_DownArrow:
+      return KeyCode.ArrowDown;
+
+    case MacKeyCode.kVK_Function:
+      return KeyCode.Function;
+    case MacKeyCode.kVK_ForwardDelete:
+      return KeyCode.Delete;
+    case MacKeyCode.kVK_Home:
+      return KeyCode.Home;
+    case MacKeyCode.kVK_End:
+      return KeyCode.End;
+    case MacKeyCode.kVK_PageUp:
+      return KeyCode.PageUp;
+    case MacKeyCode.kVK_PageDown:
+      return KeyCode.PageDown;
+
+    case MacKeyCode.kVK_ANSI_Grave:
+      return KeyCode.Backquote;
+    case MacKeyCode.kVK_CapsLock:
+      return KeyCode.CapsLock;
+    case MacKeyCode.kVK_Tab:
+      return KeyCode.Tab;
+    case MacKeyCode.kVK_Space:
+      return KeyCode.Space;
+    case MacKeyCode.kVK_Delete:
+      return KeyCode.Backspace;
+    case MacKeyCode.kVK_Return:
+      return KeyCode.Enter;
+    case MacKeyCode.kVK_Escape:
+      return KeyCode.Escape;
+
+    case MacKeyCode.kVK_ANSI_Backslash:
+      return KeyCode.Backslash;
+    case MacKeyCode.kVK_ANSI_Comma:
+      return KeyCode.Comma;
+    case MacKeyCode.kVK_ANSI_Equal:
+      return KeyCode.Equal;
+    case MacKeyCode.kVK_ANSI_LeftBracket:
+      return KeyCode.BracketLeft;
+    case MacKeyCode.kVK_ANSI_Minus:
+      return KeyCode.Minus;
+    case MacKeyCode.kVK_ANSI_Period:
+      return KeyCode.Period;
+    case MacKeyCode.kVK_ANSI_Quote:
+      return KeyCode.Quote;
+    case MacKeyCode.kVK_ANSI_RightBracket:
+      return KeyCode.BracketRight;
+    case MacKeyCode.kVK_ANSI_Semicolon:
+      return KeyCode.Semicolon;
+    case MacKeyCode.kVK_ANSI_Slash:
+      return KeyCode.Slash;
+
+    case MacKeyCode.kVK_ANSI_Keypad0:
+      return KeyCode.Numpad0;
+    case MacKeyCode.kVK_ANSI_Keypad1:
+      return KeyCode.Numpad1;
+    case MacKeyCode.kVK_ANSI_Keypad2:
+      return KeyCode.Numpad2;
+    case MacKeyCode.kVK_ANSI_Keypad3:
+      return KeyCode.Numpad3;
+    case MacKeyCode.kVK_ANSI_Keypad4:
+      return KeyCode.Numpad4;
+    case MacKeyCode.kVK_ANSI_Keypad5:
+      return KeyCode.Numpad5;
+    case MacKeyCode.kVK_ANSI_Keypad6:
+      return KeyCode.Numpad6;
+    case MacKeyCode.kVK_ANSI_Keypad7:
+      return KeyCode.Numpad7;
+    case MacKeyCode.kVK_ANSI_Keypad8:
+      return KeyCode.Numpad8;
+    case MacKeyCode.kVK_ANSI_Keypad9:
+      return KeyCode.Numpad9;
+
+    case MacKeyCode.kVK_ANSI_KeypadClear:
+      return KeyCode.NumLock;
+    case MacKeyCode.kVK_ANSI_KeypadDecimal:
+      return KeyCode.NumpadDecimal;
+    case MacKeyCode.kVK_ANSI_KeypadDivide:
+      return KeyCode.NumpadDivide;
+    case MacKeyCode.kVK_ANSI_KeypadEnter:
+      return KeyCode.NumpadEnter;
+    case MacKeyCode.kVK_ANSI_KeypadEquals:
+      return KeyCode.NumpadEqual;
+    case MacKeyCode.kVK_ANSI_KeypadMinus:
+      return KeyCode.NumpadSubtract;
+    case MacKeyCode.kVK_ANSI_KeypadMultiply:
+      return KeyCode.NumpadMultiply;
+    case MacKeyCode.kVK_ANSI_KeypadPlus:
+      return KeyCode.NumpadAdd;
+  }
+
+  throw new Error(`MacKeyCode of ${code} not present in map, the Elm compiler would have protected us here...`);
+}
+
+export class MacOsKeyboard implements Keyboard {
+  keyDown: Observable<KeyDownEvent>;
+  keyUp: Observable<KeyUpEvent>;
+  modifiers: Observable<ModifiersEvent>;
+
+  private readonly _keyDown = new Subject<KeyDownEvent>();
+  private readonly _keyUp = new Subject<KeyUpEvent>();
+  private readonly _modifiers = new Subject<ModifiersEvent>();
+  private readonly _handler;
+  private _monitor = null;
+  private _previous = null;
+
+  constructor() {
+    this.keyDown = this._keyDown;
+    this.keyUp = this._keyUp;
+    this.modifiers = this._modifiers;
+    const _this = this;
+    const func = function (self, event) {
+      const eventType = event('type');
+
+      if (eventType === $.NSEventTypeFlagsChanged) {
+        flagsChangedFunc(self, event);
+      } else if (eventType === $.NSEventTypeKeyUp) {
+        keyUpFunc(self, event);
+      }
+    };
+
+    const flagsChangedFunc = function (self, event) {
+      const modifierFlags = <MacModifierFlags> event('modifierFlags');
+      const modifiers = convertToModifiers(modifierFlags);
+
+      _this._modifiers.next({modifiers});
+    };
+
+    const keyUpFunc = function (self, event) {
+      const modifierFlags = <MacModifierFlags> event('modifierFlags');
+      const modifiers = convertToModifiers(modifierFlags);
+
+      const keyCodeId = <number> event('keyCode');
+      if (!(keyCodeId in MacKeyCode)) {
+        console.log(`Unhandled NSEvent keyCode of ${keyCodeId}, ignoring event`);
+        return;
+      }
+
+      const key: KeyCode = convertToKeyCode(<MacKeyCode> keyCodeId);
+
+      _this._keyUp.next({key, modifiers})
+    };
+
+    this._handler = $(func, [$.void, [$.id, $.id]]);
+  }
+
+  plugIn(): void {
+    this._monitor = $.NSEvent('addLocalMonitorForEventsMatchingMask',
+      ($.NSEventMaskFlagsChanged | $.NSEventMaskKeyUp),
+      'handler', this._handler);
+
+    if (canDisableShortcuts()) {
+      console.log('Enabling MacOS integrations');
+      this._previous = disableShortcuts();
     }
-  };
+  }
 
-  const flagsChangedFunc = function (self, event) {
-    const modifierFlags = event('modifierFlags');
-    const modifiers = convertFlagsToModifiersList(modifierFlags);
-    console.log('modifier changed', modifiers);
-    emitter.emit('modifier', modifiers);
-  };
+  unplug(): void {
+    $.NSEvent('removeMonitor', this._monitor);
 
-  const keyUpFunc = function (self, event) {
-    const modifierFlags = event('modifierFlags');
-    const modifiers = convertFlagsToModifiersList(modifierFlags);
-
-    const keyCode = event('keyCode');
-    const key = convertKeyCodeToKey(keyCode);
-
-    console.log('key up', key, modifiers);
-    emitter.emit('keyup', key, modifiers);
-  };
-
-  const handlerTypes = [$.void, [$.id, $.id]];
-  handler = $(func, handlerTypes);
-
-  monitor = $.NSEvent('addLocalMonitorForEventsMatchingMask',
-    ($.NSEventMaskFlagsChanged | $.NSEventMaskKeyUp),
-    'handler', handler);
-
-  return emitter;
-}
-
-export function stopCaptureKeyEvents() {
-  if (monitor) {
-    $.NSEvent('removeMonitor', monitor);
-    monitor = null;
+    if (this._previous) {
+      console.log('Disabling MacOS integrations');
+      restoreShortcuts(this._previous);
+      this._previous = null;
+    }
   }
 }
 
 
 export function deInit(): void {
-  exports.restoreShortcuts();
   // pool('drain');
 }
+
