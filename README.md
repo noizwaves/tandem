@@ -1,4 +1,4 @@
-# Display Champion
+# Tandem
 
 Remote pair programming tool
 
