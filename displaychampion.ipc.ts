@@ -7,17 +7,17 @@ export function sendRequestOffer(window: BrowserWindow) {
   window.webContents.send(REQUEST_OFFER);
 }
 
-export function onRequestOffer(ipc: IpcRenderer, callback: (event: any) => void) {
-  ipc.on(REQUEST_OFFER, function (event) {
-    callback(event);
+export function onRequestOffer(ipc: IpcRenderer, callback: () => void) {
+  ipc.on(REQUEST_OFFER, function () {
+    callback();
   });
 }
 
 
 const RECEIVE_OFFER = 'dc-receive-offer';
 
-export function sendReceiveOffer(target, offer: string) {
-  target.send(RECEIVE_OFFER, offer);
+export function sendReceiveOffer(ipc: IpcRenderer, offer: string) {
+  ipc.send(RECEIVE_OFFER, offer);
 }
 
 export function onReceiveOffer(ipc: IpcMain, callback: (offer: string) => void) {
@@ -33,17 +33,17 @@ export function sendRequestAnswer(window: BrowserWindow, offer: string) {
   window.webContents.send(REQUEST_ANSWER, offer);
 }
 
-export function onRequestAnswer(ipc: IpcRenderer, callback: (event: any, offer: string) => void) {
+export function onRequestAnswer(ipc: IpcRenderer, callback: (offer: string) => void) {
   ipc.on(REQUEST_ANSWER, function (event, offer) {
-    callback(event, offer);
+    callback(offer);
   })
 }
 
 
 const RECEIVE_ANSWER = 'dc-receive-answer';
 
-export function sendReceiveAnswer(target, answer: string) {
-  target.send(RECEIVE_ANSWER, answer);
+export function sendReceiveAnswer(ipc: IpcRenderer, answer: string) {
+  ipc.send(RECEIVE_ANSWER, answer);
 }
 
 export function onReceiveAnswer(ipc: IpcMain, callback: (answer: string) => void) {
