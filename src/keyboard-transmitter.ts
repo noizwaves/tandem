@@ -1,8 +1,8 @@
 import * as Rx from 'rxjs';
 import {IpcRenderer} from 'electron';
 
-import {KeyCode, KeyDownEvent, KeyUpEvent, ModifierCode} from '../keyboard';
-import {onKeyDown, onKeyUp} from '../keyboard.ipc';
+import {KeyCode, KeyDownEvent, KeyUpEvent, ModifierCode} from './keyboard';
+import {onKeyDown, onKeyUp} from './keyboard.ipc';
 
 export interface KeyboardTransmitter {
   readonly keyUp: Rx.Observable<KeyUpEvent>;

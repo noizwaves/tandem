@@ -5,11 +5,11 @@ import * as Peer from 'simple-peer';
 import * as robot from 'robotjs';
 
 import {KeyDownEvent, KeyPresser, KeyUpEvent} from './keyboard';
-import {KeyboardTransmitter, WindowTransmitter, ExternalTransmitter} from './src/keyboard-transmitter';
+import {KeyboardTransmitter, WindowTransmitter, ExternalTransmitter} from './keyboard-transmitter';
 
 import * as DisplayChampionIPC from './displaychampion.ipc';
 import * as PeerMsgs from './peer-msgs';
-import {RobotKeyMover} from './src/robot-key-mover';
+import {RobotKeyMover} from './robot-key-mover';
 
 const ICE_SERVERS = [
   // {url: 'stun:stun.l.google.com:19302'},

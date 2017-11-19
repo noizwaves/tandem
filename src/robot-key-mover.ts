@@ -1,5 +1,6 @@
-import {KeyCode, KeyPresser, ModifierCode, Modifiers} from '../keyboard';
 import * as robot from 'robotjs';
+
+import {KeyCode, KeyPresser, ModifierCode, Modifiers} from './keyboard';
 
 function toRobotKey(code: KeyCode): string {
   const codeStr = code.toString();

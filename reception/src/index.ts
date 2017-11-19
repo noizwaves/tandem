@@ -1,9 +1,9 @@
 import {ipcRenderer as ipc} from 'electron';
-import ReceptionIPC from '../../reception.ipc';
+import ReceptionIPC from '../../src/reception.ipc';
 
 require('./style/main.scss');
 
-require('./index.electron.html');
+require('./index.html');
 
 const Elm = require('./Main.elm');
 const mountNode = document.getElementById('main');
