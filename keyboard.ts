@@ -159,3 +159,8 @@ export interface Keyboard {
 
   unplug(): void
 }
+
+export interface KeyPresser {
+  press(code: KeyCode, modifiers: Modifiers): void;
+}
+
