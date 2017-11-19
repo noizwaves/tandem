@@ -122,8 +122,8 @@ function toRobotKeyModifier(code: ModifierCode): string {
   }
 }
 
-export class RobotKeyPresser implements KeyPresser {
-  press(code: KeyCode, modifiers: Modifiers): void {
+export class RobotKeyMover implements KeyPresser {
+  pressDown(code: KeyCode, modifiers: Modifiers): void {
     const robotKey = toRobotKey(code);
     if (!robotKey) {
       console.log(`RobotJS lacks support for ${code}`);
@@ -131,6 +131,17 @@ export class RobotKeyPresser implements KeyPresser {
     }
 
     const robotModifiers = modifiers.map(toRobotKeyModifier);
-    robot.keyTap(robotKey, robotModifiers);
+    robot.keyToggle(robotKey, 'down', robotModifiers);
+  }
+
+  pressUp(code: KeyCode, modifiers: Modifiers): void {
+    const robotKey = toRobotKey(code);
+    if (!robotKey) {
+      console.log(`RobotJS lacks support for ${code}`);
+      return;
+    }
+
+    const robotModifiers = modifiers.map(toRobotKeyModifier);
+    robot.keyToggle(robotKey, 'up', robotModifiers);
   }
 }
