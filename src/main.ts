@@ -77,7 +77,7 @@ function createReceptionWindow() {
   receptionWindow = new BrowserWindow({width: 400, height: 400});
 
   receptionWindow.loadURL(url.format({
-    pathname: path.join(__dirname, 'reception', 'dist', 'index.electron.html'),
+    pathname: path.join(__dirname, 'reception', 'dist', 'index.html'),
     protocol: 'file:',
     slashes: true
   }));

@@ -21,4 +21,10 @@ Remote pair programming tool
 
 ## Building for macOS
 
-1. Run `yarn build`
+1. Build via `yarn build`
+1. Run via `electron .`
+
+### With debugging / dev tools
+
+1. Build via `yarn build:debug`
+1. Run via `electron .`
