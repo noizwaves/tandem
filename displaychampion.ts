@@ -147,31 +147,28 @@ function toRobotKey(code: KeyCode): string {
     case KeyCode.Numpad9:
       return 'numpad_9';
 
-    // Unsupported
-    case KeyCode.CapsLock:
-      return null;
-    case KeyCode.Function:
-      return null;
-    case KeyCode.Backslash:
-      return null;
-    case KeyCode.Comma:
-      return null;
-    case KeyCode.Equal:
-      return null;
-    case KeyCode.BracketLeft:
-      return null;
-    case KeyCode.Minus:
-      return null;
     case KeyCode.Period:
-      return null;
+      return '.';
     case KeyCode.Quote:
-      return '';
+      return '\'';
     case KeyCode.BracketRight:
-      return null;
+      return ']';
+    case KeyCode.BracketLeft:
+      return '[';
     case KeyCode.Semicolon:
-      return null;
+      return ';';
     case KeyCode.Slash:
-      return null;
+      return '/';
+    case KeyCode.Backslash:
+      return '\\';
+    case KeyCode.Comma:
+      return ',';
+    case KeyCode.Equal:
+      return '=';
+    case KeyCode.Minus:
+      return '-';
+    case KeyCode.Backquote:
+      return '`';
 
     default:
       return null;
