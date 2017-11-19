@@ -357,26 +357,26 @@ function createJoinPeer() {
 
 let peer;
 
-DisplayChampionIPC.onRequestOffer(ipc, function (event) {
+DisplayChampionIPC.onRequestOffer(ipc, function () {
   console.log('DC is getting an offer');
   getScreenStream(function (screenStream) {
     peer = createHostPeer(screenStream);
 
     peer.on('signal', function (data) {
       const offer = JSON.stringify(data);
-      DisplayChampionIPC.sendReceiveOffer(event.sender, offer);
+      DisplayChampionIPC.sendReceiveOffer(ipc, offer);
     });
   });
 });
 
-DisplayChampionIPC.onRequestAnswer(ipc, function (event, offer) {
+DisplayChampionIPC.onRequestAnswer(ipc, function (offer) {
   console.log('DC is getting an answer...');
   show("#remote-screen");
   peer = createJoinPeer();
 
   peer.on('signal', function (data) {
     const answer = JSON.stringify(data);
-    DisplayChampionIPC.sendReceiveAnswer(event.sender, answer);
+    DisplayChampionIPC.sendReceiveAnswer(ipc, answer);
   });
 
   // accept the offer

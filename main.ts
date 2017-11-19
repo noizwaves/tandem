@@ -133,7 +133,7 @@ app.on('activate', function () {
   }
 });
 
-ReceptionIPC.onRequestOffer(ipc, function (event) {
+ReceptionIPC.onRequestOffer(ipc, function () {
   console.log('$$$$ Getting offer from DisplayChampion...');
   tray.setImage(path.join(__dirname, 'icons', 'busy.png'));
 
@@ -141,11 +141,11 @@ ReceptionIPC.onRequestOffer(ipc, function (event) {
 
   DisplayChampionIPC.onReceiveOffer(ipc, function (offer) {
     console.log('$$$$ Offer retrieved from DC');
-    ReceptionIPC.sendReceiveOffer(event.sender, offer);
+    ReceptionIPC.sendReceiveOffer(receptionWindow, offer);
   });
 });
 
-ReceptionIPC.onRequestAnswer(ipc, function (event, offer) {
+ReceptionIPC.onRequestAnswer(ipc, function (offer) {
   console.log('$$$$ Get answer from DisplayChampion...');
   tray.setImage(path.join(__dirname, 'icons', 'busy.png'));
 
@@ -156,7 +156,7 @@ ReceptionIPC.onRequestAnswer(ipc, function (event, offer) {
   DisplayChampionIPC.sendRequestAnswer(displayChampionWindow, offer);
 
   DisplayChampionIPC.onReceiveAnswer(ipc, function (answer) {
-    ReceptionIPC.sendReceiveAnswer(event.sender, answer);
+    ReceptionIPC.sendReceiveAnswer(receptionWindow, answer);
   });
 });
 

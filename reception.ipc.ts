@@ -1,4 +1,4 @@
-import {IpcMain, IpcRenderer} from 'electron';
+import {IpcMain, IpcRenderer, BrowserWindow} from 'electron';
 
 
 const REQUEST_OFFER = 'request-offer';
@@ -7,17 +7,17 @@ export function sendRequestOffer(ipc: IpcRenderer) {
   ipc.send(REQUEST_OFFER);
 }
 
-export function onRequestOffer(ipc: IpcMain, callback: (event) => void) {
-  ipc.on(REQUEST_OFFER, function (event) {
-    callback(event);
+export function onRequestOffer(ipc: IpcMain, callback: () => void) {
+  ipc.on(REQUEST_OFFER, function () {
+    callback();
   });
 }
 
 
 const RECEIVE_OFFER = 'receive-offer';
 
-export function sendReceiveOffer(target, offer: string) {
-  target.send(RECEIVE_OFFER, offer);
+export function sendReceiveOffer(window: BrowserWindow, offer: string) {
+  window.webContents.send(RECEIVE_OFFER, offer);
 }
 
 export function onReceiveOffer(ipc: IpcRenderer, callback: (offer: string) => void) {
@@ -33,17 +33,17 @@ export function sendRequestAnswer(ipc: IpcRenderer, offer: string) {
   ipc.send(REQUEST_ANSWER, offer);
 }
 
-export function onRequestAnswer(ipc: IpcMain, callback: (event, offer: string) => void) {
+export function onRequestAnswer(ipc: IpcMain, callback: (offer: string) => void) {
   ipc.on(REQUEST_ANSWER, function (event, offer) {
-    callback(event, offer)
+    callback(offer)
   });
 }
 
 
 const RECEIVE_ANSWER = 'receive-answer';
 
-export function sendReceiveAnswer(target, answer: string) {
-  target.send(RECEIVE_ANSWER, answer);
+export function sendReceiveAnswer(window: BrowserWindow, answer: string) {
+  window.webContents.send(RECEIVE_ANSWER, answer);
 }
 
 export function onReceiveAnswer(ipc: IpcMain, callback: (answer: string) => void) {
