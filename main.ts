@@ -2,12 +2,11 @@ import {app, BrowserWindow, ipcMain as ipc, Menu, Tray} from 'electron';
 import {deInit, MacOsKeyboard} from './macos';
 import {Keyboard} from './keyboard';
 import {sendKeyDown, sendKeyUp, sendModifiers} from './keyboard.ipc';
-import DisplayChampionIPC from './displaychampion.ipc';
+import * as DisplayChampionIPC from './displaychampion.ipc';
 import ReceptionIPC from './reception.ipc';
 
 const path = require('path');
 const url = require('url');
-
 
 const minimalMenu = Menu.buildFromTemplate([{role: 'quit'}]);
 
@@ -16,6 +15,14 @@ let receptionWindow: BrowserWindow;
 let tray: Tray;
 
 let sessionActive = false;
+
+function getKeyboard(): Keyboard {
+  if (process.platform === 'darwin') {
+    return new MacOsKeyboard();
+  }
+
+  return null;
+}
 
 function createDisplayChampionWindow() {
   // Create the browser window.
@@ -34,27 +41,35 @@ function createDisplayChampionWindow() {
     displayChampionWindow.webContents.openDevTools();
   }
 
-  // Use an "external" keyboard!
-  const keyboard: Keyboard = new MacOsKeyboard();
+  const keyboard = getKeyboard();
 
-  keyboard.keyUp.subscribe(e => sendKeyUp(displayChampionWindow, e));
-  keyboard.keyDown.subscribe(e => sendKeyDown(displayChampionWindow, e));
-  keyboard.modifiers.subscribe(e => sendModifiers(displayChampionWindow, e));
+  DisplayChampionIPC.onExternalKeyboardRequest(ipc, () => {
+    DisplayChampionIPC.sendExternalKeyboardResponse(displayChampionWindow, keyboard !== null);
+  });
+
+  if (keyboard) {
+    keyboard.keyUp.subscribe(e => sendKeyUp(displayChampionWindow, e));
+    keyboard.keyDown.subscribe(e => sendKeyDown(displayChampionWindow, e));
+    keyboard.modifiers.subscribe(e => sendModifiers(displayChampionWindow, e));
+  }
 
   displayChampionWindow.on('focus', function () {
-    if (sessionActive) {
+    if (sessionActive && keyboard) {
       keyboard.plugIn();
     }
   });
 
   displayChampionWindow.on('blur', function () {
-    if (sessionActive) {
+    if (sessionActive && keyboard) {
       keyboard.unplug();
     }
   });
 
   displayChampionWindow.on('closed', function () {
-    deInit();
+    deInit(); // TODO: encapsulate this tidy up inside MacOsKeyboard
+    if (keyboard) {
+      keyboard.unplug();
+    }
     displayChampionWindow = null
   });
 }
@@ -130,7 +145,7 @@ ReceptionIPC.onRequestOffer(ipc, function (event) {
   });
 });
 
-ReceptionIPC.onRequestAnswer(ipc, function(event, offer) {
+ReceptionIPC.onRequestAnswer(ipc, function (event, offer) {
   console.log('$$$$ Get answer from DisplayChampion...');
   tray.setImage(path.join(__dirname, 'icons', 'busy.png'));
 
