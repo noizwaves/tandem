@@ -39,6 +39,7 @@ export function onRequestAnswer(ipc: IpcRenderer, callback: (event: any, offer: 
   })
 }
 
+
 const RECEIVE_ANSWER = 'dc-receive-answer';
 
 export function sendReceiveAnswer(target, answer: string) {
@@ -50,6 +51,7 @@ export function onReceiveAnswer(ipc: IpcMain, callback: (answer: string) => void
     callback(answer);
   });
 }
+
 
 const GIVE_ANSWER = 'dc-give-answer';
 
@@ -63,6 +65,7 @@ export function onGiveAnswer(ipc: IpcRenderer, callback: (answer: string) => voi
   });
 }
 
+
 const SCREEN_SIZE = 'dc-screensize';
 
 export function sendScreenSize(ipc: IpcRenderer, height: number, width: number) {
@@ -75,17 +78,28 @@ export function onScreenSize(ipc: IpcMain, callback: (height: number, width: num
   });
 }
 
-export default {
-  sendRequestOffer,
-  onRequestOffer,
-  sendReceiveOffer,
-  onReceiveOffer,
-  sendRequestAnswer,
-  onRequestAnswer,
-  sendReceiveAnswer,
-  onReceiveAnswer,
-  sendGiveAnswer,
-  onGiveAnswer,
-  sendScreenSize,
-  onScreenSize,
+
+const EXTERNAL_KEYBOARD_REQ = 'dc-external-keyboard-req';
+
+export function sendExternalKeyboardRequest(ipc: IpcRenderer) {
+  ipc.send(EXTERNAL_KEYBOARD_REQ);
+}
+
+export function onExternalKeyboardRequest(ipc: IpcMain, callback: () => void) {
+  ipc.on(EXTERNAL_KEYBOARD_REQ, function() {
+    callback();
+  });
+}
+
+
+const EXTERNAL_KEYBOARD_RES = 'dc-external-keyboard-res';
+
+export function sendExternalKeyboardResponse(window: BrowserWindow, externalKeyboard: boolean) {
+  window.webContents.send(EXTERNAL_KEYBOARD_RES, externalKeyboard);
+}
+
+export function onExternalKeyboardResponse(ipc: IpcRenderer, callback: (externalKeyboard: boolean) => void) {
+  ipc.on(EXTERNAL_KEYBOARD_RES, function(event, externalKeyboard) {
+    callback(externalKeyboard);
+  });
 }

@@ -4,9 +4,10 @@ import * as Rx from 'rxjs';
 import * as Peer from 'simple-peer';
 import * as robot from 'robotjs';
 
-import {onKeyUp} from './keyboard.ipc';
-import DisplayChampionIPC from './displaychampion.ipc';
-import {KeyCode, ModifierCode, Modifiers, KeyUpEvent} from './keyboard';
+import {KeyCode, KeyUpEvent, ModifierCode} from './keyboard';
+import {KeyboardTransmitter, WindowTransmitter, ExternalTransmitter} from './src/keyboard-transmitter';
+
+import * as DisplayChampionIPC from './displaychampion.ipc';
 import * as PeerMsgs from './peer-msgs';
 
 const ICE_SERVERS = [
@@ -70,95 +71,6 @@ function transmitScreenMouseDownEvents(mouseMoveCallback) {
       height: remoteScreen.clientHeight
     });
   })
-}
-
-interface KeyboardEventTransmitter {
-  readonly keyUp: Rx.Observable<KeyUpEvent>;
-}
-
-class WindowTransmitter implements KeyboardEventTransmitter {
-  readonly keyUp: Rx.Observable<KeyUpEvent>;
-
-  private readonly _keyUp: Rx.Subject<KeyUpEvent>;
-  private readonly _heldModifiers: Set<ModifierCode>;
-
-  constructor(window: Window) {
-    this._keyUp = new Rx.Subject<KeyUpEvent>();
-    this.keyUp = this._keyUp;
-
-    this._heldModifiers = new Set<ModifierCode>();
-
-    window.addEventListener('keydown', (e: any) =>{
-      const rawCode = <string> e.code;
-      if (!(rawCode in KeyCode)) {
-        console.log(`Unhandled window.keydown event with code ${rawCode}, ignoring`);
-        return;
-      }
-
-      if (isMeta(rawCode)) {
-        this._heldModifiers.add(<ModifierCode> rawCode);
-      }
-    }, true);
-
-    window.addEventListener('keyup', (e: any) => {
-      const rawCode = <string> e.code;
-      if (!(rawCode in KeyCode)) {
-        console.log(`Unhandled window.keyup event with code ${rawCode}, ignoring`);
-        return;
-      }
-
-      if (isMeta(rawCode)) {
-        this._heldModifiers.delete(<ModifierCode> rawCode);
-      } else {
-        const modifiers = Array.from(this._heldModifiers.values());
-
-        this._keyUp.next({key: <KeyCode> rawCode, modifiers});
-      }
-    }, true);
-  }
-}
-
-class ExternalTransmitter implements KeyboardEventTransmitter {
-  readonly keyUp: Rx.Observable<KeyUpEvent>;
-
-  private readonly _keyUp: Rx.Subject<KeyUpEvent>;
-
-  constructor(ipc: IpcRenderer) {
-    this._keyUp = new Rx.Subject<KeyUpEvent>();
-    this.keyUp = this._keyUp;
-
-    onKeyUp(ipc, (key, modifiers) => this._keyUp.next({key, modifiers}));
-  }
-}
-
-// Key event transmitters
-function transmitInternalKeyboardEvents(keyUpCallback: (key: KeyCode, modifiers: Modifiers) => void) {
-  const transmitter = new WindowTransmitter(window);
-  transmitter.keyUp.subscribe(e => keyUpCallback(e.key, e.modifiers));
-}
-
-function transmitExternalKeyboardEvents(keyUpCallback: (key: KeyCode, modifiers: Modifiers) => void) {
-  const transmitter = new ExternalTransmitter(ipc);
-  transmitter.keyUp.subscribe(e => keyUpCallback(e.key, e.modifiers));
-}
-
-function isMeta(rawCode: string): boolean {
-  switch (rawCode) {
-    case 'ShiftRight':
-    case 'ShiftRight':
-      return true;
-    case 'ControlLeft':
-    case 'ControlRight':
-      return true;
-    case 'AltLeft':
-    case 'AltRight':
-      return true;
-    case 'MetaLeft':
-    case 'MetaRight':
-      return true;
-    default:
-      return false;
-  }
 }
 
 function toRobotKey(code: KeyCode): string {
@@ -406,8 +318,12 @@ function createJoinPeer() {
         PeerMsgs.sendMouseDown(p, xDown, yDown)
       });
 
-      transmitExternalKeyboardEvents(function (code, modifiers) {
-        PeerMsgs.sendKeyUp(p, code, modifiers);
+      const keyPressTransmitter: KeyboardTransmitter = externalKeyboard
+        ? new ExternalTransmitter(ipc)
+        : new WindowTransmitter(window);
+
+      keyPressTransmitter.keyUp.subscribe((e: KeyUpEvent) => {
+        PeerMsgs.sendKeyUp(p, e.key, e.modifiers);
       });
     }
   });
@@ -426,7 +342,7 @@ function createJoinPeer() {
     let result = null;
     switch (message.t) {
       case PeerMsgs.SCREEN_SIZE:
-        const { height, width } = PeerMsgs.unpackScreenSize(message);
+        const {height, width} = PeerMsgs.unpackScreenSize(message);
         DisplayChampionIPC.sendScreenSize(ipc, height, width);
         break;
       default:
@@ -441,7 +357,7 @@ function createJoinPeer() {
 
 let peer;
 
-DisplayChampionIPC.onRequestOffer(ipc, function(event) {
+DisplayChampionIPC.onRequestOffer(ipc, function (event) {
   console.log('DC is getting an offer');
   getScreenStream(function (screenStream) {
     peer = createHostPeer(screenStream);
@@ -471,3 +387,7 @@ DisplayChampionIPC.onGiveAnswer(ipc, function (answer) {
   // accept the answer
   peer.signal(JSON.parse(answer));
 });
+
+let externalKeyboard = false;
+DisplayChampionIPC.onExternalKeyboardResponse(ipc, result => externalKeyboard = result);
+DisplayChampionIPC.sendExternalKeyboardRequest(ipc);
