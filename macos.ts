@@ -1,5 +1,5 @@
 import {Observable, Subject} from "rxjs";
-import {Keyboard, KeyCode, KeyDownEvent, KeyUpEvent, ModifiersEvent, Modifiers, ModifierCode} from "./keyboard";
+import {Keyboard, KeyCode, KeyDownEvent, KeyUpEvent, Modifiers, ModifierCode} from "./keyboard";
 
 const $ = require('NodObjC');
 
@@ -448,11 +448,10 @@ function convertToKeyCode(code: MacKeyCode): KeyCode {
 export class MacOsKeyboard implements Keyboard {
   keyDown: Observable<KeyDownEvent>;
   keyUp: Observable<KeyUpEvent>;
-  modifiers: Observable<ModifiersEvent>;
 
   private readonly _keyDown = new Subject<KeyDownEvent>();
   private readonly _keyUp = new Subject<KeyUpEvent>();
-  private readonly _modifiers = new Subject<ModifiersEvent>();
+
   private readonly _handler;
   private _monitor = null;
   private _previous = null;
@@ -460,23 +459,91 @@ export class MacOsKeyboard implements Keyboard {
   constructor() {
     this.keyDown = this._keyDown;
     this.keyUp = this._keyUp;
-    this.modifiers = this._modifiers;
     const _this = this;
     const func = function (self, event) {
       const eventType = event('type');
 
       if (eventType === $.NSEventTypeFlagsChanged) {
         flagsChangedFunc(self, event);
+      } else if (eventType === $.NSEventTypeKeyDown) {
+        keyDownFunc(self, event);
       } else if (eventType === $.NSEventTypeKeyUp) {
         keyUpFunc(self, event);
       }
     };
 
+    // a modifier key up or down
     const flagsChangedFunc = function (self, event) {
+      const keyCodeId = <number> event('keyCode');
+
+      if (!(keyCodeId in MacKeyCode)) {
+        console.log(`Unhandled NSEvent keyCode of ${keyCodeId}, ignoring event`);
+        return;
+      }
+
+      const macCode = <MacKeyCode> keyCodeId;
+      const modifierFlags = <MacModifierFlags> event('modifierFlags');
+
+      let subject;
+      switch (macCode) {
+        case MacKeyCode.kVK_Command:
+        case MacKeyCode.kVK_RightCommand:
+          if (isCommandModifier(modifierFlags)) {
+            subject = _this._keyDown;
+          } else {
+            subject = _this._keyUp;
+          }
+          break;
+        case MacKeyCode.kVK_Shift:
+        case MacKeyCode.kVK_RightShift:
+          if (isShiftModifier(modifierFlags)) {
+            subject = _this._keyDown;
+          } else {
+            subject = _this._keyUp;
+          }
+          break;
+        case MacKeyCode.kVK_Control:
+        case MacKeyCode.kVK_RightControl:
+          if (isControlModifier(modifierFlags)) {
+            subject = _this._keyDown;
+          } else {
+            subject = _this._keyUp;
+          }
+          break;
+        case MacKeyCode.kVK_Option:
+        case MacKeyCode.kVK_RightOption:
+          if (isOptionModifier(modifierFlags)) {
+            subject = _this._keyDown;
+          } else {
+            subject = _this._keyUp;
+          }
+          break;
+        default:
+          return;
+      }
+
+      const key = convertToKeyCode(<MacKeyCode> keyCodeId);
+      const modifiers = convertToModifiers(modifierFlags);
+      subject.next({key, modifiers});
+    };
+
+    const keyDownFunc = function (self, event) {
+      if (event('isARepeat')) {
+        return;
+      }
+
       const modifierFlags = <MacModifierFlags> event('modifierFlags');
       const modifiers = convertToModifiers(modifierFlags);
 
-      _this._modifiers.next({modifiers});
+      const keyCodeId = <number> event('keyCode');
+      if (!(keyCodeId in MacKeyCode)) {
+        console.log(`Unhandled NSEvent keyCode of ${keyCodeId}, ignoring event`);
+        return;
+      }
+
+      const key: KeyCode = convertToKeyCode(<MacKeyCode> keyCodeId);
+
+      _this._keyDown.next({key, modifiers})
     };
 
     const keyUpFunc = function (self, event) {
@@ -499,7 +566,7 @@ export class MacOsKeyboard implements Keyboard {
 
   plugIn(): void {
     this._monitor = $.NSEvent('addLocalMonitorForEventsMatchingMask',
-      ($.NSEventMaskFlagsChanged | $.NSEventMaskKeyUp),
+      ($.NSEventMaskFlagsChanged | $.NSEventMaskKeyUp | $.NSEventMaskKeyDown),
       'handler', this._handler);
 
     if (canDisableShortcuts()) {

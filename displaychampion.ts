@@ -4,12 +4,12 @@ import * as Rx from 'rxjs';
 import * as Peer from 'simple-peer';
 import * as robot from 'robotjs';
 
-import {KeyPresser, KeyUpEvent} from './keyboard';
+import {KeyDownEvent, KeyPresser, KeyUpEvent} from './keyboard';
 import {KeyboardTransmitter, WindowTransmitter, ExternalTransmitter} from './src/keyboard-transmitter';
 
 import * as DisplayChampionIPC from './displaychampion.ipc';
 import * as PeerMsgs from './peer-msgs';
-import {RobotKeyPresser} from './src/robot-key-presser';
+import {RobotKeyMover} from './src/robot-key-mover';
 
 const ICE_SERVERS = [
   // {url: 'stun:stun.l.google.com:19302'},
@@ -93,7 +93,7 @@ function createHostPeer(screenStream) {
     stream: screenStream
   });
 
-  const keyPresser: KeyPresser = new RobotKeyPresser();
+  const keyMover: KeyPresser = new RobotKeyMover();
 
   p.on('connect', function () {
     console.log('[peer].CONNECT');
@@ -135,8 +135,12 @@ function createHostPeer(screenStream) {
         robot.mouseClick();
         break;
       case PeerMsgs.KEYUP:
-        const {code, modifiers} = PeerMsgs.unpackKeyUp(message);
-        keyPresser.press(code, modifiers);
+        const keyUp = PeerMsgs.unpackKeyUp(message);
+        keyMover.pressUp(keyUp.code, keyUp.modifiers);
+        break;
+      case PeerMsgs.KEYDOWN:
+        const keyDown = PeerMsgs.unpackKeyDown(message);
+        keyMover.pressDown(keyDown.code, keyDown.modifiers);
         break;
       default:
         result = data;
@@ -197,6 +201,10 @@ function createJoinPeer() {
       keyPressTransmitter.keyUp.subscribe((e: KeyUpEvent) => {
         PeerMsgs.sendKeyUp(p, e.key, e.modifiers);
       });
+
+      keyPressTransmitter.keyDown.subscribe((e: KeyDownEvent) => {
+        PeerMsgs.sendKeyDown(p, e.key, e.modifiers);
+      })
     }
   });
 

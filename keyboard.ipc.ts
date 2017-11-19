@@ -1,5 +1,5 @@
 import {BrowserWindow, IpcRenderer} from 'electron';
-import {KeyCode, KeyDownEvent, KeyUpEvent, Modifiers, ModifiersEvent} from './keyboard';
+import {KeyCode, KeyDownEvent, KeyUpEvent, Modifiers} from './keyboard';
 
 
 const KEYUP = 'kb-keyup';
@@ -32,22 +32,5 @@ interface KeyDownCallback {
 export function onKeyDown(ipc: IpcRenderer, callback: KeyDownCallback) {
   ipc.on(KEYDOWN, function (event, code, modifiers) {
     callback(code, modifiers);
-  });
-}
-
-
-const MODIFIER = 'kb-modifier';
-
-export function sendModifiers(target: BrowserWindow, event: ModifiersEvent) {
-  target.webContents.send(MODIFIER, event.modifiers);
-}
-
-interface ModifiersCallback {
-  (modifiers: Modifiers): void;
-}
-
-export function onModifiers(ipc: IpcRenderer, callback: ModifiersCallback) {
-  ipc.on(MODIFIER, function (event, modifiers) {
-    callback(modifiers);
   });
 }

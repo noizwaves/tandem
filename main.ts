@@ -1,7 +1,7 @@
 import {app, BrowserWindow, ipcMain as ipc, Menu, Tray} from 'electron';
 import {deInit, MacOsKeyboard} from './macos';
 import {Keyboard} from './keyboard';
-import {sendKeyDown, sendKeyUp, sendModifiers} from './keyboard.ipc';
+import {sendKeyDown, sendKeyUp} from './keyboard.ipc';
 import * as DisplayChampionIPC from './displaychampion.ipc';
 import ReceptionIPC from './reception.ipc';
 
@@ -50,7 +50,6 @@ function createDisplayChampionWindow() {
   if (keyboard) {
     keyboard.keyUp.subscribe(e => sendKeyUp(displayChampionWindow, e));
     keyboard.keyDown.subscribe(e => sendKeyDown(displayChampionWindow, e));
-    keyboard.modifiers.subscribe(e => sendModifiers(displayChampionWindow, e));
   }
 
   displayChampionWindow.on('focus', function () {

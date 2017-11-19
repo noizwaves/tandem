@@ -55,6 +55,26 @@ export function unpackKeyUp(message): { code: KeyCode, modifiers: Modifiers } {
 }
 
 
+export const KEYDOWN = 'keydown';
+
+export function sendKeyDown(peer, code: KeyCode, modifiers: Modifiers) {
+  const message = {
+    t: KEYDOWN,
+    code: code.toString(),
+    modifiers: modifiers.map(m => m.toString())
+  };
+  const data = JSON.stringify(message);
+  peer.send(data);
+}
+
+export function unpackKeyDown(message): { code: KeyCode, modifiers: Modifiers } {
+  const code = <KeyCode> message.code;
+  const modifiers = <Modifiers> message.modifiers;
+
+  return {code, modifiers};
+}
+
+
 export const SCREEN_SIZE = 'screensize';
 
 export function sendScreenSize(peer, height: number, width: number) {
