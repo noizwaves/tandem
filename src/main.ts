@@ -3,7 +3,7 @@ import {deInit, MacOsKeyboard} from './macos';
 import {Keyboard} from './keyboard';
 import {sendKeyDown, sendKeyUp} from './keyboard.ipc';
 import * as DisplayChampionIPC from './displaychampion.ipc';
-import ReceptionIPC from './reception.ipc';
+import * as ReceptionIPC from './reception.ipc';
 
 const path = require('path');
 const url = require('url');
@@ -167,4 +167,8 @@ DisplayChampionIPC.onScreenSize(ipc, function (height, width) {
   if (displayChampionWindow) {
     displayChampionWindow.setAspectRatio(width / height, undefined);
   }
+});
+
+DisplayChampionIPC.onConnectionStateChanged(ipc, function(connected) {
+  ReceptionIPC.sendConnectionStateChanged(receptionWindow, connected);
 });

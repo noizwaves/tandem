@@ -7,7 +7,7 @@ import WebSocket
 import Json.Decode as Decode
 import Json.Decode.Extra exposing ((|:))
 
-import Port exposing (requestOffer, receiveOffer, requestAnswer, receiveAnswer, giveAnswer)
+import Port exposing (requestOffer, receiveOffer, requestAnswer, receiveAnswer, giveAnswer, connectionStateChanged)
 
 -- Model
 
@@ -33,6 +33,7 @@ type ConnectionIntent
   = Browsing (Maybe NameInformation)
   | Hosting NameInformation
   | Joining NameInformation
+  | Connected NameInformation
 
 type alias Model =
   { name: String
@@ -60,6 +61,8 @@ type Msg
   | ReceiveOfferFromDC String
   | ReceiveAnswerFromDC String
 
+  | ConnectionStateChanged Bool
+
 
 
 -- Update
@@ -83,6 +86,8 @@ update msg model =
                 ( { model | intent = Hosting newInformation }, initiateHandshakeIfRequired newInformation )
               Joining _ ->
                 ( { model | intent = Joining newInformation }, Cmd.none )
+              Connected _ ->
+                ( model, Cmd.none )
           Ok (ApiAnswerRequest offer) ->
             ( model, requestAnswer offer.answerRequest )
           Ok (ApiAnswerResponse answer) ->
@@ -100,6 +105,17 @@ update msg model =
       ( model , sendAnswerRequest model.name offer )
     ReceiveAnswerFromDC answer ->
       ( model , sendAnswerResponse model.name answer )
+
+    ConnectionStateChanged connected ->
+      case model.intent of
+        Hosting nameInformation ->
+          ( { model | intent = Connected nameInformation }, Cmd.none )
+        Joining nameInformation ->
+          ( { model | intent = Connected nameInformation }, Cmd.none )
+        Browsing _ ->
+          ( model, Cmd.none )
+        Connected _ ->
+          ( model, Cmd.none )
 
 
 initiateHandshakeIfRequired : NameInformation -> Cmd Msg
@@ -169,6 +185,8 @@ view model =
         (viewHostingButtons information, False)
       Joining information ->
         (viewJoiningButtons information, False)
+      Connected information ->
+        ([ text "Connected" ], False)
 
     inputValid = (String.length model.name) == 0 || isValidName model.name
     inputClass = if inputValid then "name" else "name invalid"
@@ -228,6 +246,7 @@ subscriptions model =
       [ WebSocket.listen (apiUrl ++ model.name) ReceiveApiMessage
       , receiveOffer ReceiveOfferFromDC
       , receiveAnswer ReceiveAnswerFromDC
+      , connectionStateChanged ConnectionStateChanged
       ]
 
 main : Program Never Model Msg

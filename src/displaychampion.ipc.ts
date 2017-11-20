@@ -103,3 +103,16 @@ export function onExternalKeyboardResponse(ipc: IpcRenderer, callback: (external
     callback(externalKeyboard);
   });
 }
+
+
+const CONNECTION_STATE_CHANGED = 'dc-connection-state-changed';
+
+export function sendConnectionStateChanged(ipc: IpcRenderer, connected: boolean) {
+  ipc.send(CONNECTION_STATE_CHANGED, connected);
+}
+
+export function onConnectionStateChanged(ipc: IpcMain, callback: (connected: boolean) => void) {
+  ipc.on(CONNECTION_STATE_CHANGED, function(event, connected) {
+    callback(connected);
+  });
+}

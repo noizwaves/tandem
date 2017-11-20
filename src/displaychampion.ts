@@ -99,6 +99,8 @@ function createHostPeer(screenStream) {
     console.log('[peer].CONNECT');
 
     PeerMsgs.sendScreenSize(peer, screen.height, screen.width);
+
+    DisplayChampionIPC.sendConnectionStateChanged(ipc, true);
   });
 
   p.on('error', function (err) {
@@ -163,6 +165,8 @@ function createJoinPeer() {
 
   p.on('connect', function () {
     console.log('[peer].CONNECT');
+
+    DisplayChampionIPC.sendConnectionStateChanged(ipc, true);
   });
 
   p.on('error', function (err) {
@@ -204,7 +208,7 @@ function createJoinPeer() {
 
       keyPressTransmitter.keyDown.subscribe((e: KeyDownEvent) => {
         PeerMsgs.sendKeyDown(p, e.key, e.modifiers);
-      })
+      });
     }
   });
 
