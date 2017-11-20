@@ -7,42 +7,10 @@ import WebSocket
 import Json.Decode as Decode
 import Json.Decode.Extra exposing ((|:))
 
-import Port exposing (requestOffer, receiveOffer, requestAnswer, receiveAnswer, giveAnswer, connectionStateChanged)
+import Port exposing (requestOffer, receiveOffer, requestAnswer, receiveAnswer, giveAnswer, connectionStateChanged, readyToHost, readyToJoin)
+import Model exposing (..)
 
--- Model
-
-type alias NameInformation =
-  { canJoin: Bool
-  , canHost: Bool
-  }
-
-type alias AnswerRequest =
-  { answerRequest: String
-  }
-
-type alias AnswerResponse =
-  { answerResponse: String
-  }
-
-type ApiMessage
-  = ApiNameInformation NameInformation
-  | ApiAnswerRequest AnswerRequest
-  | ApiAnswerResponse AnswerResponse
-
-type PreConnectionIntent
-  = PreviouslyHosting
-  | PreviouslyJoining
-
-type ConnectionIntent
-  = Browsing (Maybe NameInformation)
-  | Hosting NameInformation
-  | Joining NameInformation
-  | Connected PreConnectionIntent NameInformation
-
-type alias Model =
-  { name: String
-  , intent: ConnectionIntent
-  }
+-- Model stuff
 
 isValidName : String -> Bool
 isValidName name = (String.length name) >= 4
@@ -101,9 +69,19 @@ update msg model =
             ( model, Cmd.none )
 
     HostSession information ->
-      ( { model | intent = Hosting information }, sendHostingIntent model.name )
+      ( { model | intent = Hosting information }
+      , Cmd.batch
+        [ sendHostingIntent model.name
+        , readyToHost information
+        ]
+      )
     JoinSession information ->
-      ( { model | intent = Joining information }, sendJoiningIntent model.name )
+      ( { model | intent = Joining information }
+      , Cmd.batch
+        [ sendJoiningIntent model.name
+        , readyToJoin information
+        ]
+      )
 
     ReceiveOfferFromDC offer ->
       ( model , sendAnswerRequest model.name offer )
@@ -185,6 +163,14 @@ decodeNameInformation =
   Decode.succeed NameInformation
     |: (Decode.field "canJoin" Decode.bool)
     |: (Decode.field "canHost" Decode.bool)
+    |: (Decode.field "iceServers" (Decode.list decodeIceServerConfiguration))
+
+decodeIceServerConfiguration : Decode.Decoder IceServerConfiguration
+decodeIceServerConfiguration =
+  Decode.succeed IceServerConfiguration
+    |: (Decode.field "urls" Decode.string)
+    |: (Decode.field "username" Decode.string)
+    |: (Decode.field "credential" Decode.string)
 
 -- View
 

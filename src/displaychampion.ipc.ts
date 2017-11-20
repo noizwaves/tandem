@@ -116,3 +116,28 @@ export function onConnectionStateChanged(ipc: IpcMain, callback: (connected: boo
     callback(connected);
   });
 }
+
+
+const READY_TO_HOST = 'dc-ready-to-host';
+
+export function sendReadyToHost(window: BrowserWindow, iceServers: any[]) {
+  window.webContents.send(READY_TO_HOST, iceServers);
+}
+
+export function onReadyToHost(ipc: IpcRenderer, callback: (iceServers: any[]) => void) {
+  ipc.on(READY_TO_HOST, function(event, iceServers) {
+    callback(iceServers);
+  });
+}
+
+const READY_TO_JOIN = 'dc-ready-to-join';
+
+export function sendReadyToJoin(window: BrowserWindow, iceServers: any[]) {
+  window.webContents.send(READY_TO_JOIN, iceServers);
+}
+
+export function onReadyToJoin(ipc: IpcRenderer, callback: (iceServers: any[]) => void) {
+  ipc.on(READY_TO_JOIN, function(event, iceServers) {
+    callback(iceServers);
+  });
+}
