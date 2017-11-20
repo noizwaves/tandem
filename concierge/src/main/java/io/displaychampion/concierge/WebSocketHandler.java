@@ -8,6 +8,7 @@ import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -84,7 +85,28 @@ public class WebSocketHandler extends TextWebSocketHandler {
         boolean canHost = !hostMap.containsKey(name);
         boolean canJoin = !joinMap.containsKey(name);
 
-        session.sendMessage(new TextMessage("{\"canHost\":" + canHost + ",\"canJoin\":" + canJoin + "}"));
+        HashMap<String, Object> message = new HashMap<>();
+        message.put("canHost", canHost);
+        message.put("canJoin", canJoin);
+        message.put("iceServers", buildIceServers());
+
+        ObjectMapper mapper = new ObjectMapper();
+        String payload = mapper.writeValueAsString(message);
+
+        session.sendMessage(new TextMessage(payload));
+    }
+
+    private List<Object> buildIceServers() {
+        ArrayList<Object> output = new ArrayList<>();
+
+        HashMap<String, String> crank = new HashMap<>();
+        crank.put("urls", "turn:crank.tandem.stream:3478?transport=udp");
+        crank.put("username", "displaychampion");
+        crank.put("credential", "<SOME_PASSWORD_HERE>");
+
+        output.add(crank);
+
+        return output;
     }
 
     private void sendAnswerRequest(String offer, WebSocketSession session) throws IOException {

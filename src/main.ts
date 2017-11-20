@@ -132,6 +132,16 @@ app.on('activate', function () {
   }
 });
 
+// Host/client discovery
+ReceptionIPC.onReadyToHost(ipc, function(iceServers) {
+  DisplayChampionIPC.sendReadyToHost(displayChampionWindow, iceServers);
+});
+
+ReceptionIPC.onReadyToJoin(ipc, function(iceServers) {
+  DisplayChampionIPC.sendReadyToJoin(displayChampionWindow, iceServers);
+});
+
+// Signalling/handshaking
 ReceptionIPC.onRequestOffer(ipc, function () {
   console.log('$$$$ Getting offer from DisplayChampion...');
   tray.setImage(path.join(__dirname, 'icons', 'busy.png'));

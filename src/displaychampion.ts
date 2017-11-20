@@ -11,13 +11,6 @@ import * as DisplayChampionIPC from './displaychampion.ipc';
 import * as PeerMsgs from './peer-msgs';
 import {RobotKeyMover} from './robot-key-mover';
 
-const ICE_SERVERS = [
-  // {url: 'stun:stun.l.google.com:19302'},
-  // {url: 'stun:stun.services.mozilla.com'},
-  // {urls: 'stun:global.stun.twilio.com:3478?transport=udp'},
-  {urls: 'turn:crank.tandem.stream:3478?transport=udp', username: 'displaychampion', credential: '<SOME_PASSWORD_HERE>'},
-];
-
 function getScreenStream(cb) {
   const video: MediaTrackConstraints = <MediaTrackConstraints> (<any> {
     mandatory: {
@@ -82,10 +75,10 @@ function preferH264(sdp: string): string {
   return sdp;
 }
 
-function createHostPeer(screenStream) {
+function createHostPeer(iceServers, screenStream) {
   const p = new Peer({
     config: {
-      iceServers: ICE_SERVERS
+      iceServers: iceServers
     },
     sdpTransform: preferH264,
     initiator: true,
@@ -160,10 +153,10 @@ function createHostPeer(screenStream) {
   return p;
 }
 
-function createJoinPeer() {
+function createJoinPeer(iceServers) {
   const p = new Peer({
     config: {
-      iceServers: ICE_SERVERS
+      iceServers: iceServers
     },
     initiator: false,
     trickle: false
@@ -251,12 +244,21 @@ function createJoinPeer() {
   return p;
 }
 
-let peer;
 
+let iceServers = null;
+DisplayChampionIPC.onReadyToHost(ipc, function (hostIceServers) {
+  iceServers = hostIceServers;
+});
+
+DisplayChampionIPC.onReadyToJoin(ipc, function (clientIceServers) {
+  iceServers = clientIceServers;
+});
+
+
+let peer;
 DisplayChampionIPC.onRequestOffer(ipc, function () {
-  console.log('DC is getting an offer');
   getScreenStream(function (screenStream) {
-    peer = createHostPeer(screenStream);
+    peer = createHostPeer(iceServers, screenStream);
 
     peer.on('signal', function (data) {
       const offer = JSON.stringify(data);
@@ -266,9 +268,8 @@ DisplayChampionIPC.onRequestOffer(ipc, function () {
 });
 
 DisplayChampionIPC.onRequestAnswer(ipc, function (offer) {
-  console.log('DC is getting an answer...');
   show("#remote-screen");
-  peer = createJoinPeer();
+  peer = createJoinPeer(iceServers);
 
   peer.on('signal', function (data) {
     const answer = JSON.stringify(data);
@@ -283,6 +284,7 @@ DisplayChampionIPC.onGiveAnswer(ipc, function (answer) {
   // accept the answer
   peer.signal(JSON.parse(answer));
 });
+
 
 let externalKeyboard = false;
 DisplayChampionIPC.onExternalKeyboardResponse(ipc, result => externalKeyboard = result);

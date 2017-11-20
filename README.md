@@ -28,3 +28,22 @@ Remote pair programming tool
 
 1. Build via `yarn build:debug`
 1. Run via `electron .`
+
+
+## Architecture
+
+### Concierge
+
+The signalling server, written in Java and Spring.
+It uses WebSockets to facilitate clients and hosts in exchanging offers and answers.
+
+#### Development
+
+1. `cd concierge`
+1. `gw bootRun`
+
+#### Deployment
+
+1. `cd concierge`
+1. `gw build`
+1. `cf push`

@@ -1,5 +1,10 @@
 port module Port exposing (..)
 
+import Model exposing (NameInformation)
+
+port readyToHost : NameInformation -> Cmd msg
+port readyToJoin : NameInformation -> Cmd msg
+
 port requestOffer : Bool -> Cmd msg
 port receiveOffer : (String -> msg) -> Sub msg
 port requestAnswer : String -> Cmd msg

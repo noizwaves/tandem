@@ -10,6 +10,24 @@ const mountNode = document.getElementById('main');
 
 const app = Elm.Main.embed(mountNode);
 
+interface IceServerConfiguration {
+  urls: string;
+  username: string;
+  credential: string;
+}
+
+interface NameInformation {
+  iceServers: IceServerConfiguration[];
+}
+
+app.ports.readyToHost.subscribe(function(nameInformation: NameInformation) {
+  ReceptionIPC.sendReadyToHost(ipc, nameInformation.iceServers);
+});
+
+app.ports.readyToJoin.subscribe(function(nameInformation: NameInformation) {
+  ReceptionIPC.sendReadyToJoin(ipc, nameInformation.iceServers);
+});
+
 app.ports.requestOffer.subscribe(function () {
   ReceptionIPC.sendRequestOffer(ipc);
 });
