@@ -29,11 +29,15 @@ type ApiMessage
   | ApiAnswerRequest AnswerRequest
   | ApiAnswerResponse AnswerResponse
 
+type PreConnectionIntent
+  = PreviouslyHosting
+  | PreviouslyJoining
+
 type ConnectionIntent
   = Browsing (Maybe NameInformation)
   | Hosting NameInformation
   | Joining NameInformation
-  | Connected NameInformation
+  | Connected PreConnectionIntent NameInformation
 
 type alias Model =
   { name: String
@@ -86,8 +90,8 @@ update msg model =
                 ( { model | intent = Hosting newInformation }, initiateHandshakeIfRequired newInformation )
               Joining _ ->
                 ( { model | intent = Joining newInformation }, Cmd.none )
-              Connected _ ->
-                ( model, Cmd.none )
+              Connected previous _ ->
+                ( { model | intent = Connected previous newInformation }, Cmd.none )
           Ok (ApiAnswerRequest offer) ->
             ( model, requestAnswer offer.answerRequest )
           Ok (ApiAnswerResponse answer) ->
@@ -107,15 +111,24 @@ update msg model =
       ( model , sendAnswerResponse model.name answer )
 
     ConnectionStateChanged connected ->
-      case model.intent of
-        Hosting nameInformation ->
-          ( { model | intent = Connected nameInformation }, Cmd.none )
-        Joining nameInformation ->
-          ( { model | intent = Connected nameInformation }, Cmd.none )
-        Browsing _ ->
-          ( model, Cmd.none )
-        Connected _ ->
-          ( model, Cmd.none )
+      if connected then
+        case model.intent of
+          Hosting nameInformation ->
+            ( { model | intent = Connected PreviouslyHosting nameInformation }, Cmd.none )
+          Joining nameInformation ->
+            ( { model | intent = Connected PreviouslyJoining nameInformation }, Cmd.none )
+          Browsing _ ->
+            ( model, Cmd.none )
+          Connected _ _ ->
+            ( model, Cmd.none )
+      else
+        case model.intent of
+          Connected PreviouslyHosting nameInformation ->
+            ( { model | intent = Hosting nameInformation }, Cmd.none )
+          Connected PreviouslyJoining nameInformation ->
+            ( { model | intent = Joining nameInformation }, Cmd.none )
+          _ ->
+            ( model, Cmd.none )
 
 
 initiateHandshakeIfRequired : NameInformation -> Cmd Msg
@@ -185,7 +198,7 @@ view model =
         (viewHostingButtons information, False)
       Joining information ->
         (viewJoiningButtons information, False)
-      Connected information ->
+      Connected _ _ ->
         ([ text "Connected" ], False)
 
     inputValid = (String.length model.name) == 0 || isValidName model.name
