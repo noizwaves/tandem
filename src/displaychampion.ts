@@ -5,7 +5,7 @@ import * as Peer from 'simple-peer';
 import * as robot from 'robotjs';
 
 import {KeyDownEvent, KeyPresser, KeyUpEvent} from './keyboard';
-import {KeyboardTransmitter, WindowTransmitter, ExternalTransmitter} from './keyboard-transmitter';
+import {ExternalTransmitter, KeyboardTransmitter, WindowTransmitter} from './keyboard-transmitter';
 
 import * as DisplayChampionIPC from './displaychampion.ipc';
 import * as PeerMsgs from './peer-msgs';
@@ -103,6 +103,12 @@ function createHostPeer(screenStream) {
     DisplayChampionIPC.sendConnectionStateChanged(ipc, true);
   });
 
+  p.on('close', function () {
+    console.log('[peer].CLOSE');
+
+    DisplayChampionIPC.sendConnectionStateChanged(ipc, false);
+  });
+
   p.on('error', function (err) {
     console.log('[peer].ERROR', err);
   });
@@ -167,6 +173,12 @@ function createJoinPeer() {
     console.log('[peer].CONNECT');
 
     DisplayChampionIPC.sendConnectionStateChanged(ipc, true);
+  });
+
+  p.on('close', function () {
+    console.log('[peer].CLOSE');
+
+    DisplayChampionIPC.sendConnectionStateChanged(ipc, false);
   });
 
   p.on('error', function (err) {
