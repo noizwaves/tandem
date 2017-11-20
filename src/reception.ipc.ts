@@ -66,15 +66,14 @@ export function onGiveAnswer(ipc: IpcMain, callback: (answer: string) => void) {
 }
 
 
-export default {
-  sendRequestOffer,
-  onRequestOffer,
-  sendReceiveOffer,
-  onReceiveOffer,
-  sendRequestAnswer,
-  onRequestAnswer,
-  sendReceiveAnswer,
-  onReceiveAnswer,
-  sendGiveAnswer,
-  onGiveAnswer,
+const CONNECTION_STATE_CHANGED = 'connection-state-changed';
+
+export function sendConnectionStateChanged(window: BrowserWindow, connected: boolean) {
+  window.webContents.send(CONNECTION_STATE_CHANGED, connected);
+}
+
+export function onConnectionStateChanged(ipc: IpcRenderer, callback: (connected: boolean) => void) {
+  ipc.on(CONNECTION_STATE_CHANGED, function(event, connected) {
+    callback(connected);
+  });
 }

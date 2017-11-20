@@ -1,5 +1,5 @@
 import {ipcRenderer as ipc} from 'electron';
-import ReceptionIPC from '../../src/reception.ipc';
+import * as ReceptionIPC from '../../src/reception.ipc';
 
 require('./style/main.scss');
 
@@ -28,4 +28,8 @@ ReceptionIPC.onReceiveAnswer(ipc, function (answer) {
 
 app.ports.giveAnswer.subscribe(function (answer) {
   ReceptionIPC.sendGiveAnswer(ipc, answer);
+});
+
+ReceptionIPC.onConnectionStateChanged(ipc, function(connected) {
+  app.ports.connectionStateChanged.send(connected);
 });

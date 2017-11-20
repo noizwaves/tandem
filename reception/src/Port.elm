@@ -5,3 +5,5 @@ port receiveOffer : (String -> msg) -> Sub msg
 port requestAnswer : String -> Cmd msg
 port receiveAnswer : (String -> msg) -> Sub msg
 port giveAnswer : String -> Cmd msg
+
+port connectionStateChanged : (Bool -> msg) -> Sub msg
