@@ -1,5 +1,10 @@
 module Model exposing (..)
 
+type ProcessTrustLevel
+  = TrustUnknown
+  | Trusted
+  | Untrusted
+
 type alias IceServerConfiguration =
  { urls: String
  , username: String
@@ -38,4 +43,5 @@ type ConnectionIntent
 type alias Model =
   { name: String
   , intent: ConnectionIntent
+  , trust: ProcessTrustLevel
   }

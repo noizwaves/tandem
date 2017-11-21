@@ -2,6 +2,9 @@ port module Port exposing (..)
 
 import Model exposing (NameInformation)
 
+port requestProcessTrust : Bool -> Cmd msg
+port updateProcessTrust : (Bool -> msg) -> Sub msg
+
 port readyToHost : NameInformation -> Cmd msg
 port readyToJoin : NameInformation -> Cmd msg
 

@@ -102,3 +102,29 @@ export function onReadyToJoin(ipc: IpcMain, callback: (iceServers: any[]) => voi
     callback(iceServers);
   })
 }
+
+
+const REQUEST_PROCESS_TRUST = 'request-process-trust';
+
+export function sendRequestProcessTrust(ipc: IpcRenderer) {
+  ipc.send(REQUEST_PROCESS_TRUST);
+}
+
+export function onRequestProcessTrust(ipc: IpcMain, callback: () => void) {
+  ipc.on(REQUEST_PROCESS_TRUST, function() {
+    callback();
+  });
+}
+
+
+const PROCESS_TRUST = 'process-trust';
+
+export function sendProcessTrust(window: BrowserWindow, processTrust: boolean) {
+  window.webContents.send(PROCESS_TRUST, processTrust);
+}
+
+export function onProcessTrust(ipc: IpcRenderer, callback: (processTrust: boolean) => void) {
+  ipc.on(PROCESS_TRUST, function(event, processTrust) {
+    callback(processTrust);
+  });
+}

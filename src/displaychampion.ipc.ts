@@ -130,6 +130,7 @@ export function onReadyToHost(ipc: IpcRenderer, callback: (iceServers: any[]) =>
   });
 }
 
+
 const READY_TO_JOIN = 'dc-ready-to-join';
 
 export function sendReadyToJoin(window: BrowserWindow, iceServers: any[]) {

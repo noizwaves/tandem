@@ -1,5 +1,7 @@
-import {Observable, Subject} from "rxjs";
-import {Keyboard, KeyCode, KeyDownEvent, KeyUpEvent, Modifiers, ModifierCode} from "./keyboard";
+import {Observable, Subject} from 'rxjs';
+import * as Rx from 'rxjs';
+import {Keyboard, KeyCode, KeyDownEvent, KeyUpEvent, ModifierCode, Modifiers} from './keyboard';
+import {SystemIntegrator} from './system-integrator';
 
 const $ = require('NodObjC');
 
@@ -586,6 +588,22 @@ export class MacOsKeyboard implements Keyboard {
   }
 }
 
+export class MacOsSystemIntegrator implements SystemIntegrator {
+
+  private static readonly POLL_INTERVAL = 100;
+
+  readonly trust: Rx.Observable<boolean>;
+
+  constructor() {
+    this.trust = Rx.Observable.interval(MacOsSystemIntegrator.POLL_INTERVAL)
+      .map(() => $.AXIsProcessTrusted())
+      .distinctUntilChanged();
+  }
+
+  isTrusted(): boolean {
+    return <boolean> $.AXIsProcessTrusted();
+  }
+}
 
 export function deInit(): void {
   // pool('drain');
