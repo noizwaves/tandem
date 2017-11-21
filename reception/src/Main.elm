@@ -1,4 +1,4 @@
-import Html exposing (Html, button, div, form, text, input)
+import Html exposing (Html, button, div, form, text, input, span)
 import Html.Attributes exposing (autofocus, class, disabled, type_, placeholder)
 import Html.Events exposing (onInput, onSubmit)
 
@@ -7,8 +7,9 @@ import WebSocket
 import Json.Decode as Decode
 import Json.Decode.Extra exposing ((|:))
 
-import Port exposing (requestOffer, receiveOffer, requestAnswer, receiveAnswer, giveAnswer, connectionStateChanged, readyToHost, readyToJoin)
+import Port exposing (requestOffer, receiveOffer, requestAnswer, receiveAnswer, giveAnswer, connectionStateChanged, readyToHost, readyToJoin, updateProcessTrust, requestProcessTrust)
 import Model exposing (..)
+import Model exposing (ProcessTrustLevel(..))
 
 -- Model stuff
 
@@ -17,13 +18,15 @@ isValidName name = (String.length name) >= 4
 
 init : (Model, Cmd Msg)
 init =
-  (Model "" (Browsing Nothing), Cmd.none)
+  (Model "" (Browsing Nothing) TrustUnknown, requestProcessTrust True)
 
 
 -- Message
 
 type Msg
   = NameChanged String
+
+  | UpdateProcessTrust Bool
 
   | ReceiveApiMessage String
 
@@ -44,6 +47,12 @@ update msg model =
   case msg of
     NameChanged newName ->
       ( { model | name = newName, intent = Browsing Nothing }, Cmd.none )
+
+    UpdateProcessTrust isTrusted ->
+      let
+        trust = if isTrusted then Trusted else Untrusted
+      in
+        ( { model | trust = trust }, Cmd.none )
 
     ReceiveApiMessage raw ->
       let
@@ -201,10 +210,22 @@ view model =
       _ ->
         [ class "start-form" ]
 
+    accessibilityCheck = case model.trust of
+      TrustUnknown ->
+        text ""
+      Untrusted ->
+        div [ class "accessibility-alert" ]
+          [ text "Enable Accessibility for Tandem in "
+          , span [ class "steps"] [ text "System Preferences > Security & Privacy > Privacy" ]
+          ]
+      Trusted ->
+        text ""
+
   in
     form formAttrs
       [ input [ autofocus True, class inputClass, placeholder "Type in a name", type_ "text", onInput NameChanged, disabled (not inputEnabled) ] [ ]
       , div [ class "start-buttons" ] buttons
+      , accessibilityCheck
       ]
 
 viewUnconnectedButtons : Maybe NameInformation -> List (Html Msg)
@@ -238,15 +259,19 @@ viewJoiningButtons information =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-  if not (isValidName model.name) then
-    Sub.none
-  else
-    Sub.batch
+  let
+    base =
+      [ updateProcessTrust UpdateProcessTrust
+      ]
+    inValidRoom = if not (isValidName model.name) then [] else
       [ WebSocket.listen (apiUrl ++ model.name) ReceiveApiMessage
       , receiveOffer ReceiveOfferFromDC
       , receiveAnswer ReceiveAnswerFromDC
       , connectionStateChanged ConnectionStateChanged
+      , updateProcessTrust UpdateProcessTrust
       ]
+  in
+    Sub.batch (base ++ inValidRoom)
 
 main : Program Never Model Msg
 main =

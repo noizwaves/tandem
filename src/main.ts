@@ -1,9 +1,11 @@
 import {app, BrowserWindow, ipcMain as ipc, Menu, Tray} from 'electron';
-import {deInit, MacOsKeyboard} from './macos';
+import * as Rx from 'rxjs';
+import {deInit, MacOsKeyboard, MacOsSystemIntegrator} from './macos';
 import {Keyboard} from './keyboard';
 import {sendKeyDown, sendKeyUp} from './keyboard.ipc';
 import * as DisplayChampionIPC from './displaychampion.ipc';
 import * as ReceptionIPC from './reception.ipc';
+import {NoopSystemIntegrator, SystemIntegrator} from './system-integrator';
 
 const path = require('path');
 const url = require('url');
@@ -22,6 +24,14 @@ function getKeyboard(): Keyboard {
   }
 
   return null;
+}
+
+function getSystemIntegrator(): SystemIntegrator {
+  if (process.platform === 'darwin') {
+    return new MacOsSystemIntegrator();
+  }
+
+  return new NoopSystemIntegrator();
 }
 
 function createDisplayChampionWindow() {
@@ -74,6 +84,10 @@ function createDisplayChampionWindow() {
 }
 
 function createReceptionWindow() {
+  const integrator = getSystemIntegrator();
+
+  let trustSubscription: Rx.Subscription = null;
+
   receptionWindow = new BrowserWindow({width: 400, height: 400});
 
   receptionWindow.loadURL(url.format({
@@ -83,7 +97,16 @@ function createReceptionWindow() {
   }));
 
   receptionWindow.on('closed', () => {
+    if (trustSubscription !== null) {
+      trustSubscription.unsubscribe();
+    }
     receptionWindow = null
+  });
+
+  ReceptionIPC.onRequestProcessTrust(ipc, function () {
+    trustSubscription = integrator.trust.subscribe(trust => {
+      ReceptionIPC.sendProcessTrust(receptionWindow, trust);
+    });
   });
 
   // Open the DevTools.
@@ -133,11 +156,11 @@ app.on('activate', function () {
 });
 
 // Host/client discovery
-ReceptionIPC.onReadyToHost(ipc, function(iceServers) {
+ReceptionIPC.onReadyToHost(ipc, function (iceServers) {
   DisplayChampionIPC.sendReadyToHost(displayChampionWindow, iceServers);
 });
 
-ReceptionIPC.onReadyToJoin(ipc, function(iceServers) {
+ReceptionIPC.onReadyToJoin(ipc, function (iceServers) {
   DisplayChampionIPC.sendReadyToJoin(displayChampionWindow, iceServers);
 });
 
@@ -179,6 +202,6 @@ DisplayChampionIPC.onScreenSize(ipc, function (height, width) {
   }
 });
 
-DisplayChampionIPC.onConnectionStateChanged(ipc, function(connected) {
+DisplayChampionIPC.onConnectionStateChanged(ipc, function (connected) {
   ReceptionIPC.sendConnectionStateChanged(receptionWindow, connected);
 });

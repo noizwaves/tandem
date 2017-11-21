@@ -20,6 +20,14 @@ interface NameInformation {
   iceServers: IceServerConfiguration[];
 }
 
+app.ports.requestProcessTrust.subscribe(function() {
+  ReceptionIPC.sendRequestProcessTrust(ipc);
+});
+
+ReceptionIPC.onProcessTrust(ipc, function(processTrust: boolean) {
+  app.ports.updateProcessTrust.send(processTrust);
+});
+
 app.ports.readyToHost.subscribe(function(nameInformation: NameInformation) {
   ReceptionIPC.sendReadyToHost(ipc, nameInformation.iceServers);
 });
