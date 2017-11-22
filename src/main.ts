@@ -35,6 +35,15 @@ const appMenu = Menu.buildFromTemplate([
   }
 ]);
 
+const dcMenu = Menu.buildFromTemplate([
+  {
+    label: app.getName(),
+    submenu: [
+      {role: 'quit'}
+    ]
+  }
+]);
+
 let displayChampionWindow: BrowserWindow;
 let receptionWindow: BrowserWindow;
 let tray: Tray;
@@ -86,7 +95,7 @@ function createDisplayChampionWindow() {
   }
 
   displayChampionWindow.on('focus', function () {
-    Menu.setApplicationMenu(trayMenu);
+    Menu.setApplicationMenu(dcMenu);
 
     if (sessionActive && keyboard) {
       keyboard.plugIn();
