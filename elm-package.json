@@ -1,7 +1,7 @@
 {
-    "version": "1.0.0",
-    "summary": "Remote pair programming tool",
-    "repository": "https://github.com/user/project.git",
+    "version": "0.2.0",
+    "summary": "Developer centric screen sharing tool",
+    "repository": "https://github.com/noizwaves/displaychampion.git",
     "license": "UNLICENSED",
     "source-directories": [
         "reception/src"
