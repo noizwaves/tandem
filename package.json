@@ -1,7 +1,7 @@
 {
   "name": "tandem",
-  "version": "0.1.0",
-  "description": "Remote pair programming tool",
+  "version": "0.2.0",
+  "description": "Developer centric screen sharing tool",
   "productName": "Tandem",
   "main": "main.js",
   "build": {
@@ -20,7 +20,7 @@
       "icon": "icons/app.icns",
       "category": "public.app-category.developer-tools",
       "target": [
-        "dir"
+        "dmg"
       ]
     }
   },

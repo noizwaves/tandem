@@ -10,7 +10,30 @@ import {NoopSystemIntegrator, SystemIntegrator} from './system-integrator';
 const path = require('path');
 const url = require('url');
 
-const minimalMenu = Menu.buildFromTemplate([{role: 'quit'}]);
+const trayMenu = Menu.buildFromTemplate([{role: 'quit'}]);
+
+const appMenu = Menu.buildFromTemplate([
+  {
+    label: app.getName(),
+    submenu: [
+      {role: 'quit'}
+    ]
+  },
+  {
+    label: 'Edit',
+    submenu: [
+      {role: 'undo'},
+      {role: 'redo'},
+      {type: 'separator'},
+      {role: 'cut'},
+      {role: 'copy'},
+      {role: 'paste'},
+      {role: 'pasteandmatchstyle'},
+      {role: 'delete'},
+      {role: 'selectall'}
+    ]
+  }
+]);
 
 let displayChampionWindow: BrowserWindow;
 let receptionWindow: BrowserWindow;
@@ -63,18 +86,24 @@ function createDisplayChampionWindow() {
   }
 
   displayChampionWindow.on('focus', function () {
+    Menu.setApplicationMenu(trayMenu);
+
     if (sessionActive && keyboard) {
       keyboard.plugIn();
     }
   });
 
   displayChampionWindow.on('blur', function () {
+    Menu.setApplicationMenu(appMenu);
+
     if (sessionActive && keyboard) {
       keyboard.unplug();
     }
   });
 
   displayChampionWindow.on('closed', function () {
+    Menu.setApplicationMenu(appMenu);
+
     deInit(); // TODO: encapsulate this tidy up inside MacOsKeyboard
     if (keyboard) {
       keyboard.unplug();
@@ -122,7 +151,6 @@ function openWebRtcInternalsWindow() {
 }
 
 app.dock.setIcon(path.join(__dirname, 'icons', 'idle.png'));
-Menu.setApplicationMenu(minimalMenu);
 
 if (process.env.DEBUG_TOOLS) {
   // app.commandLine.appendSwitch('--enable-logging');
@@ -138,7 +166,9 @@ app.on('ready', () => {
   }
 
   tray = new Tray(path.join(__dirname, 'icons', 'idle.png'));
-  tray.setContextMenu(minimalMenu);
+  tray.setContextMenu(trayMenu);
+
+  Menu.setApplicationMenu(appMenu);
 });
 
 app.on('window-all-closed', function () {// Quit when all windows are closed.
@@ -197,7 +227,7 @@ ReceptionIPC.GiveAnswer.on(ipc, function (answer) {
 });
 
 DisplayChampionIPC.ScreenSize.on(ipc, function (dimensions) {
-  const { height, width } = dimensions;
+  const {height, width} = dimensions;
   if (displayChampionWindow) {
     displayChampionWindow.setAspectRatio(width / height, undefined);
   }
