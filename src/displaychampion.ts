@@ -93,13 +93,13 @@ function createHostPeer(iceServers, screenStream) {
 
     PeerMsgs.sendScreenSize(peer, screen.height, screen.width);
 
-    DisplayChampionIPC.sendConnectionStateChanged(ipc, true);
+    DisplayChampionIPC.ConnectionStateChanged.send(ipc, true);
   });
 
   p.on('close', function () {
     console.log('[peer].CLOSE');
 
-    DisplayChampionIPC.sendConnectionStateChanged(ipc, false);
+    DisplayChampionIPC.ConnectionStateChanged.send(ipc, false);
   });
 
   p.on('error', function (err) {
@@ -165,13 +165,13 @@ function createJoinPeer(iceServers) {
   p.on('connect', function () {
     console.log('[peer].CONNECT');
 
-    DisplayChampionIPC.sendConnectionStateChanged(ipc, true);
+    DisplayChampionIPC.ConnectionStateChanged.send(ipc, true);
   });
 
   p.on('close', function () {
     console.log('[peer].CLOSE');
 
-    DisplayChampionIPC.sendConnectionStateChanged(ipc, false);
+    DisplayChampionIPC.ConnectionStateChanged.send(ipc, false);
   });
 
   p.on('error', function (err) {
@@ -232,7 +232,7 @@ function createJoinPeer(iceServers) {
     switch (message.t) {
       case PeerMsgs.SCREEN_SIZE:
         const {height, width} = PeerMsgs.unpackScreenSize(message);
-        DisplayChampionIPC.sendScreenSize(ipc, height, width);
+        DisplayChampionIPC.ScreenSize.send(ipc, {height, width});
         break;
       default:
         result = data;
@@ -246,46 +246,46 @@ function createJoinPeer(iceServers) {
 
 
 let iceServers = null;
-DisplayChampionIPC.onReadyToHost(ipc, function (hostIceServers) {
+DisplayChampionIPC.ReadyToHost.on(ipc, function (hostIceServers) {
   iceServers = hostIceServers;
 });
 
-DisplayChampionIPC.onReadyToJoin(ipc, function (clientIceServers) {
+DisplayChampionIPC.ReadyToJoin.on(ipc, function (clientIceServers) {
   iceServers = clientIceServers;
 });
 
 
 let peer;
-DisplayChampionIPC.onRequestOffer(ipc, function () {
+DisplayChampionIPC.RequestOffer.on(ipc, function () {
   getScreenStream(function (screenStream) {
     peer = createHostPeer(iceServers, screenStream);
 
     peer.on('signal', function (data) {
       const offer = JSON.stringify(data);
-      DisplayChampionIPC.sendReceiveOffer(ipc, offer);
+      DisplayChampionIPC.ReceiveOffer.send(ipc, offer);
     });
   });
 });
 
-DisplayChampionIPC.onRequestAnswer(ipc, function (offer) {
+DisplayChampionIPC.RequestAnswer.on(ipc, function (offer) {
   show("#remote-screen");
   peer = createJoinPeer(iceServers);
 
   peer.on('signal', function (data) {
     const answer = JSON.stringify(data);
-    DisplayChampionIPC.sendReceiveAnswer(ipc, answer);
+    DisplayChampionIPC.ReceiveAnswer.send(ipc, answer);
   });
 
   // accept the offer
   peer.signal(JSON.parse(offer));
 });
 
-DisplayChampionIPC.onGiveAnswer(ipc, function (answer) {
+DisplayChampionIPC.GiveAnswer.on(ipc, function (answer) {
   // accept the answer
   peer.signal(JSON.parse(answer));
 });
 
 
 let externalKeyboard = false;
-DisplayChampionIPC.onExternalKeyboardResponse(ipc, result => externalKeyboard = result);
-DisplayChampionIPC.sendExternalKeyboardRequest(ipc);
+DisplayChampionIPC.ExternalKeyboardResponse.on(ipc, result => externalKeyboard = result);
+DisplayChampionIPC.ExternalKeyboardRequest.send(ipc);

@@ -11,14 +11,10 @@ import Port exposing (requestOffer, receiveOffer, requestAnswer, receiveAnswer, 
 import Model exposing (..)
 import Model exposing (ProcessTrustLevel(..))
 
--- Model stuff
-
-isValidName : String -> Bool
-isValidName name = (String.length name) >= 4
 
 init : (Model, Cmd Msg)
 init =
-  (Model "" (Browsing Nothing) TrustUnknown, requestProcessTrust True)
+  (Model NoNameEntered (Browsing Nothing) TrustUnknown, requestProcessTrust True)
 
 
 -- Message
@@ -45,8 +41,8 @@ type Msg
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
   case msg of
-    NameChanged newName ->
-      ( { model | name = newName, intent = Browsing Nothing }, Cmd.none )
+    NameChanged userInput ->
+      ( { model | name = validateName userInput, intent = Browsing Nothing }, Cmd.none )
 
     UpdateProcessTrust isTrusted ->
       let
@@ -78,24 +74,40 @@ update msg model =
             ( model, Cmd.none )
 
     HostSession information ->
-      ( { model | intent = Hosting information }
-      , Cmd.batch
-        [ sendHostingIntent model.name
-        , readyToHost information
-        ]
-      )
+      case model.name of
+        ValidName name ->
+          ( { model | intent = Hosting information }
+          , Cmd.batch
+            [ sendHostingIntent name
+            , readyToHost information
+            ]
+          )
+        _ ->
+          ( model, Cmd.none )
     JoinSession information ->
-      ( { model | intent = Joining information }
-      , Cmd.batch
-        [ sendJoiningIntent model.name
-        , readyToJoin information
-        ]
-      )
+      case model.name of
+        ValidName name ->
+          ( { model | intent = Joining information }
+          , Cmd.batch
+            [ sendJoiningIntent name
+            , readyToJoin information
+            ]
+          )
+        _ ->
+          ( model, Cmd.none )
 
     ReceiveOfferFromDC offer ->
-      ( model , sendAnswerRequest model.name offer )
+      case model.name of
+        ValidName name ->
+          ( model , sendAnswerRequest name offer )
+        _ ->
+          ( model, Cmd.none )
     ReceiveAnswerFromDC answer ->
-      ( model , sendAnswerResponse model.name answer )
+      case model.name of
+        ValidName name ->
+          ( model , sendAnswerResponse name answer )
+        _ ->
+          ( model , Cmd.none )
 
     ConnectionStateChanged connected ->
       if connected then
@@ -196,8 +208,20 @@ view model =
       Connected _ _ ->
         ([ text "Connected" ], False)
 
-    inputValid = (String.length model.name) == 0 || isValidName model.name
-    inputClass = if inputValid then "name" else "name invalid"
+    inputClass = case model.name of
+      NoNameEntered -> "name"
+      ValidName _ -> "name"
+      InvalidName _ -> "name invalid"
+
+    nameErrorMessage = case model.name of
+      InvalidName reason ->
+        case reason of
+          TooShort ->
+            div [ class "name-error" ] [ text "Name must be longer than 4 characters" ]
+          InvalidCharacters ->
+            div [ class "name-error" ] [ text "Name must contain only alpha-numeric characters, dashes, and underscores" ]
+      _ ->
+        text ""
 
     formAttrs = case model.intent of
       Browsing (Just info) ->
@@ -211,19 +235,20 @@ view model =
         [ class "start-form" ]
 
     accessibilityCheck = case model.trust of
-      TrustUnknown ->
-        text ""
       Untrusted ->
         div [ class "accessibility-alert" ]
           [ text "Enable Accessibility for Tandem in "
           , span [ class "steps"] [ text "System Preferences > Security & Privacy > Privacy" ]
           ]
+      TrustUnknown ->
+        text ""
       Trusted ->
         text ""
 
   in
     form formAttrs
-      [ input [ autofocus True, class inputClass, placeholder "Type in a name", type_ "text", onInput NameChanged, disabled (not inputEnabled) ] [ ]
+      [ input [ autofocus True, class inputClass, placeholder "Enter a name to begin", type_ "text", onInput NameChanged, disabled (not inputEnabled) ] [ ]
+      , nameErrorMessage
       , div [ class "start-buttons" ] buttons
       , accessibilityCheck
       ]
@@ -232,7 +257,7 @@ viewUnconnectedButtons : Maybe NameInformation -> List (Html Msg)
 viewUnconnectedButtons information =
   case information of
     Nothing ->
-      [ text "Start" ]
+      [ ]
     Just info ->
       if info.canHost then
         [ button [ class "start-button", type_ "submit" ] [ text "Host" ] ]
@@ -246,14 +271,14 @@ viewHostingButtons information =
   if (not information.canJoin) then
     [ text "Connecting" ]
   else
-    [ text "Hosting" ]
+    [ text "Hosting, waiting for pair" ]
 
 viewJoiningButtons : NameInformation -> List (Html Msg)
 viewJoiningButtons information =
   if (not information.canHost) then
     [ text "Connecting" ]
   else
-    [ text "Joining" ]
+    [ text "Joining, waiting for pair" ]
 
 -- Subscriptions
 
@@ -263,15 +288,21 @@ subscriptions model =
     base =
       [ updateProcessTrust UpdateProcessTrust
       ]
-    inValidRoom = if not (isValidName model.name) then [] else
-      [ WebSocket.listen (apiUrl ++ model.name) ReceiveApiMessage
-      , receiveOffer ReceiveOfferFromDC
-      , receiveAnswer ReceiveAnswerFromDC
-      , connectionStateChanged ConnectionStateChanged
-      , updateProcessTrust UpdateProcessTrust
-      ]
+
+    room = case model.name of
+      ValidName name ->
+        [ WebSocket.listen (apiUrl ++ name) ReceiveApiMessage
+        , receiveOffer ReceiveOfferFromDC
+        , receiveAnswer ReceiveAnswerFromDC
+        , connectionStateChanged ConnectionStateChanged
+        , updateProcessTrust UpdateProcessTrust
+        ]
+      InvalidName _ ->
+        [ ]
+      NoNameEntered ->
+        []
   in
-    Sub.batch (base ++ inValidRoom)
+    Sub.batch (base ++ room)
 
 main : Program Never Model Msg
 main =

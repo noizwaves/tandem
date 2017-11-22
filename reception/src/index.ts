@@ -21,41 +21,41 @@ interface NameInformation {
 }
 
 app.ports.requestProcessTrust.subscribe(function() {
-  ReceptionIPC.sendRequestProcessTrust(ipc);
+  ReceptionIPC.RequestProcessTrust.send(ipc);
 });
 
-ReceptionIPC.onProcessTrust(ipc, function(processTrust: boolean) {
+ReceptionIPC.ProcessTrust.on(ipc, function(processTrust: boolean) {
   app.ports.updateProcessTrust.send(processTrust);
 });
 
 app.ports.readyToHost.subscribe(function(nameInformation: NameInformation) {
-  ReceptionIPC.sendReadyToHost(ipc, nameInformation.iceServers);
+  ReceptionIPC.ReadyToHost.send(ipc, nameInformation.iceServers);
 });
 
 app.ports.readyToJoin.subscribe(function(nameInformation: NameInformation) {
-  ReceptionIPC.sendReadyToJoin(ipc, nameInformation.iceServers);
+  ReceptionIPC.ReadyToJoin.send(ipc, nameInformation.iceServers);
 });
 
 app.ports.requestOffer.subscribe(function () {
-  ReceptionIPC.sendRequestOffer(ipc);
+  ReceptionIPC.RequestOffer.send(ipc);
 });
 
-ReceptionIPC.onReceiveOffer(ipc, (offer) => {
+ReceptionIPC.ReceiveOffer.on(ipc, (offer) => {
   app.ports.receiveOffer.send(offer);
 });
 
 app.ports.requestAnswer.subscribe(function (offer) {
-  ReceptionIPC.sendRequestAnswer(ipc, offer);
+  ReceptionIPC.RequestAnswer.send(ipc, offer);
 });
 
-ReceptionIPC.onReceiveAnswer(ipc, function (answer) {
+ReceptionIPC.ReceiveAnswer.on(ipc, function (answer) {
   app.ports.receiveAnswer.send(answer);
 });
 
 app.ports.giveAnswer.subscribe(function (answer) {
-  ReceptionIPC.sendGiveAnswer(ipc, answer);
+  ReceptionIPC.GiveAnswer.send(ipc, answer);
 });
 
-ReceptionIPC.onConnectionStateChanged(ipc, function(connected) {
+ReceptionIPC.ConnectionStateChanged.on(ipc, function(connected) {
   app.ports.connectionStateChanged.send(connected);
 });
