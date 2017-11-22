@@ -572,7 +572,7 @@ export class MacOsKeyboard implements Keyboard {
       'handler', this._handler);
 
     if (canDisableShortcuts()) {
-      console.log('Enabling MacOS integrations');
+      console.log('Disabling MacOS global shortcuts');
       this._previous = disableShortcuts();
     }
   }
@@ -581,7 +581,7 @@ export class MacOsKeyboard implements Keyboard {
     $.NSEvent('removeMonitor', this._monitor);
 
     if (this._previous) {
-      console.log('Disabling MacOS integrations');
+      console.log('Restoring MacOS global shortcuts');
       restoreShortcuts(this._previous);
       this._previous = null;
     }

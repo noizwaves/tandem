@@ -53,8 +53,8 @@ function createDisplayChampionWindow() {
 
   const keyboard = getKeyboard();
 
-  DisplayChampionIPC.onExternalKeyboardRequest(ipc, () => {
-    DisplayChampionIPC.sendExternalKeyboardResponse(displayChampionWindow, keyboard !== null);
+  DisplayChampionIPC.ExternalKeyboardRequest.on(ipc, () => {
+    DisplayChampionIPC.ExternalKeyboardResponse.send(displayChampionWindow, keyboard !== null);
   });
 
   if (keyboard) {
@@ -103,9 +103,9 @@ function createReceptionWindow() {
     receptionWindow = null
   });
 
-  ReceptionIPC.onRequestProcessTrust(ipc, function () {
+  ReceptionIPC.RequestProcessTrust.on(ipc, function () {
     trustSubscription = integrator.trust.subscribe(trust => {
-      ReceptionIPC.sendProcessTrust(receptionWindow, trust);
+      ReceptionIPC.ProcessTrust.send(receptionWindow, trust);
     });
   });
 
@@ -156,28 +156,28 @@ app.on('activate', function () {
 });
 
 // Host/client discovery
-ReceptionIPC.onReadyToHost(ipc, function (iceServers) {
-  DisplayChampionIPC.sendReadyToHost(displayChampionWindow, iceServers);
+ReceptionIPC.ReadyToHost.on(ipc, function (iceServers) {
+  DisplayChampionIPC.ReadyToHost.send(displayChampionWindow, iceServers);
 });
 
-ReceptionIPC.onReadyToJoin(ipc, function (iceServers) {
-  DisplayChampionIPC.sendReadyToJoin(displayChampionWindow, iceServers);
+ReceptionIPC.ReadyToJoin.on(ipc, function (iceServers) {
+  DisplayChampionIPC.ReadyToJoin.send(displayChampionWindow, iceServers);
 });
 
 // Signalling/handshaking
-ReceptionIPC.onRequestOffer(ipc, function () {
+ReceptionIPC.RequestOffer.on(ipc, function () {
   console.log('$$$$ Getting offer from DisplayChampion...');
   tray.setImage(path.join(__dirname, 'icons', 'busy.png'));
 
-  DisplayChampionIPC.sendRequestOffer(displayChampionWindow);
+  DisplayChampionIPC.RequestOffer.send(displayChampionWindow);
 
-  DisplayChampionIPC.onReceiveOffer(ipc, function (offer) {
+  DisplayChampionIPC.ReceiveOffer.on(ipc, function (offer) {
     console.log('$$$$ Offer retrieved from DC');
-    ReceptionIPC.sendReceiveOffer(receptionWindow, offer);
+    ReceptionIPC.ReceiveOffer.send(receptionWindow, offer);
   });
 });
 
-ReceptionIPC.onRequestAnswer(ipc, function (offer) {
+ReceptionIPC.RequestAnswer.on(ipc, function (offer) {
   console.log('$$$$ Get answer from DisplayChampion...');
   tray.setImage(path.join(__dirname, 'icons', 'busy.png'));
 
@@ -185,23 +185,24 @@ ReceptionIPC.onRequestAnswer(ipc, function (offer) {
   displayChampionWindow.show();
   displayChampionWindow.maximize();
 
-  DisplayChampionIPC.sendRequestAnswer(displayChampionWindow, offer);
+  DisplayChampionIPC.RequestAnswer.send(displayChampionWindow, offer);
 
-  DisplayChampionIPC.onReceiveAnswer(ipc, function (answer) {
-    ReceptionIPC.sendReceiveAnswer(receptionWindow, answer);
+  DisplayChampionIPC.ReceiveAnswer.on(ipc, function (answer) {
+    ReceptionIPC.ReceiveAnswer.send(receptionWindow, answer);
   });
 });
 
-ReceptionIPC.onGiveAnswer(ipc, function (answer) {
-  DisplayChampionIPC.sendGiveAnswer(displayChampionWindow, answer);
+ReceptionIPC.GiveAnswer.on(ipc, function (answer) {
+  DisplayChampionIPC.GiveAnswer.send(displayChampionWindow, answer);
 });
 
-DisplayChampionIPC.onScreenSize(ipc, function (height, width) {
+DisplayChampionIPC.ScreenSize.on(ipc, function (dimensions) {
+  const { height, width } = dimensions;
   if (displayChampionWindow) {
     displayChampionWindow.setAspectRatio(width / height, undefined);
   }
 });
 
-DisplayChampionIPC.onConnectionStateChanged(ipc, function (connected) {
-  ReceptionIPC.sendConnectionStateChanged(receptionWindow, connected);
+DisplayChampionIPC.ConnectionStateChanged.on(ipc, function (connected) {
+  ReceptionIPC.ConnectionStateChanged.send(receptionWindow, connected);
 });

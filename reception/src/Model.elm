@@ -1,5 +1,7 @@
 module Model exposing (..)
 
+import Regex exposing (Regex, regex, contains)
+
 type ProcessTrustLevel
   = TrustUnknown
   | Trusted
@@ -41,7 +43,31 @@ type ConnectionIntent
   | Connected PreConnectionIntent NameInformation
 
 type alias Model =
-  { name: String
+  { name: ValidatedName
   , intent: ConnectionIntent
   , trust: ProcessTrustLevel
   }
+
+type InvalidNameReason
+  = TooShort
+  | InvalidCharacters
+
+type ValidatedName
+  = NoNameEntered
+  | InvalidName InvalidNameReason
+  | ValidName String
+
+validCharacters : Regex
+validCharacters =
+  regex "^[0-9|a-z|A-Z|\\-|_]*$"
+
+validateName : String -> ValidatedName
+validateName name =
+  if (String.length name) == 0 then
+    NoNameEntered
+  else if not (contains validCharacters name) then
+    InvalidName InvalidCharacters
+  else if (String.length name) >= 4 then
+    ValidName name
+  else
+    InvalidName TooShort

@@ -1,6 +1,10 @@
 @import 'reset';
 @import 'form';
 
+body {
+  font-family: sans-serif;
+}
+
 .start-form {
   padding: 10px;
   margin-left: auto;
@@ -15,13 +19,23 @@
     border: 1px solid #bbb;
 
     &.invalid {
-      border-color: red;
+      border-color: $red;
     }
   }
 
   .start-buttons {
     margin-top: 10px;
   }
+}
+
+.name-error {
+  margin-top: 6px;
+
+  font-size: 12px;
+  font-family: sans-serif;
+  color: $red;
+
+  text-align: center;
 }
 
 .accessibility-alert {
@@ -32,7 +46,6 @@
   padding: 10px;
 
   font-size: 20px;
-  font-family: sans-serif;
 
   color: $white;
   background-color: #db9b26;
