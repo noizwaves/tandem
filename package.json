@@ -29,7 +29,10 @@
     "start": "webpack && electron .",
     "build": "webpack --display-error-details",
     "build:debug": "DEBUG_TOOLS=true webpack --display-error-details",
-    "dist": "electron-builder"
+    "dist": "electron-builder",
+    "test:reception": "cd reception && elm test",
+    "test": "yarn test:reception"
+
   },
   "repository": "",
   "keywords": [],
@@ -40,6 +43,7 @@
     "electron": "~1.7.8",
     "electron-builder": "^19.45.4",
     "elm": "^0.18.0",
+    "elm-test": "^0.18.10",
     "elm-webpack-loader": "^4.3.1",
     "file-loader": "^0.11.2",
     "node-sass": "^4.5.3",
