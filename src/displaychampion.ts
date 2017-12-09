@@ -67,20 +67,11 @@ function transmitScreenMouseDownEvents(mouseMoveCallback) {
   })
 }
 
-function preferH264(sdp: string): string {
-  if (sdp.indexOf('SAVPF 96 98 100') >= 0) {
-    return sdp.replace('SAVPF 96 98 100', 'SAVPF 100 98 96');
-  }
-
-  return sdp;
-}
-
 function createHostPeer(iceServers, screenStream) {
   const p = new Peer({
     config: {
       iceServers: iceServers
     },
-    sdpTransform: preferH264,
     initiator: true,
     trickle: false,
     stream: screenStream
