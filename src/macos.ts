@@ -2,6 +2,9 @@ import {Observable, Subject} from 'rxjs';
 import * as Rx from 'rxjs';
 import {Keyboard, KeyCode, KeyDownEvent, KeyUpEvent, ModifierCode, Modifiers} from './keyboard';
 import {SystemIntegrator} from './system-integrator';
+import {getLogger} from './logging';
+
+const logger = getLogger();
 
 const $ = require('NodObjC');
 
@@ -479,7 +482,7 @@ export class MacOsKeyboard implements Keyboard {
       const keyCodeId = <number> event('keyCode');
 
       if (!(keyCodeId in MacKeyCode)) {
-        console.log(`Unhandled NSEvent keyCode of ${keyCodeId}, ignoring event`);
+        logger.warn(`[MacOsKeyboard] Unhandled NSEvent keyCode of ${keyCodeId}, ignoring event`);
         return;
       }
 
@@ -531,6 +534,7 @@ export class MacOsKeyboard implements Keyboard {
 
     const keyDownFunc = function (self, event) {
       if (event('isARepeat')) {
+        logger.debug(`[MacOsKeyboard] Skipping repeat key down event`);
         return;
       }
 
@@ -539,13 +543,14 @@ export class MacOsKeyboard implements Keyboard {
 
       const keyCodeId = <number> event('keyCode');
       if (!(keyCodeId in MacKeyCode)) {
-        console.log(`Unhandled NSEvent keyCode of ${keyCodeId}, ignoring event`);
+        logger.warn(`[MacOsKeyboard] Unhandled NSEvent keyCode of '${keyCodeId}', ignoring event`);
         return;
       }
 
       const key: KeyCode = convertToKeyCode(<MacKeyCode> keyCodeId);
 
-      _this._keyDown.next({key, modifiers})
+      _this._keyDown.next({key, modifiers});
+      logger.debug(`[MacOsKeyboard] Key down of '${key}' with modifiers '${modifiers}'`);
     };
 
     const keyUpFunc = function (self, event) {
@@ -554,13 +559,14 @@ export class MacOsKeyboard implements Keyboard {
 
       const keyCodeId = <number> event('keyCode');
       if (!(keyCodeId in MacKeyCode)) {
-        console.log(`Unhandled NSEvent keyCode of ${keyCodeId}, ignoring event`);
+        logger.warn(`[MacOsKeyboard] Unhandled NSEvent keyCode of '${keyCodeId}', ignoring event`);
         return;
       }
 
       const key: KeyCode = convertToKeyCode(<MacKeyCode> keyCodeId);
 
       _this._keyUp.next({key, modifiers})
+      logger.debug(`[MacOsKeyboard] Key up of '${key}' with modifiers '${modifiers}'`);
     };
 
     this._handler = $(func, [$.void, [$.id, $.id]]);
@@ -572,7 +578,7 @@ export class MacOsKeyboard implements Keyboard {
       'handler', this._handler);
 
     if (canDisableShortcuts()) {
-      console.log('Disabling MacOS global shortcuts');
+      logger.info('[MacOsKeyboard] Disabling global shortcuts');
       this._previous = disableShortcuts();
     }
   }
@@ -581,7 +587,7 @@ export class MacOsKeyboard implements Keyboard {
     $.NSEvent('removeMonitor', this._monitor);
 
     if (this._previous) {
-      console.log('Restoring MacOS global shortcuts');
+      logger.info('[MacOsKeyboard] Restoring global shortcuts');
       restoreShortcuts(this._previous);
       this._previous = null;
     }

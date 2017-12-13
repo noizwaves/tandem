@@ -6,9 +6,14 @@ import {sendKeyDown, sendKeyUp} from './keyboard.ipc';
 import * as DisplayChampionIPC from './displaychampion.ipc';
 import * as ReceptionIPC from './reception.ipc';
 import {NoopSystemIntegrator, SystemIntegrator} from './system-integrator';
+import {configureLogging, getLogger} from './logging';
 
 const path = require('path');
 const url = require('url');
+
+configureLogging();
+
+const logger = getLogger();
 
 const trayMenu = Menu.buildFromTemplate([{role: 'quit'}]);
 
@@ -205,19 +210,19 @@ ReceptionIPC.ReadyToJoin.on(ipc, function (iceServers) {
 
 // Signalling/handshaking
 ReceptionIPC.RequestOffer.on(ipc, function () {
-  console.log('$$$$ Getting offer from DisplayChampion...');
+  logger.info('[main] Getting offer from DisplayChampion...');
   tray.setImage(path.join(__dirname, 'icons', 'busy.png'));
 
   DisplayChampionIPC.RequestOffer.send(displayChampionWindow);
 
   DisplayChampionIPC.ReceiveOffer.on(ipc, function (offer) {
-    console.log('$$$$ Offer retrieved from DC');
+    logger.info('[main] Offer retrieved from Display Champion');
     ReceptionIPC.ReceiveOffer.send(receptionWindow, offer);
   });
 });
 
 ReceptionIPC.RequestAnswer.on(ipc, function (offer) {
-  console.log('$$$$ Get answer from DisplayChampion...');
+  logger.info('[main] Get answer from DisplayChampion...');
   tray.setImage(path.join(__dirname, 'icons', 'busy.png'));
 
   sessionActive = true;
@@ -232,6 +237,7 @@ ReceptionIPC.RequestAnswer.on(ipc, function (offer) {
 });
 
 ReceptionIPC.GiveAnswer.on(ipc, function (answer) {
+  logger.info('[main] Answer retrieved from DisplayChampion');
   DisplayChampionIPC.GiveAnswer.send(displayChampionWindow, answer);
 });
 

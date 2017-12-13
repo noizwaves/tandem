@@ -1,6 +1,9 @@
 import * as robot from 'robotjs';
 
 import {KeyCode, KeyPresser, ModifierCode, Modifiers} from './keyboard';
+import {getLogger} from './logging';
+
+const logger = getLogger();
 
 function toRobotKey(code: KeyCode): string {
   const codeStr = code.toString();
@@ -127,22 +130,30 @@ export class RobotKeyMover implements KeyPresser {
   pressDown(code: KeyCode, modifiers: Modifiers): void {
     const robotKey = toRobotKey(code);
     if (!robotKey) {
-      console.log(`RobotJS lacks support for ${code}`);
+      logger.warn(`RobotJS lacks support for ${code}`);
       return;
     }
 
+    logger.debug(`[RobotKeyMover] Told to press down '${code}' using '${modifiers}'`);
+
     const robotModifiers = modifiers.map(toRobotKeyModifier);
     robot.keyToggle(robotKey, 'down', robotModifiers);
+
+    logger.debug(`[RobotKeyMover] Doing toggle key down '${robotKey}' using modifiers '${robotModifiers}'`);
   }
 
   pressUp(code: KeyCode, modifiers: Modifiers): void {
     const robotKey = toRobotKey(code);
     if (!robotKey) {
-      console.log(`RobotJS lacks support for ${code}`);
+      logger.warn(`RobotJS lacks support for ${code}`);
       return;
     }
 
+    logger.debug(`[RobotKeyMover] Told to press up '${code}' using '${modifiers}'`);
+
     const robotModifiers = modifiers.map(toRobotKeyModifier);
     robot.keyToggle(robotKey, 'up', robotModifiers);
+
+    logger.debug(`[RobotKeyMover] Doing toggle key up '${robotKey}' using modifiers '${robotModifiers}'`);
   }
 }
