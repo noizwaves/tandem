@@ -245,7 +245,7 @@ DisplayChampionIPC.ScreenSize.on(ipc, function (dimensions) {
   if (displayChampionWindow) {
     displayChampionWindow.setAspectRatio(width / height, undefined);
 
-    displayChampionWindow.setSize(width, height);
+    displayChampionWindow.setContentSize(width, height);
     displayChampionWindow.center();
   }
 });
