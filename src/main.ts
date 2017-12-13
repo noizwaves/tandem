@@ -227,7 +227,6 @@ ReceptionIPC.RequestAnswer.on(ipc, function (offer) {
 
   sessionActive = true;
   displayChampionWindow.show();
-  displayChampionWindow.maximize();
 
   DisplayChampionIPC.RequestAnswer.send(displayChampionWindow, offer);
 
@@ -245,6 +244,9 @@ DisplayChampionIPC.ScreenSize.on(ipc, function (dimensions) {
   const {height, width} = dimensions;
   if (displayChampionWindow) {
     displayChampionWindow.setAspectRatio(width / height, undefined);
+
+    displayChampionWindow.setSize(width, height);
+    displayChampionWindow.center();
   }
 });
 
