@@ -10,6 +10,9 @@ import {ExternalTransmitter, KeyboardTransmitter, WindowTransmitter} from './key
 import * as DisplayChampionIPC from './displaychampion.ipc';
 import * as PeerMsgs from './peer-msgs';
 import {RobotKeyMover} from './robot-key-mover';
+import {getLogger} from './logging';
+
+const logger = getLogger();
 
 function getScreenStream(cb) {
   const video: MediaTrackConstraints = <MediaTrackConstraints> (<any> {
@@ -29,7 +32,7 @@ function getScreenStream(cb) {
       cb(stream)
     })
     .catch(function (err) {
-      console.error('getUserMedia', err);
+      logger.error(`getUserMedia: ${err}`);
     });
 }
 
@@ -80,7 +83,7 @@ function createHostPeer(iceServers, screenStream) {
   const keyMover: KeyPresser = new RobotKeyMover();
 
   p.on('connect', function () {
-    console.log('[peer].CONNECT');
+    logger.info('[peer] CONNECT');
 
     PeerMsgs.sendScreenSize(peer, screen.height, screen.width);
 
@@ -88,19 +91,19 @@ function createHostPeer(iceServers, screenStream) {
   });
 
   p.on('close', function () {
-    console.log('[peer].CLOSE');
+    logger.info('[peer] CLOSE');
 
     DisplayChampionIPC.ConnectionStateChanged.send(ipc, false);
   });
 
   p.on('error', function (err) {
-    console.log('[peer].ERROR', err);
+    logger.error(`[peer] ERROR: ${err}`);
   });
 
   p.on('data', function (data) {
     const unhandled = handleMessage(data);
     if (unhandled) {
-      console.log('Unhandled data', unhandled);
+      logger.warn(`Unhandled data message: ${unhandled}`);
     }
   });
 
@@ -109,7 +112,7 @@ function createHostPeer(iceServers, screenStream) {
     try {
       message = JSON.parse(data);
     } catch (err) {
-      console.log(err);
+      logger.error(`JSON parse failed: ${err}`);
     }
     if (!message || !message.t) {
       return;
@@ -154,25 +157,25 @@ function createJoinPeer(iceServers) {
   });
 
   p.on('connect', function () {
-    console.log('[peer].CONNECT');
+    logger.info('[peer] CONNECT');
 
     DisplayChampionIPC.ConnectionStateChanged.send(ipc, true);
   });
 
   p.on('close', function () {
-    console.log('[peer].CLOSE');
+    logger.info('[peer] CLOSE');
 
     DisplayChampionIPC.ConnectionStateChanged.send(ipc, false);
   });
 
   p.on('error', function (err) {
-    console.log('[peer].ERROR', err);
+    logger.warn(`[peer] ERROR: ${err}`);
   });
 
   p.on('data', function (data) {
     const unhandled = handleMessageFromHost(data);
     if (unhandled) {
-      console.log('Unhandled message', unhandled);
+      logger.warn(`Unhandled data message: ${unhandled}`);
     }
   });
 
@@ -213,7 +216,7 @@ function createJoinPeer(iceServers) {
     try {
       message = JSON.parse(data);
     } catch (err) {
-      console.log(err);
+      logger.error(`JSON parse failed: ${err}`);
     }
     if (!message || !message.t) {
       return;

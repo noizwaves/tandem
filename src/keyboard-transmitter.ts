@@ -3,6 +3,9 @@ import {IpcRenderer} from 'electron';
 
 import {KeyCode, KeyDownEvent, KeyUpEvent, ModifierCode} from './keyboard';
 import {onKeyDown, onKeyUp} from './keyboard.ipc';
+import {getLogger} from './logging';
+
+const logger = getLogger();
 
 export interface KeyboardTransmitter {
   readonly keyUp: Rx.Observable<KeyUpEvent>;
@@ -47,7 +50,7 @@ export class WindowTransmitter implements KeyboardTransmitter {
     window.addEventListener('keydown', (e: any) => {
       const rawCode = <string> e.code;
       if (!(rawCode in KeyCode)) {
-        console.log(`Unhandled window.keydown event with code ${rawCode}, ignoring`);
+        logger.warn(`Unhandled window.keydown event with code ${rawCode}, ignoring`);
         return;
       }
 
@@ -57,12 +60,13 @@ export class WindowTransmitter implements KeyboardTransmitter {
 
       const modifiers = Array.from(this._heldModifiers.values());
       this._keyDown.next({key: <KeyCode> rawCode, modifiers});
+      logger.debug(`[WindowTransmitter] Key down of ${rawCode} with modifiers ${modifiers}`);
     }, true);
 
     window.addEventListener('keyup', (e: any) => {
       const rawCode = <string> e.code;
       if (!(rawCode in KeyCode)) {
-        console.log(`Unhandled window.keyup event with code ${rawCode}, ignoring`);
+        logger.warn(`Unhandled window.keyup event with code ${rawCode}, ignoring`);
         return;
       }
 
@@ -72,6 +76,7 @@ export class WindowTransmitter implements KeyboardTransmitter {
 
       const modifiers = Array.from(this._heldModifiers.values());
       this._keyUp.next({key: <KeyCode> rawCode, modifiers});
+      logger.debug(`[WindowTransmitter] Key up of ${rawCode} with modifiers ${modifiers}`);
     }, true);
   }
 }

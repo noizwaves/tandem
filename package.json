@@ -32,7 +32,6 @@
     "dist": "electron-builder",
     "test:reception": "cd reception && elm test",
     "test": "yarn test:reception"
-
   },
   "repository": "",
   "keywords": [],
@@ -57,6 +56,9 @@
     "webpack-node-externals": "^1.6.0"
   },
   "dependencies": {
+    "electron-log": "^2.2.12",
+    "fs-extra": "^5.0.0",
+    "moment": "^2.19.4",
     "nodobjc": "^2.1.0",
     "robotjs": "~0.4.7",
     "rxjs": "~5.5.2",
