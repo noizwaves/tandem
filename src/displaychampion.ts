@@ -15,25 +15,38 @@ import {getLogger} from './logging';
 const logger = getLogger();
 
 function getScreenStream(cb) {
-  const video: MediaTrackConstraints = <MediaTrackConstraints> (<any> {
-    mandatory: {
-      chromeMediaSource: 'screen',
-      maxWidth: screen.width,
-      maxHeight: screen.height,
-      minFrameRate: 30
+  desktopCapturer.getSources({types: ['screen']}, (error, sources) => {
+    logger.info(`[DisplayChampion] desktopCapture found ${sources.length} screen(s)`);
+
+    if (sources.length === 0) {
+      logger.error('[DisplayChampion] No screens found for sharing!');
     }
-  });
-  navigator.mediaDevices.getUserMedia(
-    {
-      audio: false,
-      video: video
-    })
-    .then(function (stream) {
-      cb(stream)
-    })
-    .catch(function (err) {
-      logger.error(`getUserMedia: ${err}`);
+
+    const screenSource = sources[0];
+
+    const video: MediaTrackConstraints = <MediaTrackConstraints> (<any> {
+      mandatory: {
+        chromeMediaSource: 'desktop',
+        chromeMediaSourceId: screenSource.id,
+        minWidth: screen.width,
+        maxWidth: screen.width,
+        minHeight: screen.height,
+        maxHeight: screen.height,
+        minFrameRate: 30
+      }
     });
+    navigator.mediaDevices.getUserMedia(
+      {
+        audio: false,
+        video: video
+      })
+      .then(function (stream) {
+        cb(stream)
+      })
+      .catch(function (err) {
+        logger.error(`getUserMedia: ${err}`);
+      });
+  });
 }
 
 function show(selector) {
