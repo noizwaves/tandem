@@ -107,6 +107,10 @@ function createHostPeer(iceServers, screenStream) {
     logger.info('[peer] CLOSE');
 
     DisplayChampionIPC.ConnectionStateChanged.send(ipc, false);
+
+    p.destroy();
+
+    screenStream.getTracks().forEach(t => t.stop());
   });
 
   p.on('error', function (err) {
@@ -261,7 +265,6 @@ DisplayChampionIPC.ReadyToJoin.on(ipc, function (clientIceServers) {
   iceServers = clientIceServers;
 });
 
-
 let peer;
 DisplayChampionIPC.RequestOffer.on(ipc, function () {
   getScreenStream(function (screenStream) {
@@ -270,6 +273,10 @@ DisplayChampionIPC.RequestOffer.on(ipc, function () {
     peer.on('signal', function (data) {
       const offer = JSON.stringify(data);
       DisplayChampionIPC.ReceiveOffer.send(ipc, offer);
+    });
+
+    peer.on('close', function () {
+      peer = null;
     });
   });
 });
@@ -281,6 +288,10 @@ DisplayChampionIPC.RequestAnswer.on(ipc, function (offer) {
   peer.on('signal', function (data) {
     const answer = JSON.stringify(data);
     DisplayChampionIPC.ReceiveAnswer.send(ipc, answer);
+  });
+
+  peer.on('close', function () {
+    peer = null;
   });
 
   // accept the offer
