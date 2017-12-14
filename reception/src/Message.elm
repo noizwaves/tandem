@@ -16,3 +16,5 @@ type Msg
   | ReceiveAnswerFromDC String
 
   | ConnectionStateChanged Bool
+
+  | Noop

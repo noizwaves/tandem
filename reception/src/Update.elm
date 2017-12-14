@@ -102,6 +102,9 @@ update msg model =
           _ ->
             ( model, Cmd.none )
 
+    Noop ->
+      ( model, Cmd.none )
+
 
 initiateHandshakeIfRequired : NameInformation -> Cmd Msg
 initiateHandshakeIfRequired info =

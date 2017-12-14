@@ -36,6 +36,7 @@ view model =
       _ ->
         text ""
 
+    noSubmit = onSubmit Cmd.none
     formAttrs = case model.intent of
       Browsing (Just info) ->
         if info.canHost then
@@ -43,9 +44,9 @@ view model =
         else if info.canJoin then
           [ class "start-form", onSubmit (JoinSession info) ]
         else
-          [ class "start-form" ]
+          [ class "start-form", onSubmit Noop ]
       _ ->
-        [ class "start-form" ]
+        [ class "start-form", onSubmit Noop ]
 
     accessibilityCheck = case model.trust of
       Untrusted ->
