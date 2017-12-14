@@ -53,7 +53,7 @@ let displayChampionWindow: BrowserWindow;
 let receptionWindow: BrowserWindow;
 let tray: Tray;
 
-let sessionActive = false;
+let sessionAsJoiner = false;
 
 function getKeyboard(): Keyboard {
   if (process.platform === 'darwin') {
@@ -102,7 +102,7 @@ function createDisplayChampionWindow() {
   displayChampionWindow.on('focus', function () {
     Menu.setApplicationMenu(dcMenu);
 
-    if (sessionActive && keyboard) {
+    if (sessionAsJoiner && keyboard) {
       keyboard.plugIn();
     }
   });
@@ -110,7 +110,7 @@ function createDisplayChampionWindow() {
   displayChampionWindow.on('blur', function () {
     Menu.setApplicationMenu(appMenu);
 
-    if (sessionActive && keyboard) {
+    if (sessionAsJoiner && keyboard) {
       keyboard.unplug();
     }
   });
@@ -214,25 +214,26 @@ ReceptionIPC.RequestOffer.on(ipc, function () {
   tray.setImage(path.join(__dirname, 'icons', 'busy.png'));
 
   DisplayChampionIPC.RequestOffer.send(displayChampionWindow);
+});
 
-  DisplayChampionIPC.ReceiveOffer.on(ipc, function (offer) {
-    logger.info('[main] Offer retrieved from Display Champion');
-    ReceptionIPC.ReceiveOffer.send(receptionWindow, offer);
-  });
+DisplayChampionIPC.ReceiveOffer.on(ipc, function (offer) {
+  logger.info('[main] Offer retrieved from Display Champion');
+
+  ReceptionIPC.ReceiveOffer.send(receptionWindow, offer);
 });
 
 ReceptionIPC.RequestAnswer.on(ipc, function (offer) {
   logger.info('[main] Get answer from DisplayChampion...');
   tray.setImage(path.join(__dirname, 'icons', 'busy.png'));
 
-  sessionActive = true;
+  sessionAsJoiner = true;
   displayChampionWindow.show();
 
   DisplayChampionIPC.RequestAnswer.send(displayChampionWindow, offer);
+});
 
-  DisplayChampionIPC.ReceiveAnswer.on(ipc, function (answer) {
-    ReceptionIPC.ReceiveAnswer.send(receptionWindow, answer);
-  });
+DisplayChampionIPC.ReceiveAnswer.on(ipc, function (answer) {
+  ReceptionIPC.ReceiveAnswer.send(receptionWindow, answer);
 });
 
 ReceptionIPC.GiveAnswer.on(ipc, function (answer) {
@@ -252,4 +253,15 @@ DisplayChampionIPC.ScreenSize.on(ipc, function (dimensions) {
 
 DisplayChampionIPC.ConnectionStateChanged.on(ipc, function (connected) {
   ReceptionIPC.ConnectionStateChanged.send(receptionWindow, connected);
+
+  if (!connected) {
+    logger.info('[main] Disconnected');
+
+    tray.setImage(path.join(__dirname, 'icons', 'idle.png'));
+
+    if (sessionAsJoiner) {
+      sessionAsJoiner = false;
+      displayChampionWindow.hide();
+    }
+  }
 });
