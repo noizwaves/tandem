@@ -1,18 +1,26 @@
 import {desktopCapturer, ipcRenderer as ipc, IpcRenderer} from 'electron';
 
-import * as Rx from 'rxjs';
 import * as Peer from 'simple-peer';
-import * as robot from 'robotjs';
 
 import {KeyDownEvent, KeyPresser, KeyUpEvent} from './keyboard';
 import {ExternalTransmitter, KeyboardTransmitter, WindowTransmitter} from './keyboard-transmitter';
 
+import {MouseButton, MouseButtonDetector, MouseButtonEvent} from './mouse-button';
+import {MousePositionDetector} from './mouse-position';
+import {MouseWheelDetector} from './mouse-wheel';
+
+import {ButtonType as CursorMoverButtonType, CursorMover} from './cursor-mover';
+import {RobotCursorMover} from './robot-cursor-mover';
+
+import {RobotKeyMover} from './robot-key-mover';
+
 import * as DisplayChampionIPC from './displaychampion.ipc';
 import * as PeerMsgs from './peer-msgs';
-import {RobotKeyMover} from './robot-key-mover';
+
 import {getLogger} from './logging';
 
 const logger = getLogger();
+
 
 function getScreenStream(cb) {
   desktopCapturer.getSources({types: ['screen']}, (error, sources) => {
@@ -54,92 +62,6 @@ function show(selector) {
 }
 
 
-function transmitScreenMouseMoveEvents(mouseMoveCallback) {
-  const remoteScreen = document.querySelector('#remote-screen');
-  const movements = new Rx.Subject();
-
-  remoteScreen.addEventListener('mousemove', function (event: any) {
-    movements.next({
-      x: event.offsetX,
-      y: event.offsetY,
-      width: remoteScreen.clientWidth,
-      height: remoteScreen.clientHeight
-    });
-  });
-
-  movements
-    .throttle(e => Rx.Observable.interval(33))
-    .subscribe(mouseMoveCallback);
-}
-
-
-enum MouseButton {LEFT, MIDDLE, RIGHT};
-
-interface MouseDownCallback {
-  (coords: { x: number, y: number, width: number, height: number, button: MouseButton }): void;
-}
-
-function transmitScreenMouseDownEvents(callback: MouseDownCallback) {
-  const remoteScreen = document.querySelector('#remote-screen');
-
-  remoteScreen.addEventListener('mousedown', function (event: any) {
-    logger.debug(`[DisplayChampion] remoteScreen mousedown detected, button ${event.button}`);
-
-    const coords = {
-      x: event.offsetX,
-      y: event.offsetY,
-      width: remoteScreen.clientWidth,
-      height: remoteScreen.clientHeight,
-    };
-
-    if (event.button === 0) {
-      callback({...coords, button: MouseButton.LEFT});
-    } else if (event.button === 1) {
-      callback({...coords, button: MouseButton.MIDDLE});
-    } else if (event.button === 2) {
-      callback({...coords, button: MouseButton.RIGHT});
-    }
-  });
-}
-
-interface WheelDelta {
-  deltaX: number;
-  deltaY: number;
-}
-
-interface MouseWheelCallback {
-  (delta: WheelDelta): void;
-}
-
-const sum = (x, y) => x + y;
-
-function transmitScreenWheelEvents(callback: MouseWheelCallback) {
-  const remoteScreen = document.querySelector('#remote-screen');
-  const events = new Rx.Subject<WheelDelta>();
-
-  remoteScreen.addEventListener('wheel', function(event: MouseWheelEvent) {
-    const delta: WheelDelta = {deltaX: event.deltaX, deltaY: event.deltaY};
-    events.next(delta);
-  });
-
-
-  events
-    .bufferTime(33)
-    .subscribe((deltas: WheelDelta[]) => {
-      if (deltas.length === 0) {
-        return;
-      }
-
-      const groupedDelta = {
-        deltaX: deltas.map(d => d.deltaX).reduce(sum, 0),
-        deltaY: deltas.map(d => d.deltaY).reduce(sum, 0),
-      };
-
-      callback(groupedDelta);
-    });
-}
-
-
 function createHostPeer(iceServers, screenStream) {
   const p = new Peer({
     config: {
@@ -151,6 +73,7 @@ function createHostPeer(iceServers, screenStream) {
   });
 
   const keyMover: KeyPresser = new RobotKeyMover();
+  const cursorMover: CursorMover = new RobotCursorMover();
 
   p.on('connect', function () {
     logger.info('[peer] CONNECT');
@@ -195,18 +118,38 @@ function createHostPeer(iceServers, screenStream) {
     let result = null;
     switch (message.t) {
       case PeerMsgs.MOUSEMOVE:
-        const mouseMove = PeerMsgs.unpackMouseMove(message);
-        robot.moveMouse(Math.round(mouseMove.x * screen.width), Math.round(mouseMove.y * screen.height));
+        const mouseMoveMsg = PeerMsgs.unpackMouseMove(message);
+        cursorMover.move(mouseMoveMsg.x, mouseMoveMsg.y);
         break;
       case PeerMsgs.MOUSEDOWN:
-        const mouseDown = PeerMsgs.unpackMouseDown(message);
-        robot.moveMouse(Math.round(mouseDown.x * screen.width), Math.round(mouseDown.y * screen.height));
-        robot.mouseClick(mouseDown.button.toString());
-        logger.debug(`[DisplayChampion] mouseClick of button '${mouseDown.button.toString()}'`);
+        const mouseDownMsg = PeerMsgs.unpackMouseDown(message);
+
+        let downButtonType: CursorMoverButtonType = null;
+        try {
+          downButtonType = toCursorMoverButtonType(mouseDownMsg.button);
+        } catch (e) {
+          logger.error(`[DisplayChampion] '${PeerMsgs.MOUSEDOWN}' error, ${e.message}`);
+          return;
+        }
+
+        cursorMover.buttonDown(mouseDownMsg.x, mouseDownMsg.y, downButtonType);
+        break;
+      case PeerMsgs.MOUSEUP:
+        const mouseUpMsg = PeerMsgs.unpackMouseUp(message);
+
+        let upButtonType: CursorMoverButtonType = null;
+        try {
+          upButtonType = toCursorMoverButtonType(mouseUpMsg.button);
+        } catch (e) {
+          logger.error(`[DisplayChampion] '${PeerMsgs.MOUSEUP}' error, ${e.message}`);
+          return;
+        }
+
+        cursorMover.buttonUp(mouseUpMsg.x, mouseUpMsg.y, upButtonType);
         break;
       case PeerMsgs.SCROLL:
-        const scroll = PeerMsgs.unpackScroll(message);
-        robot.scrollMouse(scroll.x, scroll.y);
+        const scrollMsg = PeerMsgs.unpackScroll(message);
+        cursorMover.scroll(scrollMsg.x, scrollMsg.y);
         break;
       case PeerMsgs.KEYUP:
         const keyUp = PeerMsgs.unpackKeyUp(message);
@@ -259,46 +202,47 @@ function createJoinPeer(iceServers) {
   });
 
   p.on('stream', function (stream) {
-    const remoteScreen: any = document.querySelector('#remote-screen');
+    const remoteScreen = <HTMLMediaElement> document.querySelector('#remote-screen');
     remoteScreen.srcObject = stream;
     remoteScreen.onloadedmetadata = function () {
       remoteScreen.play();
 
-      transmitScreenMouseMoveEvents(function (mouseMove) {
+      const positionDetector = new MousePositionDetector(remoteScreen);
+      positionDetector.position.subscribe(mouseMove => {
         const xMove = mouseMove.x / mouseMove.width;
         const yMove = mouseMove.y / mouseMove.height;
         PeerMsgs.sendMouseMove(p, xMove, yMove);
       });
 
-      transmitScreenMouseDownEvents(function (downCoords) {
-        const xDown = downCoords.x / downCoords.width;
-        const yDown = downCoords.y / downCoords.height;
+      const buttonMsgSender = (event: MouseButtonEvent, sendButtonMessage: (peer, x: number, y: number, button: MouseButton) => void) => {
+        const xDown = event.x / event.width;
+        const yDown = event.y / event.height;
 
-        switch (downCoords.button) {
-          case MouseButton.LEFT:
-            PeerMsgs.sendMouseDown(p, xDown, yDown, PeerMsgs.MouseButton.LEFT);
-            break;
-          case MouseButton.MIDDLE:
-            PeerMsgs.sendMouseDown(p, xDown, yDown, PeerMsgs.MouseButton.MIDDLE);
-            break;
-          case MouseButton.RIGHT:
-            PeerMsgs.sendMouseDown(p, xDown, yDown, PeerMsgs.MouseButton.RIGHT);
-            break;
+        let msgButton: PeerMsgs.MouseButton = null;
+        try {
+          msgButton = toMessageButtonType(event.button);
+        } catch (e) {
+          logger.error(`[DisplayChampion] Error getting message button type: ${e.message}`);
+          return;
         }
-      });
 
-      transmitScreenWheelEvents(function (wheelDelta) {
+        sendButtonMessage(p, xDown, yDown, msgButton);
+      };
+      const buttonDetector = new MouseButtonDetector(remoteScreen);
+      buttonDetector.down.subscribe((e) => buttonMsgSender(e, PeerMsgs.sendMouseDown));
+      buttonDetector.up.subscribe((e) => buttonMsgSender(e, PeerMsgs.sendMouseUp));
+
+      const wheelDetector = new MouseWheelDetector(remoteScreen);
+      wheelDetector.wheelChange.subscribe((wheelDelta) => {
         PeerMsgs.sendScroll(p, -1 * wheelDelta.deltaX, -1 * wheelDelta.deltaY);
       });
 
       const keyPressTransmitter: KeyboardTransmitter = externalKeyboard
         ? new ExternalTransmitter(ipc)
         : new WindowTransmitter(window);
-
       keyPressTransmitter.keyUp.subscribe((e: KeyUpEvent) => {
         PeerMsgs.sendKeyUp(p, e.key, e.modifiers);
       });
-
       keyPressTransmitter.keyDown.subscribe((e: KeyDownEvent) => {
         PeerMsgs.sendKeyDown(p, e.key, e.modifiers);
       });
@@ -330,6 +274,32 @@ function createJoinPeer(iceServers) {
   }
 
   return p;
+}
+
+function toMessageButtonType(button: MouseButton): PeerMsgs.MouseButton {
+  switch (button) {
+    case MouseButton.LEFT:
+      return PeerMsgs.MouseButton.LEFT;
+    case MouseButton.MIDDLE:
+      return PeerMsgs.MouseButton.MIDDLE;
+    case MouseButton.RIGHT:
+      return PeerMsgs.MouseButton.RIGHT;
+    default:
+      throw new Error(`Unknown MouseButton value '${button}', cannot map`);
+  }
+}
+
+function toCursorMoverButtonType(button: PeerMsgs.MouseButton): CursorMoverButtonType {
+  switch (button) {
+    case PeerMsgs.MouseButton.LEFT:
+      return CursorMoverButtonType.LEFT;
+    case PeerMsgs.MouseButton.MIDDLE:
+      return CursorMoverButtonType.MIDDLE;
+    case PeerMsgs.MouseButton.RIGHT:
+      return CursorMoverButtonType.RIGHT;
+    default:
+      throw new Error(`Unknown message button type '${button}', cannot map`);
+  }
 }
 
 
