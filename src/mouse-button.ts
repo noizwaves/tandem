@@ -33,6 +33,9 @@ export class MouseButtonDetector {
     this.down = this._down;
 
     const anyDirectionHandler = (event: MouseEvent, direction: MouseButtonDirection) => {
+      event.stopPropagation();
+      event.preventDefault();
+
       logger.debug(`[MouseButtonDetector] button event detected for ${event.button} going ${direction}`);
 
       let targetSub: Rx.Subject<MouseButtonEvent> = null;
