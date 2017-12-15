@@ -71,6 +71,7 @@ function transmitScreenMouseMoveEvents(mouseMoveCallback) {
     .subscribe(mouseMoveCallback);
 }
 
+
 enum MouseButton {LEFT, MIDDLE, RIGHT};
 
 interface MouseDownCallback {
@@ -79,6 +80,7 @@ interface MouseDownCallback {
 
 function transmitScreenMouseDownEvents(callback: MouseDownCallback) {
   const remoteScreen = document.querySelector('#remote-screen');
+
   remoteScreen.addEventListener('mousedown', function (event: any) {
     logger.debug(`[DisplayChampion] remoteScreen mousedown detected, button ${event.button}`);
 
@@ -98,6 +100,22 @@ function transmitScreenMouseDownEvents(callback: MouseDownCallback) {
     }
   });
 }
+
+
+interface MouseWheelCallback {
+  (scroll: { deltaX: number, deltaY: number}): void;
+}
+
+function transmitScreenWheelEvents(callback: MouseWheelCallback) {
+  const remoteScreen = document.querySelector('#remote-screen');
+
+  remoteScreen.addEventListener('wheel', function(event: MouseWheelEvent) {
+    logger.debug(`[DisplayChampion] remoteScreen wheel detected, x: ${event.deltaX}, y: ${event.deltaY}`);
+
+    callback({deltaX: event.deltaX, deltaY: event.deltaY});
+  });
+}
+
 
 function createHostPeer(iceServers, screenStream) {
   const p = new Peer({
@@ -163,6 +181,10 @@ function createHostPeer(iceServers, screenStream) {
         robot.mouseClick(mouseDown.button.toString());
         logger.debug(`[DisplayChampion] mouseClick of button '${mouseDown.button.toString()}'`);
         break;
+      case PeerMsgs.SCROLL:
+        const scroll = PeerMsgs.unpackScroll(message);
+        logger.debug(`[DisplayChampion] scroll of x: ${scroll.x}, y: ${scroll.x}`);
+        robot.scrollMouse(scroll.x, scroll.x);
       case PeerMsgs.KEYUP:
         const keyUp = PeerMsgs.unpackKeyUp(message);
         keyMover.pressUp(keyUp.code, keyUp.modifiers);
@@ -240,6 +262,10 @@ function createJoinPeer(iceServers) {
             PeerMsgs.sendMouseDown(p, xDown, yDown, PeerMsgs.MouseButton.RIGHT);
             break;
         }
+      });
+
+      transmitScreenWheelEvents(function (wheelDelta) {
+        PeerMsgs.sendScroll(p, -1 * wheelDelta.deltaX, -1 * wheelDelta.deltaY);
       });
 
       const keyPressTransmitter: KeyboardTransmitter = externalKeyboard

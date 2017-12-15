@@ -39,6 +39,20 @@ export function unpackMouseDown(message): { x: number, y: number, button: MouseB
 }
 
 
+export const SCROLL = 'scroll';
+
+export function sendScroll(peer, deltaX: number, deltaY: number) {
+  const data = {t: SCROLL, x: deltaX, y: deltaY};
+  peer.send(JSON.stringify(data));
+}
+
+export function unpackScroll(message): { x: number, y: number } {
+  const x = <number> message.x;
+  const y = <number> message.y;
+  return {x, y};
+}
+
+
 export const KEYUP = 'keyup';
 
 export function sendKeyUp(peer, code: KeyCode, modifiers: Modifiers) {
