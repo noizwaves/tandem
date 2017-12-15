@@ -20,18 +20,22 @@ export function unpackMouseMove(message): { x: number, y: number } {
 
 export const MOUSEDOWN = 'mousedown';
 
-export function sendMouseDown(peer, x: number, y: number) {
+export enum MouseButton {
+  LEFT = 'left',
+  MIDDLE = 'middle',
+  RIGHT = 'right',
+}
 
-  const data = {t: MOUSEDOWN, x, y};
+export function sendMouseDown(peer, x: number, y: number, button: MouseButton) {
+  const data = {t: MOUSEDOWN, x, y, b: button};
   peer.send(JSON.stringify(data));
 }
 
-export function unpackMouseDown(message): { x: number, y: number } {
-
+export function unpackMouseDown(message): { x: number, y: number, button: MouseButton } {
   const x = <number> message.x;
   const y = <number> message.y;
-  return {x, y};
-
+  const button = <MouseButton> message.b;
+  return {x, y, button};
 }
 
 
