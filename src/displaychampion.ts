@@ -53,6 +53,7 @@ function show(selector) {
   document.querySelector(selector).classList.remove('hidden');
 }
 
+
 function transmitScreenMouseMoveEvents(mouseMoveCallback) {
   const remoteScreen = document.querySelector('#remote-screen');
   const movements = new Rx.Subject();
@@ -101,19 +102,41 @@ function transmitScreenMouseDownEvents(callback: MouseDownCallback) {
   });
 }
 
+interface WheelDelta {
+  deltaX: number;
+  deltaY: number;
+}
 
 interface MouseWheelCallback {
-  (scroll: { deltaX: number, deltaY: number}): void;
+  (delta: WheelDelta): void;
 }
+
+const sum = (x, y) => x + y;
 
 function transmitScreenWheelEvents(callback: MouseWheelCallback) {
   const remoteScreen = document.querySelector('#remote-screen');
+  const events = new Rx.Subject<WheelDelta>();
 
   remoteScreen.addEventListener('wheel', function(event: MouseWheelEvent) {
-    logger.debug(`[DisplayChampion] remoteScreen wheel detected, x: ${event.deltaX}, y: ${event.deltaY}`);
-
-    callback({deltaX: event.deltaX, deltaY: event.deltaY});
+    const delta: WheelDelta = {deltaX: event.deltaX, deltaY: event.deltaY};
+    events.next(delta);
   });
+
+
+  events
+    .bufferTime(33)
+    .subscribe((deltas: WheelDelta[]) => {
+      if (deltas.length === 0) {
+        return;
+      }
+
+      const groupedDelta = {
+        deltaX: deltas.map(d => d.deltaX).reduce(sum, 0),
+        deltaY: deltas.map(d => d.deltaY).reduce(sum, 0),
+      };
+
+      callback(groupedDelta);
+    });
 }
 
 
@@ -183,8 +206,8 @@ function createHostPeer(iceServers, screenStream) {
         break;
       case PeerMsgs.SCROLL:
         const scroll = PeerMsgs.unpackScroll(message);
-        logger.debug(`[DisplayChampion] scroll of x: ${scroll.x}, y: ${scroll.x}`);
-        robot.scrollMouse(scroll.x, scroll.x);
+        robot.scrollMouse(scroll.x, scroll.y);
+        break;
       case PeerMsgs.KEYUP:
         const keyUp = PeerMsgs.unpackKeyUp(message);
         keyMover.pressUp(keyUp.code, keyUp.modifiers);
