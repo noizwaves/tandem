@@ -19,7 +19,10 @@ export class MousePositionDetector {
 
     const movements = new Rx.Subject<MousePosition>();
 
-    remoteScreen.addEventListener('mousemove', function (event: any) {
+    remoteScreen.addEventListener('mousemove', function (event: MouseEvent) {
+      event.stopPropagation();
+      event.preventDefault();
+
       movements.next({
         x: event.offsetX,
         y: event.offsetY,

@@ -18,6 +18,9 @@ export class MouseWheelDetector {
     const rawWheelEvents = new Rx.Subject<MouseWheelChange>();
 
     remoteScreen.addEventListener('wheel', function (event: MouseWheelEvent) {
+      event.stopPropagation();
+      event.preventDefault();
+
       const delta: MouseWheelChange = {deltaX: event.deltaX, deltaY: event.deltaY};
       rawWheelEvents.next(delta);
     });
