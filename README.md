@@ -4,7 +4,7 @@ Remote pair programming tool
 
 ## Quickstart
 
-1. Install latest Node via `brew install node`
+1. Install Node 8 via `brew install node@8`
 1. Install latest Yarn via `brew install yarn`
 1. Install Elm 0.18 via `npm install -g elm`
 1. Install dependencies via `yarn`
