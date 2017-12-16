@@ -28,3 +28,9 @@ In the `tandem-releases` repo:
 In homebrew-tap repo
 1. Update version and Sha in `vi Casks/tandem.rb`
 1. `git commit -m "Update Tandem.app to v<version>”`
+
+## 5. Update website
+
+In the `ridetandem.github.io` repository:
+1. Update the download link and button text in `_layouts/landing.html`
+1. Push to update live website
