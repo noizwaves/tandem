@@ -135,12 +135,15 @@ public class WebSocketHandler extends TextWebSocketHandler {
                 .map(Map.Entry::getKey)
                 .collect(Collectors.toList());
 
-        sessions.stream().forEach(session -> {
-            try {
-                sendInformation(name, session);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        });
+        sessions
+                .stream()
+                .filter(WebSocketSession::isOpen)
+                .forEach(session -> {
+                    try {
+                        sendInformation(name, session);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                });
     }
 }
