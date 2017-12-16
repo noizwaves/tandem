@@ -8,7 +8,7 @@ This may have been deployed outside of the app release cycle, but reflect if thi
 
 In the `tandem` repo:
 1. Bump version in package.json & elm-package.json
-1. Commit version changes with message 'Bump version <version>'
+1. Commit version changes with message 'Bump version to <version>'
 1. `git tag v<version>`
 1. `yarn build` && `yarn dist`
 1. `shasum -a 256 dist/Tandem-<version>.dmg`
