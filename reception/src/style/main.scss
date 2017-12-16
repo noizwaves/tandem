@@ -55,3 +55,14 @@ body {
     font-style: italic;
   }
 }
+
+.update-alert {
+  padding: 10px;
+  margin-bottom: 10px;
+
+  font-size: 20px;
+
+  color: $white;
+  background-color: #db9b26;
+  border-color: #db9b26;
+}

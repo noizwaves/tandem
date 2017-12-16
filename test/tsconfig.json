@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "noImplicitAny": false,
+    "strictNullChecks": false,
+    "target": "es6",
+    "moduleResolution": "node",
+    "lib": [
+      "dom",
+      "es6"
+    ],
+    "strict": true,
+    "sourceMap": false
+  },
+  "exclude": [
+  ]
+}

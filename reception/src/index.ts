@@ -20,6 +20,10 @@ interface NameInformation {
   iceServers: IceServerConfiguration[];
 }
 
+ReceptionIPC.UpdateAvailable.on(ipc, available => {
+  app.ports.appUpdateAvailable.send(available);
+});
+
 app.ports.requestProcessTrust.subscribe(function() {
   ReceptionIPC.RequestProcessTrust.send(ipc);
 });

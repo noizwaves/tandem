@@ -12,6 +12,12 @@ import Api exposing (..)
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
   case msg of
+    AppUpdateAvailable available ->
+      let
+        updates = if available then UpdatesAvailable else NoUpdatesAvailable
+      in
+        ( { model | appUpdates = updates }, Cmd.none )
+
     NameChanged userInput ->
       ( { model | name = validateName userInput, intent = Browsing Nothing }, Cmd.none )
 

@@ -59,13 +59,27 @@ view model =
       Trusted ->
         text ""
 
-  in
-    form formAttrs
+    appUpdate = case model.appUpdates of
+      UpdatesAvailable ->
+        div [ class "update-alert" ]
+          [ text "Updates available! Please update Tandem manually ASAP." ]
+      UpdateStatusUnknown ->
+        text ""
+      NoUpdatesAvailable ->
+        text ""
+
+    nameForm = form formAttrs
       [ input [ autofocus True, class inputClass, placeholder "Enter a name to begin", type_ "text", onInput NameChanged, disabled (not inputEnabled) ] [ ]
       , nameErrorMessage
       , div [ class "start-buttons" ] buttons
+      ]
+  in
+    div []
+      [ appUpdate
+      , nameForm
       , accessibilityCheck
       ]
+
 
 viewUnconnectedButtons : Maybe NameInformation -> List (Html Msg)
 viewUnconnectedButtons information =

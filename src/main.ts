@@ -8,6 +8,9 @@ import * as ReceptionIPC from './reception.ipc';
 import {NoopSystemIntegrator, SystemIntegrator} from './system-integrator';
 import {configureLogging, getLogger} from './logging';
 
+import axios from 'axios';
+import {UpdateChecker} from './update-checker';
+
 const path = require('path');
 const url = require('url');
 
@@ -156,12 +159,28 @@ function createReceptionWindow() {
   if (process.env.DEBUG_TOOLS) {
     receptionWindow.webContents.openDevTools();
   }
+
+  receptionWindow.webContents.once('dom-ready', () => {
+    checkForUpdates();
+  });
 }
 
 function openWebRtcInternalsWindow() {
   const webRtcWindow = new BrowserWindow({width: 800, height: 600});
   webRtcWindow.loadURL('chrome://webrtc-internals');
   return webRtcWindow;
+}
+
+function checkForUpdates() {
+  const currentVersion = app.getVersion();
+  const checker = new UpdateChecker(axios, currentVersion);
+
+  logger.info(`[main] Current version ${currentVersion}, checking for updates`);
+
+  checker.isUpdateAvailable().then(updateAvailable => {
+    logger.info(`[main] Updates available: ${updateAvailable}`);
+    ReceptionIPC.UpdateAvailable.send(receptionWindow, updateAvailable);
+  });
 }
 
 app.dock.setIcon(path.join(__dirname, 'icons', 'idle.png'));

@@ -14,6 +14,7 @@ subscriptions model =
   let
     base =
       [ updateProcessTrust UpdateProcessTrust
+      , appUpdateAvailable AppUpdateAvailable
       ]
 
     room = case model.name of
