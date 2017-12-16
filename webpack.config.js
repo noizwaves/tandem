@@ -2,7 +2,7 @@ const path = require('path');
 const webpack = require('webpack');
 const nodeExternals = require('webpack-node-externals');
 
-const elmSource = path.resolve(__dirname);
+const elmSource = path.resolve(__dirname) + '/reception';
 
 module.exports = [{
   entry: {

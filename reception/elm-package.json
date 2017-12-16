@@ -1,10 +1,10 @@
 {
     "version": "0.2.1",
     "summary": "Developer centric screen sharing tool",
-    "repository": "https://github.com/noizwaves/displaychampion.git",
+    "repository": "https://github.com/noizwaves/tandem.git",
     "license": "UNLICENSED",
     "source-directories": [
-        "reception/src"
+        "./src"
     ],
     "exposed-modules": [],
     "dependencies": {
