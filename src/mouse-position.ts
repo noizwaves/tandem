@@ -32,7 +32,13 @@ export class MousePositionDetector {
     });
 
     movements
-      .throttle(e => Rx.Observable.interval(33))
-      .subscribe(e => this._position.next(e));
+      .bufferTime(33)
+      .subscribe((positions: MousePosition[]) => {
+        if (positions.length === 0) {
+          return;
+        }
+
+        this._position.next(positions[positions.length-1]);
+      });
   }
 }
