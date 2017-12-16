@@ -11,7 +11,7 @@ import View exposing (view)
 
 init : (Model, Cmd Msg)
 init =
-  (Model NoNameEntered (Browsing Nothing) TrustUnknown, requestProcessTrust True)
+  (Model UpdateStatusUnknown NoNameEntered (Browsing Nothing) TrustUnknown, requestProcessTrust True)
 
 
 main : Program Never Model Msg

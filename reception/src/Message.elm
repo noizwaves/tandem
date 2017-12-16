@@ -3,7 +3,9 @@ module Message exposing (..)
 import Model exposing (NameInformation)
 
 type Msg
-  = NameChanged String
+  = AppUpdateAvailable Bool
+
+  | NameChanged String
 
   | UpdateProcessTrust Bool
 

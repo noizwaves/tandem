@@ -1,5 +1,7 @@
 import {TypedMessageChannel, MessageChannel} from './ipc-messaging';
 
+export const UpdateAvailable = new TypedMessageChannel<boolean>('update-available');
+
 export const RequestOffer = new MessageChannel('request-offer');
 
 export const ReceiveOffer = new TypedMessageChannel<string>('receive-offer');

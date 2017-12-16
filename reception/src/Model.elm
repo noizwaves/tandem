@@ -42,8 +42,14 @@ type ConnectionIntent
   | Joining NameInformation
   | Connected PreConnectionIntent NameInformation
 
+type AppUpdateAvailability
+  = UpdateStatusUnknown
+  | UpdatesAvailable
+  | NoUpdatesAvailable
+
 type alias Model =
-  { name: ValidatedName
+  { appUpdates: AppUpdateAvailability
+  , name: ValidatedName
   , intent: ConnectionIntent
   , trust: ProcessTrustLevel
   }
