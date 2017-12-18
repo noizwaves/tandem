@@ -14,6 +14,7 @@ import {RobotCursorMover} from './robot-cursor-mover';
 
 import {RobotKeyMover} from './robot-key-mover';
 
+import {preferVP8WithBoostedBitrate} from './sdp-codec-adjuster';
 import * as DisplayChampionIPC from './displaychampion.ipc';
 import * as PeerMsgs from './peer-msgs';
 
@@ -67,6 +68,7 @@ function createHostPeer(iceServers, screenStream) {
     config: {
       iceServers: iceServers
     },
+    sdpTransform: preferVP8WithBoostedBitrate,
     initiator: true,
     trickle: false,
     stream: screenStream
@@ -174,6 +176,7 @@ function createJoinPeer(iceServers) {
     config: {
       iceServers: iceServers
     },
+    sdpTransform: preferVP8WithBoostedBitrate,
     initiator: false,
     trickle: false
   });
