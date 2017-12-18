@@ -165,6 +165,12 @@ function createReceptionWindow() {
   });
 }
 
+function openGpuInternalsWindow() {
+  const gpuWindow = new BrowserWindow({width: 800, height: 600});
+  gpuWindow.loadURL('chrome://gpu');
+  return gpuWindow;
+}
+
 function openWebRtcInternalsWindow() {
   const webRtcWindow = new BrowserWindow({width: 800, height: 600});
   webRtcWindow.loadURL('chrome://webrtc-internals');
@@ -196,6 +202,7 @@ app.on('ready', () => {
 
   if (process.env.DEBUG_TOOLS) {
     openWebRtcInternalsWindow();
+    openGpuInternalsWindow();
   }
 
   tray = new Tray(path.join(__dirname, 'icons', 'idle.png'));
