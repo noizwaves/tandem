@@ -1,6 +1,6 @@
 {
   "name": "tandem",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Developer centric screen sharing tool",
   "productName": "Tandem",
   "main": "main.js",
