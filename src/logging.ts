@@ -25,7 +25,7 @@ export function getLogger(): Logger {
 }
 
 export function configureLogging() {
-  log.transports.console.level = 'debug';
+  log.transports.console.level = 'warn';
 
   const userDataPath = app.getPath('userData');
   const logPath = path.join(userDataPath, 'logs');
@@ -34,7 +34,7 @@ export function configureLogging() {
   const appStartAt = fileSafeDateFormat(new Date());
   const logFile = path.join(logPath, `${appStartAt}.log`);
 
-  log.transports.file.level = 'debug';
+  log.transports.file.level = 'warn';
   log.transports.file.file = logFile;
 }
 
