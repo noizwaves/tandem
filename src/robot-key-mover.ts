@@ -130,30 +130,30 @@ export class RobotKeyMover implements KeyPresser {
   pressDown(code: KeyCode, modifiers: Modifiers): void {
     const robotKey = toRobotKey(code);
     if (!robotKey) {
-      logger.warn(`RobotJS lacks support for ${code}`);
+      logger.warn(`RobotJS lacks support for key`);
       return;
     }
 
-    logger.debug(`[RobotKeyMover] Told to press down '${code}' using '${modifiers}'`);
+    logger.debug(`[RobotKeyMover] Told to press down`);
 
     const robotModifiers = modifiers.map(toRobotKeyModifier);
     robot.keyToggle(robotKey, 'down', robotModifiers);
 
-    logger.debug(`[RobotKeyMover] Doing toggle key down '${robotKey}' using modifiers '${robotModifiers}'`);
+    logger.debug(`[RobotKeyMover] Doing toggle key down`);
   }
 
   pressUp(code: KeyCode, modifiers: Modifiers): void {
     const robotKey = toRobotKey(code);
     if (!robotKey) {
-      logger.warn(`RobotJS lacks support for ${code}`);
+      logger.warn(`RobotJS lacks support for key`);
       return;
     }
 
-    logger.debug(`[RobotKeyMover] Told to press up '${code}' using '${modifiers}'`);
+    logger.debug(`[RobotKeyMover] Told to press up`);
 
     const robotModifiers = modifiers.map(toRobotKeyModifier);
     robot.keyToggle(robotKey, 'up', robotModifiers);
 
-    logger.debug(`[RobotKeyMover] Doing toggle key up '${robotKey}' using modifiers '${robotModifiers}'`);
+    logger.debug(`[RobotKeyMover] Doing toggle key up`);
   }
 }

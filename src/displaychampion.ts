@@ -102,7 +102,7 @@ function createHostPeer(iceServers, screenStream) {
   p.on('data', function (data) {
     const unhandled = handleMessage(data);
     if (unhandled) {
-      logger.warn(`Unhandled data message: ${unhandled}`);
+      logger.warn(`Unhandled data message`);
     }
   });
 
@@ -200,7 +200,7 @@ function createJoinPeer(iceServers) {
   p.on('data', function (data) {
     const unhandled = handleMessageFromHost(data);
     if (unhandled) {
-      logger.warn(`Unhandled data message: ${unhandled}`);
+      logger.warn(`Unhandled data message`);
     }
   });
 
