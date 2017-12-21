@@ -447,7 +447,7 @@ function convertToKeyCode(code: MacKeyCode): KeyCode {
       return KeyCode.NumpadAdd;
   }
 
-  throw new Error(`MacKeyCode of ${code} not present in map, the Elm compiler would have protected us here...`);
+  throw new Error(`MacKeyCode of 'code' not present in map, the Elm compiler would have protected us here...`);
 }
 
 export class MacOsKeyboard implements Keyboard {
@@ -482,7 +482,7 @@ export class MacOsKeyboard implements Keyboard {
       const keyCodeId = <number> event('keyCode');
 
       if (!(keyCodeId in MacKeyCode)) {
-        logger.warn(`[MacOsKeyboard] Unhandled NSEvent keyCode of ${keyCodeId}, ignoring event`);
+        logger.warn(`[MacOsKeyboard] Unhandled NSEvent keyCode, ignoring event`);
         return;
       }
 
@@ -543,14 +543,14 @@ export class MacOsKeyboard implements Keyboard {
 
       const keyCodeId = <number> event('keyCode');
       if (!(keyCodeId in MacKeyCode)) {
-        logger.warn(`[MacOsKeyboard] Unhandled NSEvent keyCode of '${keyCodeId}', ignoring event`);
+        logger.warn(`[MacOsKeyboard] Unhandled NSEvent keyCode, ignoring event`);
         return;
       }
 
       const key: KeyCode = convertToKeyCode(<MacKeyCode> keyCodeId);
 
       _this._keyDown.next({key, modifiers});
-      logger.debug(`[MacOsKeyboard] Key down of '${key}' with modifiers '${modifiers}'`);
+      logger.debug(`[MacOsKeyboard] Key down with modifiers`);
     };
 
     const keyUpFunc = function (self, event) {
@@ -559,14 +559,14 @@ export class MacOsKeyboard implements Keyboard {
 
       const keyCodeId = <number> event('keyCode');
       if (!(keyCodeId in MacKeyCode)) {
-        logger.warn(`[MacOsKeyboard] Unhandled NSEvent keyCode of '${keyCodeId}', ignoring event`);
+        logger.warn(`[MacOsKeyboard] Unhandled NSEvent keyCode, ignoring event`);
         return;
       }
 
       const key: KeyCode = convertToKeyCode(<MacKeyCode> keyCodeId);
 
       _this._keyUp.next({key, modifiers})
-      logger.debug(`[MacOsKeyboard] Key up of '${key}' with modifiers '${modifiers}'`);
+      logger.debug(`[MacOsKeyboard] Key up with modifiers`);
     };
 
     this._handler = $(func, [$.void, [$.id, $.id]]);
