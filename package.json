@@ -29,7 +29,7 @@
     "build": "webpack --display-error-details",
     "build:dev": "TANDEM_DEBUG_TOOLS=true webpack --display-error-details",
     "start": "electron .",
-    "start:dev": "electron .",
+    "start:dev": "TANDEM_LOG_LEVEL=debug electron .",
     "dist": "electron-builder",
     "test:unit": "tsc -p test --noEmit && mocha -r ts-node/register test/**/*.ts",
     "test:reception": "cd reception && elm test",

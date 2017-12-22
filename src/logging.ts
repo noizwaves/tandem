@@ -25,7 +25,9 @@ export function getLogger(): Logger {
 }
 
 export function configureLogging() {
-  log.transports.console.level = 'warn';
+  const logLevel = getConfiguredLogLevel();
+
+  log.transports.console.level = logLevel;
 
   const userDataPath = app.getPath('userData');
   const logPath = path.join(userDataPath, 'logs');
@@ -34,7 +36,24 @@ export function configureLogging() {
   const appStartAt = fileSafeDateFormat(new Date());
   const logFile = path.join(logPath, `${appStartAt}.log`);
 
-  log.transports.file.level = 'warn';
+  log.transports.file.level = logLevel;
   log.transports.file.file = logFile;
 }
 
+function getConfiguredLogLevel() {
+  const raw = process.env.TANDEM_LOG_LEVEL;
+  const sanitised = (raw || '').toLowerCase();
+
+  switch (sanitised) {
+    case 'error':
+      return 'error';
+    case 'warn':
+      return 'warn';
+    case 'info':
+      return 'info';
+    case 'debug':
+      return 'debug';
+    default:
+      return 'warn';
+  }
+}

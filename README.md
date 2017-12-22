@@ -28,6 +28,19 @@ Remote pair programming tool
 1. Run via `yarn start:dev`
 
 
+## Configuration
+
+The Tandem app observes environment variables for configuration.
+
+### At build time
+
+- `TANDEM_DEBUG_TOOLS`: show Chrome developer tools, WebRTC stats, GPU stats, etc.
+
+### At run time
+
+- `TANDEM_LOG_LEVEL`: sets logging level. Accepts `error`, `warn`, `info`, or `debug`.
+
+
 ## Architecture
 
 ### Concierge
