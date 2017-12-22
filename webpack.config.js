@@ -4,6 +4,10 @@ const nodeExternals = require('webpack-node-externals');
 
 const elmSource = path.resolve(__dirname) + '/reception';
 
+const buildTimeTandemEnvVars = {
+  'process.env.TANDEM_DEBUG_TOOLS': JSON.stringify(process.env.TANDEM_DEBUG_TOOLS)
+};
+
 module.exports = [{
   entry: {
     'app': [
@@ -12,7 +16,7 @@ module.exports = [{
   },
   target: 'electron-renderer',
   resolve: {
-    extensions: [ '.ts','.js']
+    extensions: ['.ts', '.js']
   },
   output: {
     path: path.resolve(__dirname + '/reception/dist'),
@@ -55,7 +59,8 @@ module.exports = [{
 
     noParse: /\.elm$/,
   },
-  externals: [nodeExternals()]
+  externals: [nodeExternals()],
+  plugins: [new webpack.DefinePlugin(buildTimeTandemEnvVars)]
 }, {
   entry: {
     'main': ['./src/main.ts']
@@ -70,7 +75,7 @@ module.exports = [{
     filename: '[name].js'
   },
   resolve: {
-    extensions: [ '.ts','.js']
+    extensions: ['.ts', '.js']
   },
   module: {
     rules: [
@@ -82,13 +87,7 @@ module.exports = [{
     ]
   },
   externals: [nodeExternals()],
-  plugins: [
-    new webpack.DefinePlugin({
-      'process.env': {
-        'DEBUG_TOOLS': JSON.stringify(process.env.DEBUG_TOOLS)
-      }
-    })
-  ]
+  plugins: [new webpack.DefinePlugin(buildTimeTandemEnvVars)]
 }, {
   entry: {
     'displaychampion': ['./src/displaychampion.ts']
@@ -104,7 +103,7 @@ module.exports = [{
     filename: '[name].js'
   },
   resolve: {
-    extensions: [ '.ts','.js']
+    extensions: ['.ts', '.js']
   },
   module: {
     rules: [
@@ -116,11 +115,5 @@ module.exports = [{
     ]
   },
   externals: [nodeExternals()],
-  plugins: [
-    new webpack.DefinePlugin({
-      'process.env': {
-        'NODE_ENV': JSON.stringify(process.env.TARGET_NODE_ENV)
-      }
-    })
-  ]
+  plugins: [new webpack.DefinePlugin(buildTimeTandemEnvVars)]
 }];
