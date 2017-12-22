@@ -6,11 +6,9 @@ Remote pair programming tool
 
 1. Install Node 8 via `brew install node@8`
 1. Install latest Yarn via `brew install yarn`
-1. Install Elm 0.18 via `npm install -g elm`
 1. Install dependencies via `yarn`
-1. Rebuild robotjs for electron via `npm rebuild robotjs --runtime=electron --target=1.7.8 --disturl=https://atom.io/download/atom-shell`
 
-1. Start the app via `yarn start`
+1. Build and start the app via `yarn build` and `yarn start`
 
 ## Installation
 
@@ -22,12 +20,12 @@ Remote pair programming tool
 ## Building for macOS
 
 1. Build via `yarn build`
-1. Run via `electron .`
+1. Run via `yarn start.`
 
 ### With debugging / dev tools
 
-1. Build via `yarn build:debug`
-1. Run via `electron .`
+1. Build via `yarn build:dev`
+1. Run via `yarn start:dev`
 
 
 ## Architecture
