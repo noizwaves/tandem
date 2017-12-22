@@ -86,7 +86,7 @@ function createDisplayChampionWindow() {
   }));
 
   // Open the DevTools.
-  if (process.env.DEBUG_TOOLS) {
+  if (isDebugToolsEnabled()) {
     displayChampionWindow.show();
     displayChampionWindow.webContents.openDevTools();
   }
@@ -156,7 +156,7 @@ function createReceptionWindow() {
   });
 
   // Open the DevTools.
-  if (process.env.DEBUG_TOOLS) {
+  if (isDebugToolsEnabled()) {
     receptionWindow.webContents.openDevTools();
   }
 
@@ -191,7 +191,7 @@ function checkForUpdates() {
 
 app.dock.setIcon(path.join(__dirname, 'icons', 'idle.png'));
 
-if (process.env.DEBUG_TOOLS) {
+if (isDebugToolsEnabled()) {
   // app.commandLine.appendSwitch('--enable-logging');
   // app.commandLine.appendSwitch('--v', '1');
 }
@@ -200,7 +200,7 @@ app.on('ready', () => {
   createReceptionWindow();
   createDisplayChampionWindow();
 
-  if (process.env.DEBUG_TOOLS) {
+  if (isDebugToolsEnabled()) {
     openWebRtcInternalsWindow();
     openGpuInternalsWindow();
   }
@@ -291,3 +291,10 @@ DisplayChampionIPC.ConnectionStateChanged.on(ipc, function (connected) {
     }
   }
 });
+
+function isDebugToolsEnabled() {
+  const raw = process.env.TANDEM_DEBUG_TOOLS;
+  const sanitised = (raw || '').toLowerCase();
+
+  return sanitised === 'true';
+}

@@ -28,7 +28,7 @@
     "postinstall": "electron-builder install-app-deps",
     "start": "webpack && electron .",
     "build": "webpack --display-error-details",
-    "build:debug": "DEBUG_TOOLS=true webpack --display-error-details",
+    "build:debug": "TANDEM_DEBUG_TOOLS=true webpack --display-error-details",
     "dist": "electron-builder",
     "test:unit": "tsc -p test --noEmit && mocha -r ts-node/register test/**/*.ts",
     "test:reception": "cd reception && elm test",
