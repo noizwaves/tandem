@@ -447,7 +447,9 @@ function convertToKeyCode(code: MacKeyCode): KeyCode {
       return KeyCode.NumpadAdd;
   }
 
-  throw new Error(`MacKeyCode of 'code' not present in map, the Elm compiler would have protected us here...`);
+  logger.errorSensitive('[MacOS] Attempted to map an unknown MacKeyCode value', code);
+
+  throw new Error(`MacKeyCode not present in map, the Elm compiler would have protected us here...`);
 }
 
 export class MacOsKeyboard implements Keyboard {
@@ -482,7 +484,7 @@ export class MacOsKeyboard implements Keyboard {
       const keyCodeId = <number> event('keyCode');
 
       if (!(keyCodeId in MacKeyCode)) {
-        logger.warn(`[MacOsKeyboard] Unhandled NSEvent keyCode, ignoring event`);
+        logger.warnSensitive('[MacOsKeyboard] Ignoring unhandled NSEvent keyCode', keyCodeId);
         return;
       }
 
@@ -543,14 +545,15 @@ export class MacOsKeyboard implements Keyboard {
 
       const keyCodeId = <number> event('keyCode');
       if (!(keyCodeId in MacKeyCode)) {
-        logger.warn(`[MacOsKeyboard] Unhandled NSEvent keyCode, ignoring event`);
+        logger.warnSensitive('[MacOsKeyboard] Ignoring unhandled NSEvent keyCode', keyCodeId);
         return;
       }
 
       const key: KeyCode = convertToKeyCode(<MacKeyCode> keyCodeId);
 
       _this._keyDown.next({key, modifiers});
-      logger.debug(`[MacOsKeyboard] Key down with modifiers`);
+      logger.debugSensitive('[MacOsKeyboard] Key down', key);
+      logger.debugSensitive('[MacOsKeyboard] ... with modifiers', modifiers);
     };
 
     const keyUpFunc = function (self, event) {
@@ -559,14 +562,15 @@ export class MacOsKeyboard implements Keyboard {
 
       const keyCodeId = <number> event('keyCode');
       if (!(keyCodeId in MacKeyCode)) {
-        logger.warn(`[MacOsKeyboard] Unhandled NSEvent keyCode, ignoring event`);
+        logger.warnSensitive(`[MacOsKeyboard] Ignoring unhandled NSEvent keyCode`, keyCodeId);
         return;
       }
 
       const key: KeyCode = convertToKeyCode(<MacKeyCode> keyCodeId);
 
       _this._keyUp.next({key, modifiers})
-      logger.debug(`[MacOsKeyboard] Key up with modifiers`);
+      logger.debugSensitive('[MacOsKeyboard] Key up', key);
+      logger.debugSensitive('[MacOsKeyboard] ... with modifiers', modifiers);
     };
 
     this._handler = $(func, [$.void, [$.id, $.id]]);

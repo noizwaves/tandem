@@ -39,7 +39,7 @@ The Tandem app observes environment variables for configuration.
 ### At run time
 
 - `TANDEM_LOG_LEVEL`: sets logging level. Accepts `error`, `warn`, `info`, or `debug`.
-
+- `TANDEM_PRINT_SENSITIVE_VALUES_IN_LOGS`: replaces highly sensitive (i.e. key codes on key events) into logs. This triggers key logger behaviour. **Use at your own risk!**
 
 ## Architecture
 

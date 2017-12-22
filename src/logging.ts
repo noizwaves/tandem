@@ -8,9 +8,18 @@ const log = require('electron-log');
 
 export interface Logger {
   debug(m: string);
+
+  debugSensitive(m: string, value: any);
+
   info(m: string);
+
   warn(m: string);
+
+  warnSensitive(m: string, value: any);
+
   error(m: string);
+
+  errorSensitive(m: string, value: any);
 }
 
 function fileSafeDateFormat(d: Date): string {
@@ -21,7 +30,51 @@ function fileSafeDateFormat(d: Date): string {
 }
 
 export function getLogger(): Logger {
-  return log;
+  return new RedactingLogger(log, getConfiguredPrintSensitiveValuesInLogs());
+}
+
+class RedactingLogger implements Logger {
+  private showSensitiveValues: boolean;
+
+  constructor(private log, configuredPrintSensitiveValuesInLogs: boolean) {
+    this.showSensitiveValues = configuredPrintSensitiveValuesInLogs;
+  }
+
+  debug(m: string) {
+    this.log.debug(m);
+  }
+
+  debugSensitive(m: string, value: string) {
+    this.debug(this.buildSensitiveMessage(m, value));
+  }
+
+  info(m: string) {
+    this.log.info(m);
+  }
+
+  warn(m: string) {
+    this.log.warn(m);
+  }
+
+  warnSensitive(m: string, value: string) {
+    this.warn(this.buildSensitiveMessage(m, value));
+  }
+
+  error(m: string) {
+    this.log.error(m);
+  }
+
+  errorSensitive(m: string, value: string) {
+    this.error(this.buildSensitiveMessage(m, value));
+  }
+
+  private buildSensitiveMessage(m: string, v: any): string {
+    if (this.showSensitiveValues) {
+      return `${m} ${v}`;
+    } else {
+      return `${m} #####`;
+    }
+  }
 }
 
 export function configureLogging() {
@@ -56,4 +109,10 @@ function getConfiguredLogLevel() {
     default:
       return 'warn';
   }
+}
+
+function getConfiguredPrintSensitiveValuesInLogs(): boolean {
+  const raw: string = process.env.TANDEM_PRINT_SENSITIVE_VALUES_IN_LOGS;
+  const sanitised = (raw || '').toLowerCase();
+  return sanitised === 'true';
 }

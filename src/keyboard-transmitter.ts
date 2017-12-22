@@ -50,7 +50,7 @@ export class WindowTransmitter implements KeyboardTransmitter {
     window.addEventListener('keydown', (e: any) => {
       const rawCode = <string> e.code;
       if (!(rawCode in KeyCode)) {
-        logger.warn(`Unhandled window.keydown event, ignoring`);
+        logger.warnSensitive('[WindowTransmitter] Ignoring unhandled window.keydown event', rawCode);
         return;
       }
 
@@ -60,13 +60,14 @@ export class WindowTransmitter implements KeyboardTransmitter {
 
       const modifiers = Array.from(this._heldModifiers.values());
       this._keyDown.next({key: <KeyCode> rawCode, modifiers});
-      logger.debug(`[WindowTransmitter] Key down with modifiers`);
+      logger.debugSensitive('[WindowTransmitter] Key down', rawCode);
+      logger.debugSensitive('[WindowTransmitter] ... with modifiers', modifiers);
     }, true);
 
     window.addEventListener('keyup', (e: any) => {
       const rawCode = <string> e.code;
       if (!(rawCode in KeyCode)) {
-        logger.warn(`Unhandled window.keyup event, ignoring`);
+        logger.warnSensitive('[WindowTransmitter] Ignoring unhandled window.keyup event', rawCode);
         return;
       }
 
@@ -77,6 +78,8 @@ export class WindowTransmitter implements KeyboardTransmitter {
       const modifiers = Array.from(this._heldModifiers.values());
       this._keyUp.next({key: <KeyCode> rawCode, modifiers});
       logger.debug(`[WindowTransmitter] Key up with modifiers`);
+      logger.debugSensitive('[WindowTransmitter] Key up', rawCode);
+      logger.debugSensitive('[WindowTransmitter] ... with modifiers', modifiers);
     }, true);
   }
 }
