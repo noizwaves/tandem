@@ -7,7 +7,7 @@ import {getLogger} from './logging';
 
 const logger = getLogger();
 
-export interface KeyboardTransmitter {
+export interface KeyPressDetector {
   readonly keyUp: Rx.Observable<KeyUpEvent>;
   readonly keyDown: Rx.Observable<KeyDownEvent>;
 }
@@ -31,7 +31,7 @@ function isMeta(rawCode: string): boolean {
   }
 }
 
-export class WindowTransmitter implements KeyboardTransmitter {
+export class WindowKeyPressDetector implements KeyPressDetector {
   readonly keyUp: Rx.Observable<KeyUpEvent>;
   readonly keyDown: Rx.Observable<KeyDownEvent>;
 
@@ -50,7 +50,7 @@ export class WindowTransmitter implements KeyboardTransmitter {
     window.addEventListener('keydown', (e: any) => {
       const rawCode = <string> e.code;
       if (!(rawCode in KeyCode)) {
-        logger.warnSensitive('[WindowTransmitter] Ignoring unhandled window.keydown event', rawCode);
+        logger.warnSensitive('[WindowKeyPressDetector] Ignoring unhandled window.keydown event', rawCode);
         return;
       }
 
@@ -60,14 +60,14 @@ export class WindowTransmitter implements KeyboardTransmitter {
 
       const modifiers = Array.from(this._heldModifiers.values());
       this._keyDown.next({key: <KeyCode> rawCode, modifiers});
-      logger.debugSensitive('[WindowTransmitter] Key down', rawCode);
-      logger.debugSensitive('[WindowTransmitter] ... with modifiers', modifiers);
+      logger.debugSensitive('[WindowKeyPressDetector] Key down', rawCode);
+      logger.debugSensitive('[WindowKeyPressDetector] ... with modifiers', modifiers);
     }, true);
 
     window.addEventListener('keyup', (e: any) => {
       const rawCode = <string> e.code;
       if (!(rawCode in KeyCode)) {
-        logger.warnSensitive('[WindowTransmitter] Ignoring unhandled window.keyup event', rawCode);
+        logger.warnSensitive('[WindowKeyPressDetector] Ignoring unhandled window.keyup event', rawCode);
         return;
       }
 
@@ -77,14 +77,14 @@ export class WindowTransmitter implements KeyboardTransmitter {
 
       const modifiers = Array.from(this._heldModifiers.values());
       this._keyUp.next({key: <KeyCode> rawCode, modifiers});
-      logger.debug(`[WindowTransmitter] Key up with modifiers`);
-      logger.debugSensitive('[WindowTransmitter] Key up', rawCode);
-      logger.debugSensitive('[WindowTransmitter] ... with modifiers', modifiers);
+      logger.debug(`[WindowKeyPressDetector] Key up with modifiers`);
+      logger.debugSensitive('[WindowKeyPressDetector] Key up', rawCode);
+      logger.debugSensitive('[WindowKeyPressDetector] ... with modifiers', modifiers);
     }, true);
   }
 }
 
-export class ExternalTransmitter implements KeyboardTransmitter {
+export class ExternalKeyPressDetector implements KeyPressDetector {
   readonly keyUp: Rx.Observable<KeyUpEvent>;
   readonly keyDown: Rx.Observable<KeyDownEvent>;
 
