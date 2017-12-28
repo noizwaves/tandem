@@ -57,7 +57,6 @@ export class HostPeer {
     p.on('close', function () {
       logger.info('[peer] CLOSE');
 
-      p.destroy();
       screenStream.getTracks().forEach(t => t.stop());
 
       connected.next(false);

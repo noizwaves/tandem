@@ -12,14 +12,15 @@ export class MousePositionDetector {
   readonly position: Rx.Observable<MousePosition>;
 
   private readonly _position: Rx.Subject<MousePosition>;
+  private readonly mouseMoveHandler: (event: MouseEvent) => void;
 
-  constructor(remoteScreen: HTMLMediaElement) {
+  constructor(private remoteScreen: HTMLMediaElement) {
     this._position = new Rx.Subject<MousePosition>();
     this.position = this._position;
 
     const movements = new Rx.Subject<MousePosition>();
 
-    remoteScreen.addEventListener('mousemove', function (event: MouseEvent) {
+    this.mouseMoveHandler = (event: MouseEvent) => {
       event.stopPropagation();
       event.preventDefault();
 
@@ -29,7 +30,8 @@ export class MousePositionDetector {
         width: remoteScreen.clientWidth,
         height: remoteScreen.clientHeight
       });
-    });
+    };
+    remoteScreen.addEventListener('mousemove', this.mouseMoveHandler);
 
     movements
       .bufferTime(33)
@@ -38,7 +40,11 @@ export class MousePositionDetector {
           return;
         }
 
-        this._position.next(positions[positions.length-1]);
+        this._position.next(positions[positions.length - 1]);
       });
+  }
+
+  dispose(): void {
+    this.remoteScreen.removeEventListener('mousemove', this.mouseMoveHandler);
   }
 }

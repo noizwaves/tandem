@@ -42,15 +42,7 @@ public class WebSocketHandler extends TextWebSocketHandler {
 
         nameMap.remove(session);
 
-        if (session.equals(hostMap.get(name))) {
-            hostMap.remove(name);
-            broadcastInformation(name);
-        }
-
-        if (session.equals(joinMap.get(name))) {
-            joinMap.remove(name);
-            broadcastInformation(name);
-        }
+        becomeParticipant(name, session);
     }
 
     @Override
@@ -66,6 +58,10 @@ public class WebSocketHandler extends TextWebSocketHandler {
             // TODO: validate & check existing state
             joinMap.put(name, session);
             broadcastInformation(name);
+        } else if (payload.startsWith("leave")) {
+            // TODO: validate & check existing state
+
+            becomeParticipant(name, session);
         } else if (payload.startsWith("answerRequest:")) {
             // TODO: validate & check existing state
 
@@ -107,6 +103,18 @@ public class WebSocketHandler extends TextWebSocketHandler {
         output.add(crank);
 
         return output;
+    }
+
+    private void becomeParticipant(String name, WebSocketSession session) {
+        if (session.equals(hostMap.get(name))) {
+            hostMap.remove(name);
+            broadcastInformation(name);
+        }
+
+        if (session.equals(joinMap.get(name))) {
+            joinMap.remove(name);
+            broadcastInformation(name);
+        }
     }
 
     private void sendAnswerRequest(String offer, WebSocketSession session) throws IOException {

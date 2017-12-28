@@ -6,13 +6,16 @@ export interface Sender {
 
 export interface Recipient {
   on(name: string, callback: (event, data) => void): void;
+  removeListener(name: string, callback: (event, data) => void): void;
 }
 
 export class TypedMessageChannel<T> {
   private name: string;
+  private deferredDisposals: (() => void)[];
 
   constructor(name: string) {
     this.name = name;
+    this.deferredDisposals = [];
   }
 
   send(target: BrowserWindow | Sender, message: T): void {
@@ -25,9 +28,16 @@ export class TypedMessageChannel<T> {
   }
 
   on(target: Recipient, callback: (message: T) => void): void {
-    target.on(this.name, function (event, data) {
-      callback(<T> data);
+    const handler = (event, data) => callback(<T> data);
+    target.on(this.name, handler);
+
+    this.deferredDisposals.push(() => {
+      target.removeListener(this.name, handler);
     });
+  }
+
+  dispose(): void {
+    this.deferredDisposals.forEach(func => func());
   }
 }
 

@@ -62,7 +62,6 @@ DisplayChampionIPC.ReadyToJoin.on(ipc, (clientIceServers) => {
 
 
 let hostPeer: HostPeer;
-let joinPeer: JoinPeer;
 DisplayChampionIPC.RequestOffer.on(ipc, async () => {
   const screenStream = await getScreenStream();
   hostPeer = new HostPeer(iceServers, screenStream);
@@ -76,6 +75,8 @@ DisplayChampionIPC.RequestOffer.on(ipc, async () => {
     DisplayChampionIPC.ConnectionStateChanged.send(ipc, connected);
   });
 });
+
+let joinPeer: JoinPeer;
 DisplayChampionIPC.RequestAnswer.on(ipc, offer => {
   show("#remote-screen");
   const remoteScreen = <HTMLMediaElement> document.querySelector('#remote-screen');
@@ -97,6 +98,10 @@ DisplayChampionIPC.RequestAnswer.on(ipc, offer => {
   });
 
   joinPeer.acceptOffer(JSON.parse(offer));
+
+  DisplayChampionIPC.CloseSession.on(ipc, () => {
+    joinPeer.disconnect();
+  });
 });
 DisplayChampionIPC.GiveAnswer.on(ipc, answer => {
   hostPeer.acceptAnswer(JSON.parse(answer));

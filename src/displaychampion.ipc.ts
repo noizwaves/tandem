@@ -21,3 +21,5 @@ export const ConnectionStateChanged = new TypedMessageChannel<boolean>('dc-conne
 export const ReadyToHost = new TypedMessageChannel<any[]>('dc-ready-to-host');
 
 export const ReadyToJoin = new TypedMessageChannel<any[]>('dc-ready-to-join');
+
+export const CloseSession = new MessageChannel('dc-close-session');

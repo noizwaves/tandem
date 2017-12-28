@@ -24,8 +24,10 @@ export class MouseButtonDetector {
 
   private readonly _up: Rx.Subject<MouseButtonEvent>;
   private readonly _down: Rx.Subject<MouseButtonEvent>;
+  private readonly downHandler: (event: MouseEvent) => void;
+  private readonly upHandler: (event: MouseEvent) => void;
 
-  constructor(remoteScreen: HTMLMediaElement) {
+  constructor(private remoteScreen: HTMLMediaElement) {
     this._up = new Rx.Subject<MouseButtonEvent>();
     this._down = new Rx.Subject<MouseButtonEvent>();
 
@@ -77,14 +79,15 @@ export class MouseButtonDetector {
       });
     };
 
-    remoteScreen.addEventListener(
-      'mousedown',
-      (event: MouseEvent) => anyDirectionHandler(event, MouseButtonDirection.DOWN)
-    );
+    this.downHandler = (event) => anyDirectionHandler(event, MouseButtonDirection.DOWN);
+    remoteScreen.addEventListener('mousedown', this.downHandler);
 
-    remoteScreen.addEventListener(
-      'mouseup',
-      (event: MouseEvent) => anyDirectionHandler(event, MouseButtonDirection.UP)
-    );
+    this.upHandler = (event: MouseEvent) => anyDirectionHandler(event, MouseButtonDirection.UP);
+    remoteScreen.addEventListener('mouseup', this.upHandler);
+  }
+
+  dispose(): void {
+    this.remoteScreen.removeEventListener('mousedown', this.downHandler);
+    this.remoteScreen.removeEventListener('mouseup', this.upHandler);
   }
 }

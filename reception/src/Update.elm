@@ -100,11 +100,15 @@ update msg model =
           Connected _ _ ->
             ( model, Cmd.none )
       else
-        case model.intent of
-          Connected PreviouslyHosting nameInformation ->
-            ( { model | intent = Hosting nameInformation }, Cmd.none )
-          Connected PreviouslyJoining nameInformation ->
-            ( { model | intent = Joining nameInformation }, Cmd.none )
+        case model.name of
+          ValidName name ->
+            case model.intent of
+              Connected PreviouslyHosting nameInformation ->
+                ( { model | intent = Browsing Nothing }, sendLeaveIntent name)
+              Connected PreviouslyJoining nameInformation ->
+                ( { model | intent = Browsing Nothing }, sendLeaveIntent name)
+              _ ->
+                ( model, Cmd.none )
           _ ->
             ( model, Cmd.none )
 
