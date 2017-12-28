@@ -17,7 +17,7 @@ const logger = getLogger();
 export class JoinPeer {
   public readonly answer: Rx.Observable<any>;
   public readonly connected: Rx.Observable<boolean>;
-  public readonly screenSize: Rx.Observable<{height: number, width: number}>;
+  public readonly screenSize: Rx.Observable<{ height: number, width: number }>;
 
   private readonly p: Peer;
 
@@ -26,16 +26,24 @@ export class JoinPeer {
   private readonly wheelDetector: MouseWheelDetector;
   private readonly keyPressDetector: KeyPressDetector;
 
-  private readonly _screenSize: Rx.Subject<{height: number, width: number}>;
+  private readonly _screenSize: Rx.Subject<{ height: number, width: number }>;
+  private readonly _connected: Rx.Subject<boolean>;
+
+  private _positionSubscription: Rx.Subscription;
+  private _downButtonSubscription: Rx.Subscription;
+  private _upButtonSubscription: Rx.Subscription;
+  private _wheelChangeSubscription: Rx.Subscription;
+  private _keyUpSubscription: Rx.Subscription;
+  private _keyDownSubscription: Rx.Subscription;
 
   constructor(iceServers, remoteScreen: HTMLMediaElement, detectorFactory: DetectorFactory) {
     const answer = new Rx.Subject<any>();
     this.answer = answer;
 
-    const connected = new Rx.Subject<boolean>();
-    this.connected = connected;
+    this._connected = new Rx.Subject<boolean>();
+    this.connected = this._connected;
 
-    this._screenSize = new Rx.Subject<{height: number, width: number}>();
+    this._screenSize = new Rx.Subject<{ height: number, width: number }>();
     this.screenSize = this._screenSize;
 
     this.positionDetector = new MousePositionDetector(remoteScreen);
@@ -61,13 +69,14 @@ export class JoinPeer {
     p.on('connect', () => {
       logger.info('[peer] CONNECT');
 
-      connected.next(true);
+      this._connected.next(true);
     });
 
     p.on('close', () => {
       logger.info('[peer] CLOSE');
 
-      connected.next(false);
+      this.dispose();
+      this._connected.next(false);
     });
 
     p.on('error', function (err) {
@@ -86,9 +95,7 @@ export class JoinPeer {
       remoteScreen.onloadedmetadata = () => {
         remoteScreen.play();
 
-        // TODO: capture these subscriptions and dispose of them somehwere?
-        // or just handle this when we dispose the detectors?!
-        this.positionDetector.position.subscribe(mouseMove => {
+        this._positionSubscription = this.positionDetector.position.subscribe(mouseMove => {
           const xMove = mouseMove.x / mouseMove.width;
           const yMove = mouseMove.y / mouseMove.height;
           PeerMsgs.sendMouseMove(p, xMove, yMove);
@@ -108,25 +115,30 @@ export class JoinPeer {
 
           sendButtonMessage(p, xDown, yDown, msgButton);
         };
-        this.buttonDetector.down.subscribe((e) => buttonMsgSender(e, PeerMsgs.sendMouseDown));
-        this.buttonDetector.up.subscribe((e) => buttonMsgSender(e, PeerMsgs.sendMouseUp));
+        this._downButtonSubscription = this.buttonDetector.down.subscribe((e) => buttonMsgSender(e, PeerMsgs.sendMouseDown));
+        this._upButtonSubscription = this.buttonDetector.up.subscribe((e) => buttonMsgSender(e, PeerMsgs.sendMouseUp));
 
-        this.wheelDetector.wheelChange.subscribe((wheelDelta) => {
+        this._wheelChangeSubscription = this.wheelDetector.wheelChange.subscribe((wheelDelta) => {
           PeerMsgs.sendScroll(p, -1 * wheelDelta.deltaX, -1 * wheelDelta.deltaY);
         });
 
-        this.keyPressDetector.keyUp.subscribe((e: KeyUpEvent) => {
+        this._keyUpSubscription = this.keyPressDetector.keyUp.subscribe((e: KeyUpEvent) => {
           PeerMsgs.sendKeyUp(p, e.key, e.modifiers);
         });
-        this.keyPressDetector.keyDown.subscribe((e: KeyDownEvent) => {
+        this._keyDownSubscription = this.keyPressDetector.keyDown.subscribe((e: KeyDownEvent) => {
           PeerMsgs.sendKeyDown(p, e.key, e.modifiers);
         });
-      }
+      };
     });
   }
 
   public acceptOffer(offer) {
     this.p.signal(offer);
+  }
+
+  public disconnect(): void {
+    this.dispose();
+    this.p.destroy();
   }
 
   private handleMessageFromHost(data) {
@@ -151,6 +163,32 @@ export class JoinPeer {
     }
 
     return result;
+  }
+
+  private dispose(): void {
+    if (this._positionSubscription) {
+      this._positionSubscription.unsubscribe();
+    }
+    if (this._downButtonSubscription) {
+      this._downButtonSubscription.unsubscribe();
+    }
+    if (this._upButtonSubscription) {
+      this._upButtonSubscription.unsubscribe();
+    }
+    if (this._wheelChangeSubscription) {
+      this._wheelChangeSubscription.unsubscribe();
+    }
+    if (this._keyUpSubscription) {
+      this._keyUpSubscription.unsubscribe();
+    }
+    if (this._keyDownSubscription) {
+      this._keyDownSubscription.unsubscribe();
+    }
+
+    this.buttonDetector.dispose();
+    this.positionDetector.dispose();
+    this.wheelDetector.dispose();
+    this.keyPressDetector.dispose();
   }
 }
 

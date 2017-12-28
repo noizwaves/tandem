@@ -45,7 +45,7 @@ The Tandem app observes environment variables for configuration.
 
 ### Concierge
 
-The signalling server, written in Java and Spring.
+The signalling server, written in Java 8 and Spring.
 It uses WebSockets to facilitate clients and hosts in exchanging offers and answers.
 
 #### Development

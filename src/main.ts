@@ -2,7 +2,7 @@ import {app, BrowserWindow, ipcMain as ipc, Menu, Tray} from 'electron';
 import * as Rx from 'rxjs';
 import {deInit, MacOsKeyboard, MacOsSystemIntegrator} from './macos';
 import {Keyboard} from './keyboard';
-import {sendKeyDown, sendKeyUp} from './keyboard.ipc';
+import {KeyDownChannel, KeyUpChannel} from './keyboard.ipc';
 import * as DisplayChampionIPC from './displaychampion.ipc';
 import * as ReceptionIPC from './reception.ipc';
 import {NoopSystemIntegrator, SystemIntegrator} from './system-integrator';
@@ -74,6 +74,8 @@ function getSystemIntegrator(): SystemIntegrator {
   return new NoopSystemIntegrator();
 }
 
+let userSaysQuit = false;
+
 function createDisplayChampionWindow() {
   // Create the browser window.
   displayChampionWindow = new BrowserWindow({width: 800, height: 600, show: false});
@@ -92,14 +94,16 @@ function createDisplayChampionWindow() {
   }
 
   const keyboard = getKeyboard();
+  const keyDownChannel = new KeyDownChannel();
+  const keyUpChannel = new KeyUpChannel();
 
   DisplayChampionIPC.ExternalKeyboardRequest.on(ipc, () => {
     DisplayChampionIPC.ExternalKeyboardResponse.send(displayChampionWindow, keyboard !== null);
   });
 
   if (keyboard) {
-    keyboard.keyUp.subscribe(e => sendKeyUp(displayChampionWindow, e));
-    keyboard.keyDown.subscribe(e => sendKeyDown(displayChampionWindow, e));
+    keyboard.keyUp.subscribe(e => keyUpChannel.send(displayChampionWindow, e));
+    keyboard.keyDown.subscribe(e => keyDownChannel.send(displayChampionWindow, e));
   }
 
   displayChampionWindow.on('focus', function () {
@@ -125,7 +129,18 @@ function createDisplayChampionWindow() {
     if (keyboard) {
       keyboard.unplug();
     }
-    displayChampionWindow = null
+    displayChampionWindow = null;
+    keyDownChannel.dispose();
+    keyUpChannel.dispose();
+  });
+
+  displayChampionWindow.on('close', e => {
+    DisplayChampionIPC.CloseSession.send(displayChampionWindow);
+
+    if (!userSaysQuit) {
+      e.preventDefault();
+      displayChampionWindow.hide();
+    }
   });
 }
 
@@ -146,7 +161,7 @@ function createReceptionWindow() {
     if (trustSubscription !== null) {
       trustSubscription.unsubscribe();
     }
-    receptionWindow = null
+    receptionWindow = null;
   });
 
   ReceptionIPC.RequestProcessTrust.on(ipc, function () {
@@ -215,7 +230,7 @@ app.on('window-all-closed', function () {// Quit when all windows are closed.
   // On OS X it is common for applications and their menu bar
   // to stay active until the user quits explicitly with Cmd + Q
   if (process.platform !== 'darwin') {
-    app.quit()
+    app.quit();
   }
 });
 
@@ -223,6 +238,10 @@ app.on('activate', function () {
   if (receptionWindow === null) {
     createReceptionWindow();
   }
+});
+
+app.on('before-quit', () => {
+  userSaysQuit = true;
 });
 
 // Host/client discovery

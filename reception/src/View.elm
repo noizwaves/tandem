@@ -69,7 +69,15 @@ view model =
         text ""
 
     nameForm = form formAttrs
-      [ input [ autofocus True, class inputClass, placeholder "Enter a name to begin", type_ "text", onInput NameChanged, disabled (not inputEnabled) ] [ ]
+      [ input
+        [ autofocus True
+        , class inputClass
+        , placeholder "Enter a name to begin"
+        , type_ "text"
+        , onInput NameChanged
+        , disabled (not inputEnabled)
+        ]
+        [ ]
       , nameErrorMessage
       , div [ class "start-buttons" ] buttons
       ]

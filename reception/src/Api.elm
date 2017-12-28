@@ -18,6 +18,10 @@ sendJoiningIntent : String -> Cmd Msg
 sendJoiningIntent name =
   WebSocket.send (apiUrl ++ name) "join"
 
+sendLeaveIntent : String -> Cmd Msg
+sendLeaveIntent name =
+  WebSocket.send (apiUrl ++ name) "leave"
+
 sendAnswerRequest : String -> String -> Cmd Msg
 sendAnswerRequest name offer =
   WebSocket.send (apiUrl ++ name) ("answerRequest:" ++ offer)

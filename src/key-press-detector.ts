@@ -2,7 +2,7 @@ import * as Rx from 'rxjs';
 import {IpcRenderer} from 'electron';
 
 import {KeyCode, KeyDownEvent, KeyUpEvent, ModifierCode} from './keyboard';
-import {onKeyDown, onKeyUp} from './keyboard.ipc';
+import {KeyDownChannel, KeyUpChannel} from './keyboard.ipc';
 import {getLogger} from './logging';
 
 const logger = getLogger();
@@ -10,6 +10,7 @@ const logger = getLogger();
 export interface KeyPressDetector {
   readonly keyUp: Rx.Observable<KeyUpEvent>;
   readonly keyDown: Rx.Observable<KeyDownEvent>;
+  dispose(): void;
 }
 
 function isMeta(rawCode: string): boolean {
@@ -39,7 +40,10 @@ export class WindowKeyPressDetector implements KeyPressDetector {
   private readonly _keyDown: Rx.Subject<KeyDownEvent>;
   private readonly _heldModifiers: Set<ModifierCode>;
 
-  constructor(window: Window) {
+  private readonly downHandler: (e: any) => void;
+  private readonly upHandler: (e: any) => void;
+
+  constructor(private window: Window) {
     this._keyUp = new Rx.Subject<KeyUpEvent>();
     this._keyDown = new Rx.Subject<KeyDownEvent>();
     this.keyUp = this._keyUp;
@@ -47,7 +51,7 @@ export class WindowKeyPressDetector implements KeyPressDetector {
 
     this._heldModifiers = new Set<ModifierCode>();
 
-    window.addEventListener('keydown', (e: any) => {
+    this.downHandler = (e: any) => {
       const rawCode = <string> e.code;
       if (!(rawCode in KeyCode)) {
         logger.warnSensitive('[WindowKeyPressDetector] Ignoring unhandled window.keydown event', rawCode);
@@ -62,9 +66,10 @@ export class WindowKeyPressDetector implements KeyPressDetector {
       this._keyDown.next({key: <KeyCode> rawCode, modifiers});
       logger.debugSensitive('[WindowKeyPressDetector] Key down', rawCode);
       logger.debugSensitive('[WindowKeyPressDetector] ... with modifiers', modifiers);
-    }, true);
+    };
+    window.addEventListener('keydown', this.downHandler, true);
 
-    window.addEventListener('keyup', (e: any) => {
+    this.upHandler = (e: any) => {
       const rawCode = <string> e.code;
       if (!(rawCode in KeyCode)) {
         logger.warnSensitive('[WindowKeyPressDetector] Ignoring unhandled window.keyup event', rawCode);
@@ -80,7 +85,13 @@ export class WindowKeyPressDetector implements KeyPressDetector {
       logger.debug(`[WindowKeyPressDetector] Key up with modifiers`);
       logger.debugSensitive('[WindowKeyPressDetector] Key up', rawCode);
       logger.debugSensitive('[WindowKeyPressDetector] ... with modifiers', modifiers);
-    }, true);
+    };
+    window.addEventListener('keyup', this.upHandler, true);
+  }
+
+  dispose(): void {
+    this.window.removeEventListener('keydown', this.downHandler, true);
+    this.window.removeEventListener('keyup', this.upHandler, true);
   }
 }
 
@@ -90,6 +101,8 @@ export class ExternalKeyPressDetector implements KeyPressDetector {
 
   private readonly _keyUp: Rx.Subject<KeyUpEvent>;
   private readonly _keyDown: Rx.Subject<KeyDownEvent>;
+  private readonly keyUpChannel: KeyUpChannel;
+  private readonly keyDownChannel: KeyDownChannel;
 
   constructor(ipc: IpcRenderer) {
     this._keyUp = new Rx.Subject<KeyUpEvent>();
@@ -97,7 +110,15 @@ export class ExternalKeyPressDetector implements KeyPressDetector {
     this.keyUp = this._keyUp;
     this.keyDown = this._keyDown;
 
-    onKeyUp(ipc, (key, modifiers) => this._keyUp.next({key, modifiers}));
-    onKeyDown(ipc, (key, modifiers) => this._keyDown.next({key, modifiers}));
+    this.keyUpChannel = new KeyUpChannel();
+    this.keyUpChannel.on(ipc, e => this._keyUp.next(e));
+
+    this.keyDownChannel = new KeyDownChannel();
+    this.keyDownChannel.on(ipc, e => this._keyDown.next(e));
+  }
+
+  dispose(): void {
+    this.keyUpChannel.dispose();
+    this.keyDownChannel.dispose();
   }
 }
