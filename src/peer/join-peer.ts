@@ -67,26 +67,26 @@ export class JoinPeer {
     });
 
     p.on('connect', () => {
-      logger.info('[peer] CONNECT');
+      logger.info('[JoinPeer] CONNECT');
 
       this._connected.next(true);
     });
 
     p.on('close', () => {
-      logger.info('[peer] CLOSE');
+      logger.info('[JoinPeer] CLOSE');
 
       this.dispose();
       this._connected.next(false);
     });
 
     p.on('error', function (err) {
-      logger.warn(`[peer] ERROR: ${err}`);
+      logger.warn(`[JoinPeer] ERROR: ${err}`);
     });
 
     p.on('data', (data) => {
       const unhandled = this.handleMessageFromHost(data);
       if (unhandled) {
-        logger.warnSensitive('[DisplayChampion] Unhandled data message', unhandled);
+        logger.warnSensitive('[JoinPeer] Unhandled data message', unhandled);
       }
     });
 
@@ -109,7 +109,7 @@ export class JoinPeer {
           try {
             msgButton = toMessageButtonType(event.button);
           } catch (e) {
-            logger.error(`[DisplayChampion] Error getting message button type: ${e.message}`);
+            logger.error(`[JoinPeer] Error getting message button type: ${e.message}`);
             return;
           }
 
@@ -146,7 +146,7 @@ export class JoinPeer {
     try {
       message = JSON.parse(data);
     } catch (err) {
-      logger.error(`JSON parse failed: ${err}`);
+      logger.errorSensitive('[JoinPeer] JSON parse failed', err);
     }
     if (!message || !message.t) {
       return;
