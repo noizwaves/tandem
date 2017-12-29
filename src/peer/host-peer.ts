@@ -47,7 +47,7 @@ export class HostPeer {
     });
 
     p.on('connect', function () {
-      logger.info('[peer] CONNECT');
+      logger.info('[HostPeer] CONNECT');
 
       PeerMsgs.sendScreenSize(p, screen.height, screen.width);
 
@@ -55,7 +55,7 @@ export class HostPeer {
     });
 
     p.on('close', function () {
-      logger.info('[peer] CLOSE');
+      logger.info('[HostPeer] CLOSE');
 
       screenStream.getTracks().forEach(t => t.stop());
 
@@ -63,13 +63,13 @@ export class HostPeer {
     });
 
     p.on('error', function (err) {
-      logger.error(`[peer] ERROR: ${err}`);
+      logger.error(`[HostPeer] ERROR: ${err}`);
     });
 
     p.on('data', (data) => {
       const unhandled = this.handleMessage(data);
       if (unhandled) {
-        logger.warnSensitive('[DisplayChampion] Unhandled data message', unhandled);
+        logger.warnSensitive('[HostPeer] Unhandled data message', unhandled);
       }
     });
 
@@ -85,7 +85,7 @@ export class HostPeer {
     try {
       message = JSON.parse(data);
     } catch (err) {
-      logger.error(`JSON parse failed: ${err}`);
+      logger.errorSensitive('[HostPeer] JSON parse failed', err);
     }
     if (!message || !message.t) {
       return;
@@ -104,7 +104,7 @@ export class HostPeer {
         try {
           downButtonType = toCursorMoverButtonType(mouseDownMsg.button);
         } catch (e) {
-          logger.error(`[DisplayChampion] '${PeerMsgs.MOUSEDOWN}' error, ${e.message}`);
+          logger.error(`[HostPeer] '${PeerMsgs.MOUSEDOWN}' error, ${e.message}`);
           return;
         }
 
@@ -117,7 +117,7 @@ export class HostPeer {
         try {
           upButtonType = toCursorMoverButtonType(mouseUpMsg.button);
         } catch (e) {
-          logger.error(`[DisplayChampion] '${PeerMsgs.MOUSEUP}' error, ${e.message}`);
+          logger.error(`[HostPeer] '${PeerMsgs.MOUSEUP}' error, ${e.message}`);
           return;
         }
 
