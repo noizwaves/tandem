@@ -139,7 +139,15 @@ function createDisplayChampionWindow() {
 
     if (!userSaysQuit) {
       e.preventDefault();
-      displayChampionWindow.hide();
+
+      if (displayChampionWindow.isFullScreen()) {
+        displayChampionWindow.once('leave-full-screen', () => {
+          displayChampionWindow.hide();
+        });
+        displayChampionWindow.setFullScreen(false);
+      } else {
+        displayChampionWindow.hide();
+      }
     }
   });
 
