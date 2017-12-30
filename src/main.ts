@@ -310,7 +310,13 @@ DisplayChampionIPC.ScreenSize.on(ipc, function (dimensions) {
   if (displayChampionWindow) {
     displayChampionWindow.setAspectRatio(width / height, undefined);
 
-    displayChampionWindow.setContentSize(width, height);
+    const displayChampionScreen = electronScreen.getDisplayMatching(displayChampionWindow.getBounds());
+    if (width > displayChampionScreen.size.width || height > displayChampionScreen.size.height) {
+      displayChampionWindow.maximize();
+    } else {
+      displayChampionWindow.setContentSize(width, height);
+    }
+
     displayChampionWindow.center();
   }
 });
