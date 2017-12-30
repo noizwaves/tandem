@@ -234,7 +234,7 @@ app.on('ready', () => {
   createReceptionWindow();
   createDisplayChampionWindow();
 
-  if (isDebugToolsEnabled()) {
+  if (isDebugWindowsEnabled()) {
     openWebRtcInternalsWindow();
     openGpuInternalsWindow();
   }
@@ -338,6 +338,13 @@ DisplayChampionIPC.ConnectionStateChanged.on(ipc, function (connected) {
 
 function isDebugToolsEnabled() {
   const raw = process.env.TANDEM_DEBUG_TOOLS;
+  const sanitised = (raw || '').toLowerCase();
+
+  return sanitised === 'true';
+}
+
+function isDebugWindowsEnabled() {
+  const raw = process.env.TANDEM_DEBUG_WINDOWS;
   const sanitised = (raw || '').toLowerCase();
 
   return sanitised === 'true';

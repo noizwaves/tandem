@@ -5,7 +5,8 @@ const nodeExternals = require('webpack-node-externals');
 const elmSource = path.resolve(__dirname) + '/reception';
 
 const buildTimeTandemEnvVars = {
-  'process.env.TANDEM_DEBUG_TOOLS': JSON.stringify(process.env.TANDEM_DEBUG_TOOLS)
+  'process.env.TANDEM_DEBUG_TOOLS': JSON.stringify(process.env.TANDEM_DEBUG_TOOLS),
+  'process.env.TANDEM_DEBUG_WINDOWS': JSON.stringify(process.env.TANDEM_DEBUG_WINDOWS),
 };
 
 module.exports = [{
