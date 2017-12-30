@@ -1,4 +1,4 @@
-import {app, BrowserWindow, ipcMain as ipc, Menu, Tray} from 'electron';
+import {app, BrowserWindow, ipcMain as ipc, Menu, Tray, screen as electronScreen} from 'electron';
 import * as Rx from 'rxjs';
 import {deInit, MacOsKeyboard, MacOsSystemIntegrator} from './macos';
 import {Keyboard} from './keyboard';
@@ -141,6 +141,17 @@ function createDisplayChampionWindow() {
       e.preventDefault();
       displayChampionWindow.hide();
     }
+  });
+
+  displayChampionWindow.on('enter-full-screen', (e) => {
+    const holdingScreen = electronScreen.getDisplayMatching(displayChampionWindow.getBounds());
+    const {height, width} = holdingScreen.size;
+
+    DisplayChampionIPC.EnterFullScreen.send(displayChampionWindow, {height, width});
+  });
+
+  displayChampionWindow.on('leave-full-screen', () => {
+    DisplayChampionIPC.LeaveFullScreen.send(displayChampionWindow);
   });
 }
 

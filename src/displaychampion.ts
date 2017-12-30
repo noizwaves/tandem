@@ -122,3 +122,16 @@ let externalKeyboard = false;
 DisplayChampionIPC.ExternalKeyboardResponse.on(ipc, result => externalKeyboard = result);
 // TODO: replace 'request' with "window.webContents.once('dom-ready', () => { ... }"
 DisplayChampionIPC.ExternalKeyboardRequest.send(ipc);
+
+// handle full screening
+DisplayChampionIPC.EnterFullScreen.on(ipc, ({height, width}) => {
+  const remoteScreen = <HTMLMediaElement> document.querySelector('#remote-screen');
+  remoteScreen.style['max-width'] = `${width}px`;
+  remoteScreen.style['max-height'] = `${height}px`;
+});
+
+DisplayChampionIPC.LeaveFullScreen.on(ipc, () => {
+  const remoteScreen = <HTMLMediaElement> document.querySelector('#remote-screen');
+  remoteScreen.style['max-width'] = null;
+  remoteScreen.style['max-height'] = null;
+});
