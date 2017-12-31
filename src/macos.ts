@@ -9,25 +9,21 @@ const logger = getLogger();
 const $ = require('NodObjC');
 
 $.import('Foundation');
-$.import('Cocoa')
+$.import('Cocoa');
 $.import('Carbon');
-$.import('AppKit')
+$.import('AppKit');
 $.import('ApplicationServices');
-$.import('/System/Library/Frameworks/ApplicationServices.framework/Versions/A/Frameworks/HIServices.framework')
-$.import('/System/Library/Frameworks/Carbon.framework/Versions/A/Frameworks/HIToolbox.framework')
+$.import('/System/Library/Frameworks/ApplicationServices.framework/Versions/A/Frameworks/HIServices.framework');
+$.import('/System/Library/Frameworks/Carbon.framework/Versions/A/Frameworks/HIToolbox.framework');
 
 
 const pool = $.NSAutoreleasePool('alloc')('init');
-
-// Initialise this app to be hidden
-// const app = $.NSApplication('sharedApplication');
-// app('setActivationPolicy', $.NSApplicationActivationPolicyProhibited);
 
 export function canDisableShortcuts(): boolean {
   return $.AXIsProcessTrusted();
 }
 
-function disableShortcuts(): void {
+function disableShortcuts(): any {
   return $.PushSymbolicHotKeyMode($.kHIHotKeyModeAllDisabled);
 }
 
@@ -568,7 +564,7 @@ export class MacOsKeyboard implements Keyboard {
 
       const key: KeyCode = convertToKeyCode(<MacKeyCode> keyCodeId);
 
-      _this._keyUp.next({key, modifiers})
+      _this._keyUp.next({key, modifiers});
       logger.debugSensitive('[MacOsKeyboard] Key up', key);
       logger.debugSensitive('[MacOsKeyboard] ... with modifiers', modifiers);
     };
@@ -577,6 +573,11 @@ export class MacOsKeyboard implements Keyboard {
   }
 
   plugIn(): void {
+    if (this.isPluggedIn()) {
+      logger.debug('[MacOsKeyboard] Already plugged in, so do not connect it again');
+      return;
+    }
+
     this._monitor = $.NSEvent('addLocalMonitorForEventsMatchingMask',
       ($.NSEventMaskFlagsChanged | $.NSEventMaskKeyUp | $.NSEventMaskKeyDown),
       'handler', this._handler);
@@ -588,13 +589,23 @@ export class MacOsKeyboard implements Keyboard {
   }
 
   unplug(): void {
+    if (!this.isPluggedIn()) {
+      logger.debug('[MacOsKeyboard] Not plugged in, so do not disconnect it again');
+      return;
+    }
+
     $.NSEvent('removeMonitor', this._monitor);
+    this._monitor = null;
 
     if (this._previous) {
       logger.info('[MacOsKeyboard] Restoring global shortcuts');
       restoreShortcuts(this._previous);
       this._previous = null;
     }
+  }
+
+  private isPluggedIn(): boolean {
+    return this._monitor !== null;
   }
 }
 
@@ -614,8 +625,3 @@ export class MacOsSystemIntegrator implements SystemIntegrator {
     return <boolean> $.AXIsProcessTrusted();
   }
 }
-
-export function deInit(): void {
-  // pool('drain');
-}
-

@@ -1,6 +1,6 @@
 import {app, BrowserWindow, ipcMain as ipc, Menu, Tray, screen as electronScreen} from 'electron';
 import * as Rx from 'rxjs';
-import {deInit, MacOsKeyboard, MacOsSystemIntegrator} from './macos';
+import {MacOsKeyboard, MacOsSystemIntegrator} from './macos';
 import {Keyboard} from './keyboard';
 import {KeyDownChannel, KeyUpChannel} from './keyboard.ipc';
 import * as DisplayChampionIPC from './displaychampion.ipc';
@@ -125,7 +125,6 @@ function createDisplayChampionWindow() {
   displayChampionWindow.on('closed', function () {
     Menu.setApplicationMenu(appMenu);
 
-    deInit(); // TODO: encapsulate this tidy up inside MacOsKeyboard
     if (keyboard) {
       keyboard.unplug();
     }
@@ -151,7 +150,7 @@ function createDisplayChampionWindow() {
     }
   });
 
-  displayChampionWindow.on('enter-full-screen', (e) => {
+  displayChampionWindow.on('enter-full-screen', () => {
     const holdingScreen = electronScreen.getDisplayMatching(displayChampionWindow.getBounds());
     const {height, width} = holdingScreen.size;
 
