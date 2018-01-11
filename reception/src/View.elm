@@ -74,7 +74,7 @@ view model =
         , class inputClass
         , placeholder "Enter a name to begin"
         , type_ "text"
-        , onInput NameChanged
+        , onInput RawNameChanged
         , disabled (not inputEnabled)
         ]
         [ ]

@@ -17,7 +17,7 @@ subscriptions model =
       , appUpdateAvailable AppUpdateAvailable
       ]
 
-    room = case model.name of
+    room = case model.throttledName of
       Model.ValidName name ->
         [ WebSocket.listen (apiUrl ++ name) ReceiveApiMessage
         , receiveOffer ReceiveOfferFromDC
