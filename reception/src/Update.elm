@@ -7,6 +7,9 @@ import Message exposing (..)
 import Decoder exposing (..)
 import Port exposing (..)
 import Api exposing (..)
+import Debounce exposing (Debounce)
+import Time exposing (millisecond)
+import Task
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -18,8 +21,22 @@ update msg model =
       in
         ( { model | appUpdates = updates }, Cmd.none )
 
-    NameChanged userInput ->
-      ( { model | name = validateName userInput, intent = Browsing Nothing }, Cmd.none )
+
+    RawNameChanged userInput ->
+      let
+        validatedName = validateName userInput
+        (debounce, cmd) = Debounce.push debounceNameConfig validatedName model.nameDebouncer
+      in
+        ( { model | name = validatedName, throttledName = NoNameEntered, intent = Browsing Nothing, nameDebouncer = debounce }, cmd )
+    DebouncedNameChange msg ->
+      let
+        doSetThrottledName = \name -> Task.perform SetThrottledName (Task.succeed name)
+        (debounce, cmd) = Debounce.update debounceNameConfig (Debounce.takeLast doSetThrottledName) msg model.nameDebouncer
+      in
+        ( { model | nameDebouncer = debounce }, cmd )
+    SetThrottledName validatedName ->
+      ( { model | throttledName = validatedName }, Cmd.none )
+
 
     UpdateProcessTrust isTrusted ->
       let
@@ -114,6 +131,18 @@ update msg model =
 
     Noop ->
       ( model, Cmd.none )
+
+
+debounceNameConfig : Debounce.Config Msg
+debounceNameConfig =
+  { strategy = Debounce.later (500 * millisecond)
+  , transform = DebouncedNameChange
+  }
+
+
+save : ValidatedName -> Cmd Msg
+save name =
+    Task.perform SetThrottledName (Task.succeed name)
 
 
 initiateHandshakeIfRequired : NameInformation -> Cmd Msg

@@ -7,11 +7,18 @@ import Model exposing (ProcessTrustLevel(..))
 import Subscription exposing (subscriptions)
 import Update exposing (update)
 import View exposing (view)
+import Debounce
 
 
 init : (Model, Cmd Msg)
 init =
-  (Model UpdateStatusUnknown NoNameEntered (Browsing Nothing) TrustUnknown, requestProcessTrust True)
+  { appUpdates = UpdateStatusUnknown
+  , name = NoNameEntered
+  , nameDebouncer = Debounce.init
+  , throttledName = NoNameEntered
+  , intent = (Browsing Nothing)
+  , trust = TrustUnknown
+  } ! [requestProcessTrust True]
 
 
 main : Program Never Model Msg

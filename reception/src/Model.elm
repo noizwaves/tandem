@@ -1,6 +1,7 @@
 module Model exposing (..)
 
 import Regex exposing (Regex, regex, contains)
+import Debounce
 
 type ProcessTrustLevel
   = TrustUnknown
@@ -50,6 +51,8 @@ type AppUpdateAvailability
 type alias Model =
   { appUpdates: AppUpdateAvailability
   , name: ValidatedName
+  , nameDebouncer: Debounce.Debounce ValidatedName
+  , throttledName: ValidatedName
   , intent: ConnectionIntent
   , trust: ProcessTrustLevel
   }
