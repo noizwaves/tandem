@@ -76,6 +76,7 @@ function getSystemIntegrator(): SystemIntegrator {
 
 let userSaysQuit = false;
 
+let keyboard;
 function createDisplayChampionWindow() {
   // Create the browser window.
   displayChampionWindow = new BrowserWindow({width: 800, height: 600, show: false});
@@ -93,7 +94,7 @@ function createDisplayChampionWindow() {
     displayChampionWindow.webContents.openDevTools();
   }
 
-  const keyboard = getKeyboard();
+  keyboard = getKeyboard();
   const keyDownChannel = new KeyDownChannel();
   const keyUpChannel = new KeyUpChannel();
 
@@ -329,7 +330,11 @@ DisplayChampionIPC.ConnectionStateChanged.on(ipc, function (connected) {
     tray.setImage(path.join(__dirname, 'icons', 'idle.png'));
 
     if (sessionAsJoiner) {
+      // TODO: encapsulate this inside of a DisplayChampion Window class
       sessionAsJoiner = false;
+      if (keyboard) {
+        keyboard.unplug();
+      }
       displayChampionWindow.hide();
     }
   }
