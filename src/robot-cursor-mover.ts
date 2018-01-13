@@ -7,7 +7,6 @@ const logger = getLogger();
 
 export class RobotCursorMover implements CursorMover {
   private _buttonDown: boolean;
-
   constructor() {
     this._buttonDown = false;
   }
@@ -55,6 +54,21 @@ export class RobotCursorMover implements CursorMover {
     robot.mouseToggle('up', robotButton);
 
     this._buttonDown = false;
+  }
+
+  doubleClick(x: number, y: number, button: ButtonType): void {
+    logger.debug(`[RobotCursorMover] double click of button '${button.toString()}'`);
+
+    let robotButton: string = null;
+    try {
+      robotButton = RobotCursorMover.toRobotButtonString(button);
+    } catch (e) {
+      logger.error(`[RobotCursorMover] Failed to get robot button type: ${e.message}`);
+      return;
+    }
+
+    robot.moveMouse(Math.round(x * screen.width), Math.round(y * screen.height));
+    robot.mouseClick(robotButton, true);
   }
 
   scroll(xDelta: number, yDelta: number) {
