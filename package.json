@@ -47,7 +47,7 @@
     "@types/sinon-chai": "^2.7.29",
     "chai": "^4.1.2",
     "css-loader": "^0.28.4",
-    "electron": "~1.7.8",
+    "electron": "1.7.10",
     "electron-builder": "^19.45.4",
     "elm": "^0.18.0",
     "elm-test": "^0.18.10",

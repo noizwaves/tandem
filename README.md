@@ -6,6 +6,7 @@ Remote pair programming tool
 
 1. Install Node 8 via `brew install node@8`
 1. Install latest Yarn via `brew install yarn`
+1. Install node-gyp via `yarn global add node-gyp`
 1. Install dependencies via `yarn`
 
 1. Build and start the app via `yarn build` and `yarn start`
