@@ -225,6 +225,7 @@ function checkForUpdates() {
 
 app.dock.setIcon(path.join(__dirname, 'icons', 'idle.png'));
 
+app.commandLine.appendSwitch('--disable-renderer-backgrounding');
 if (isDebugToolsEnabled()) {
   // app.commandLine.appendSwitch('--enable-logging');
   // app.commandLine.appendSwitch('--v', '1');
