@@ -3,6 +3,18 @@ module Model exposing (..)
 import Regex exposing (Regex, regex, contains)
 import Debounce
 
+
+type alias Model =
+  { appUpdates: AppUpdateAvailability
+  , name: ValidatedName
+  , nameDebouncer: Debounce.Debounce ValidatedName
+  , throttledName: ValidatedName
+  , intent: ConnectionIntent
+  , trust: ProcessTrustLevel
+  , connectivity: ConnectivityLevel
+  }
+
+
 type ProcessTrustLevel
   = TrustUnknown
   | Trusted
@@ -48,15 +60,6 @@ type AppUpdateAvailability
   | UpdatesAvailable
   | NoUpdatesAvailable
 
-type alias Model =
-  { appUpdates: AppUpdateAvailability
-  , name: ValidatedName
-  , nameDebouncer: Debounce.Debounce ValidatedName
-  , throttledName: ValidatedName
-  , intent: ConnectionIntent
-  , trust: ProcessTrustLevel
-  }
-
 type InvalidNameReason
   = TooShort
   | InvalidCharacters
@@ -65,6 +68,10 @@ type ValidatedName
   = NoNameEntered
   | InvalidName InvalidNameReason
   | ValidName String
+
+type ConnectivityLevel
+  = Online
+  | Offline
 
 validCharacters : Regex
 validCharacters =

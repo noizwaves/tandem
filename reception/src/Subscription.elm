@@ -15,6 +15,7 @@ subscriptions model =
     base =
       [ updateProcessTrust UpdateProcessTrust
       , appUpdateAvailable AppUpdateAvailable
+      , connectivityChanged UpdateConnectivity
       ]
 
     room = case model.throttledName of

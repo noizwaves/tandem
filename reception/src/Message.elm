@@ -22,4 +22,6 @@ type Msg
 
   | ConnectionStateChanged Bool
 
+  | UpdateConnectivity Bool
+
   | Noop

@@ -48,6 +48,13 @@ view model =
       _ ->
         [ class "start-form", onSubmit Noop ]
 
+    connectivityAlert = case model.connectivity of
+      Online ->
+        text ""
+      Offline ->
+        div [ class "offline-alert" ]
+          [ text "No internet connection detected" ]
+
     accessibilityCheck = case model.trust of
       Untrusted ->
         div [ class "accessibility-alert" ]
@@ -59,7 +66,7 @@ view model =
       Trusted ->
         text ""
 
-    appUpdate = case model.appUpdates of
+    appUpdateAlert = case model.appUpdates of
       UpdatesAvailable ->
         div [ class "update-alert" ]
           [ text "Updates available! Please update Tandem manually ASAP." ]
@@ -83,7 +90,8 @@ view model =
       ]
   in
     div []
-      [ appUpdate
+      [ appUpdateAlert
+      , connectivityAlert
       , nameForm
       , accessibilityCheck
       ]

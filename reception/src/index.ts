@@ -24,6 +24,7 @@ ReceptionIPC.UpdateAvailable.on(ipc, available => {
   app.ports.appUpdateAvailable.send(available);
 });
 
+
 app.ports.requestProcessTrust.subscribe(function() {
   ReceptionIPC.RequestProcessTrust.send(ipc);
 });
@@ -31,6 +32,7 @@ app.ports.requestProcessTrust.subscribe(function() {
 ReceptionIPC.ProcessTrust.on(ipc, function(processTrust: boolean) {
   app.ports.updateProcessTrust.send(processTrust);
 });
+
 
 app.ports.readyToHost.subscribe(function(nameInformation: NameInformation) {
   ReceptionIPC.ReadyToHost.send(ipc, nameInformation.iceServers);
@@ -60,6 +62,11 @@ app.ports.giveAnswer.subscribe(function (answer) {
   ReceptionIPC.GiveAnswer.send(ipc, answer);
 });
 
+
 ReceptionIPC.ConnectionStateChanged.on(ipc, function(connected) {
   app.ports.connectionStateChanged.send(connected);
 });
+
+
+window.addEventListener('online', () => app.ports.connectivityChanged.send(navigator.onLine));
+window.addEventListener('offline', () => app.ports.connectivityChanged.send(navigator.onLine));
