@@ -129,6 +129,12 @@ update msg model =
           _ ->
             ( model, Cmd.none )
 
+    UpdateConnectivity online ->
+      let
+        connectivity = if online then Online else Offline
+      in
+        ( { model | connectivity = connectivity }, Cmd.none )
+
     Noop ->
       ( model, Cmd.none )
 

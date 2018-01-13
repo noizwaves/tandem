@@ -18,6 +18,7 @@ init =
   , throttledName = NoNameEntered
   , intent = (Browsing Nothing)
   , trust = TrustUnknown
+  , connectivity = Online
   } ! [requestProcessTrust True]
 
 
