@@ -6,7 +6,7 @@ import Message exposing (..)
 
 
 apiUrl : String
-apiUrl = "wss://concierge-7369rtgvbiy.cfapps.io:4443/api/name/"
+apiUrl = "wss://tandem-concierge.cfapps.io:4443/api/name/"
 --apiUrl = "ws://localhost:8080/api/name/"
 
 
