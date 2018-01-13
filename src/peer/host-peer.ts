@@ -123,6 +123,19 @@ export class HostPeer {
 
         this.cursorMover.buttonUp(mouseUpMsg.x, mouseUpMsg.y, upButtonType);
         break;
+      case PeerMsgs.DOUBLECLICK:
+        const dblClkMsg = PeerMsgs.unpackDoubleClick(message);
+
+        let dblClickButton: CursorMoverButtonType = null;
+        try {
+          dblClickButton = toCursorMoverButtonType(dblClkMsg.button);
+        } catch (e) {
+          logger.error(`[HostPeer] '${PeerMsgs.DOUBLECLICK} error, ${e.message}`);
+          return;
+        }
+
+        this.cursorMover.doubleClick(dblClkMsg.x, dblClkMsg.y, dblClickButton);
+        break;
       case PeerMsgs.SCROLL:
         const scrollMsg = PeerMsgs.unpackScroll(message);
         this.cursorMover.scroll(scrollMsg.x, scrollMsg.y);

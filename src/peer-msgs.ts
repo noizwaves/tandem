@@ -54,6 +54,21 @@ export function unpackMouseUp(message): { x: number, y: number, button: MouseBut
 }
 
 
+export const DOUBLECLICK = 'dblclk';
+
+export function sendDoubleClick(peer, x: number, y: number, button: MouseButton) {
+  const data = {t: DOUBLECLICK, x, y, b: button};
+  peer.send(JSON.stringify(data));
+}
+
+export function unpackDoubleClick(message): { x: number, y: number, button: MouseButton } {
+  const x = <number> message.x;
+  const y = <number> message.y;
+  const button = <MouseButton> message.b;
+  return {x, y, button};
+}
+
+
 export const SCROLL = 'scroll';
 
 export function sendScroll(peer, deltaX: number, deltaY: number) {

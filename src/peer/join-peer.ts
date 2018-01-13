@@ -32,6 +32,7 @@ export class JoinPeer {
   private _positionSubscription: Rx.Subscription;
   private _downButtonSubscription: Rx.Subscription;
   private _upButtonSubscription: Rx.Subscription;
+  private _doubleClickSubscription: Rx.Subscription;
   private _wheelChangeSubscription: Rx.Subscription;
   private _keyUpSubscription: Rx.Subscription;
   private _keyDownSubscription: Rx.Subscription;
@@ -118,6 +119,21 @@ export class JoinPeer {
         this._downButtonSubscription = this.buttonDetector.down.subscribe((e) => buttonMsgSender(e, PeerMsgs.sendMouseDown));
         this._upButtonSubscription = this.buttonDetector.up.subscribe((e) => buttonMsgSender(e, PeerMsgs.sendMouseUp));
 
+        this._doubleClickSubscription = this.buttonDetector.double.subscribe(event => {
+          const xDown = event.x / event.width;
+          const yDown = event.y / event.height;
+
+          let msgButton: PeerMsgs.MouseButton = null;
+          try {
+            msgButton = toMessageButtonType(event.button);
+          } catch (e) {
+            logger.error(`[JoinPeer] Error getting message button type: ${e.message}`);
+            return;
+          }
+
+          PeerMsgs.sendDoubleClick(p, xDown, yDown, msgButton);
+        });
+
         this._wheelChangeSubscription = this.wheelDetector.wheelChange.subscribe((wheelDelta) => {
           PeerMsgs.sendScroll(p, -1 * wheelDelta.deltaX, -1 * wheelDelta.deltaY);
         });
@@ -174,6 +190,9 @@ export class JoinPeer {
     }
     if (this._upButtonSubscription) {
       this._upButtonSubscription.unsubscribe();
+    }
+    if (this._doubleClickSubscription) {
+      this._doubleClickSubscription.unsubscribe();
     }
     if (this._wheelChangeSubscription) {
       this._wheelChangeSubscription.unsubscribe();
