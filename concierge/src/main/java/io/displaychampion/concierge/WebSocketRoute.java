@@ -8,7 +8,7 @@ import java.net.URI;
 @Service
 public class WebSocketRoute {
 
-    private static final String PATH = "/api/name/{name}";
+    private static final String PATH = "/api/v1/session/{name}";
 
     private final AntPathMatcher antPathMatcher;
 

@@ -6,8 +6,8 @@ import Message exposing (..)
 
 
 apiUrl : String
-apiUrl = "wss://tandem-concierge.cfapps.io:4443/api/name/"
---apiUrl = "ws://localhost:8080/api/name/"
+apiUrl = "wss://tandem-concierge.cfapps.io:4443/api/v1/session/"
+--apiUrl = "ws://localhost:8080/api/v1/session/"
 
 
 sendHostingIntent : String -> Cmd Msg
