@@ -30,9 +30,9 @@ view model =
       InvalidName reason ->
         case reason of
           TooShort ->
-            div [ class "name-error" ] [ text "Name must be longer than 4 characters" ]
+            div [ class "name-error" ] [ text "Session name must be longer than 4 characters" ]
           InvalidCharacters ->
-            div [ class "name-error" ] [ text "Name must contain only alpha-numeric characters, dashes, and underscores" ]
+            div [ class "name-error" ] [ text "Session name must contain only alpha-numeric characters, dashes, and underscores" ]
       _ ->
         text ""
 
@@ -72,7 +72,7 @@ view model =
       [ input
         [ autofocus True
         , class inputClass
-        , placeholder "Enter a name to begin"
+        , placeholder "Enter session name to begin"
         , type_ "text"
         , onInput RawNameChanged
         , disabled (not inputEnabled)
