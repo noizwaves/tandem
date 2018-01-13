@@ -1,5 +1,6 @@
 @import 'reset';
 @import 'form';
+@import 'alert';
 
 body, input {
   font-family: sans-serif;
@@ -37,41 +38,4 @@ body, input {
   color: $red;
 
   text-align: center;
-}
-
-.accessibility-alert {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  padding: 10px;
-
-  font-size: 20px;
-
-  color: $white;
-  background-color: #db9b26;
-  border-color: #db9b26;
-
-  .steps {
-    font-style: italic;
-  }
-}
-
-.update-alert, .offline-alert {
-  padding: 10px;
-  margin-bottom: 10px;
-
-  font-size: 20px;
-
-  color: $white;
-}
-
-.update-alert {
-  background-color: #db9b26;
-  border-color: #db9b26;
-}
-
-.offline-alert {
-  background-color: #db4126;
-  border-color: #db4126;
 }
