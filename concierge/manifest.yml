@@ -1,6 +1,6 @@
 ---
 applications:
-- name: concierge-7369rtgvbiy
+- name: tandem-concierge
   memory: 2G
   buildpack: java_buildpack
   path: build/libs/concierge-0.1.0.jar
