@@ -1,7 +1,7 @@
 @import 'reset';
 @import 'form';
 
-body {
+body, input {
   font-family: sans-serif;
 }
 
@@ -15,8 +15,9 @@ body {
     outline: none;
     padding: 10px;
     font-size: 20px;
-    border-radius: 10px;
+    border-radius: 0.4rem;
     border: 1px solid #bbb;
+    width: 18rem;
 
     &.invalid {
       border-color: $red;
