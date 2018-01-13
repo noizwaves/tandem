@@ -53,7 +53,7 @@ view model =
         text ""
       Offline ->
         div [ class "offline-alert" ]
-          [ text "No internet connection detected" ]
+          [ text "No internet connection detected!" ]
 
     accessibilityCheck = case model.trust of
       Untrusted ->

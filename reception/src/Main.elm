@@ -10,23 +10,30 @@ import View exposing (view)
 import Debounce
 
 
-init : (Model, Cmd Msg)
-init =
-  { appUpdates = UpdateStatusUnknown
-  , name = NoNameEntered
-  , nameDebouncer = Debounce.init
-  , throttledName = NoNameEntered
-  , intent = (Browsing Nothing)
-  , trust = TrustUnknown
-  , connectivity = Online
-  } ! [requestProcessTrust True]
+init : Flags -> (Model, Cmd Msg)
+init flags =
+  let
+    connectivity = if flags.online then Online else Offline
+  in
+    { appUpdates = UpdateStatusUnknown
+    , name = NoNameEntered
+    , nameDebouncer = Debounce.init
+    , throttledName = NoNameEntered
+    , intent = (Browsing Nothing)
+    , trust = TrustUnknown
+    , connectivity = connectivity
+    } ! [requestProcessTrust True]
 
 
-main : Program Never Model Msg
+main : Program Flags Model Msg
 main =
-  Html.program
+  Html.programWithFlags
     { init = init
     , view = view
     , update = update
     , subscriptions = subscriptions
     }
+
+type alias Flags =
+  { online : Bool
+  }
