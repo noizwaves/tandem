@@ -8,7 +8,9 @@ require('./index.html');
 const Elm = require('./Main.elm');
 const mountNode = document.getElementById('main');
 
-const app = Elm.Main.embed(mountNode);
+const app = Elm.Main.embed(mountNode, {
+  online: navigator.onLine,
+});
 
 interface IceServerConfiguration {
   urls: string;
