@@ -2,30 +2,51 @@
 
 Remote pair programming tool
 
+
 ## Quickstart
+
+1. `yarn`
+1. `yarn build`
+1. `yarn start`
+
+
+## Installation
+
+### MacOS
 
 1. Install Node 8 via `brew install node@8`
 1. Install latest Yarn via `brew install yarn`
 1. Install node-gyp via `yarn global add node-gyp`
 1. Install dependencies via `yarn`
 
-1. Build and start the app via `yarn build` and `yarn start`
-
-## Installation
-
-### Optional
+#### Optional
 
 1. `brew install direnv`
 
+### Windows
 
-## Building for macOS
+1. Install Node 8 from website
+1. Install Yarn from website
+1. [Install windows build essentials for node-gyp](https://github.com/nodejs/node-gyp#option-1) by:
+  1. Opening a Command Prompt with administrative access
+  1. Running `npm install --global --production windows-build-tools --add-python-to-path`
+1. Install node-gyp via `yarn global add node-gyp`
+1. Install dependencies via `yarn`
+
+
+## Building
 
 1. Build via `yarn build`
-1. Run via `yarn start.`
+1. Run via `yarn start`
 
-### With debugging / dev tools
+### For Development
 
 1. Build via `yarn build:dev`
+1. Run via `yarn start:dev`
+
+### For Debugging
+
+1. Build via `yarn build:debug`
 1. Run via `yarn start:dev`
 
 
@@ -41,6 +62,7 @@ The Tandem app observes environment variables for configuration.
 
 - `TANDEM_LOG_LEVEL`: sets logging level. Accepts `error`, `warn`, `info`, or `debug`.
 - `TANDEM_PRINT_SENSITIVE_VALUES_IN_LOGS`: replaces highly sensitive (i.e. key codes on key events) into logs. This triggers key logger behaviour. **Use at your own risk!**
+
 
 ## Architecture
 
