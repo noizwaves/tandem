@@ -1,5 +1,5 @@
 import {KeyPressDetector} from '../key-press-detector';
-import {KeyDownEvent, KeyUpEvent} from '../keyboard';
+import {KeyDownEvent, KeyUpEvent} from '../domain/keyboard';
 import {MouseButton, MouseButtonDetector, MouseButtonEvent} from '../mouse-button';
 import {MouseWheelDetector} from '../mouse-wheel';
 import {MousePositionDetector} from '../mouse-position';

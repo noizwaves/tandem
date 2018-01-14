@@ -1,5 +1,5 @@
 import {ButtonType as CursorMoverButtonType, CursorMover} from '../cursor-mover';
-import {KeyPresser} from '../keyboard';
+import {KeyPresser} from '../domain/keyboard';
 import {RobotKeyMover} from '../robot-key-mover';
 import {RobotCursorMover} from '../robot-cursor-mover';
 

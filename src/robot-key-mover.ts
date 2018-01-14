@@ -1,6 +1,6 @@
 import * as robot from 'robotjs';
 
-import {KeyCode, KeyPresser, ModifierCode, Modifiers} from './keyboard';
+import {KeyCode, KeyPresser, ModifierCode, Modifiers} from './domain/keyboard';
 import {getLogger} from './logging';
 
 const logger = getLogger();

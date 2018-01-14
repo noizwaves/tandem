@@ -1,8 +1,8 @@
 import {Observable, Subject} from 'rxjs';
 import * as Rx from 'rxjs';
-import {Keyboard, KeyCode, KeyDownEvent, KeyUpEvent, ModifierCode, Modifiers} from './keyboard';
-import {SystemIntegrator} from './system-integrator';
-import {getLogger} from './logging';
+import {Keyboard, KeyCode, KeyDownEvent, KeyUpEvent, ModifierCode, Modifiers} from '../domain/keyboard';
+import {SystemIntegrator} from '../domain/system-integrator';
+import {getLogger} from '../logging';
 
 const logger = getLogger();
 
