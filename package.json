@@ -1,7 +1,7 @@
 {
   "name": "tandem",
   "version": "0.3.2",
-  "description": "Developer centric screen sharing tool",
+  "description": "Remote pair programming tool",
   "productName": "Tandem",
   "main": "main.js",
   "build": {

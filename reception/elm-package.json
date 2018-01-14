@@ -1,6 +1,6 @@
 {
     "version": "0.3.2",
-    "summary": "Developer centric screen sharing tool",
+    "summary": "Remote pair programming tool",
     "repository": "https://github.com/noizwaves/tandem.git",
     "license": "UNLICENSED",
     "source-directories": [
