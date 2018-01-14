@@ -19,6 +19,10 @@ export class TypedMessageChannel<T> {
   }
 
   send(target: BrowserWindow | Sender, message: T): void {
+    if (!target) {
+      return;
+    }
+
     // check for `webContents` to determine argument type, as instanceof fails
     if ((<any>target).webContents !== undefined) {
       (<BrowserWindow> target).webContents.send(this.name, message);

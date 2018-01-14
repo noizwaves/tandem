@@ -1,6 +1,5 @@
 import {app, BrowserWindow, ipcMain as ipc, Menu, Tray, screen as electronScreen} from 'electron';
 import * as Rx from 'rxjs';
-import {MacOsKeyboard, MacOsSystemIntegrator} from './macos';
 import {Keyboard} from './keyboard';
 import {KeyDownChannel, KeyUpChannel} from './keyboard.ipc';
 import * as DisplayChampionIPC from './displaychampion.ipc';
@@ -60,6 +59,7 @@ let sessionAsJoiner = false;
 
 function getKeyboard(): Keyboard {
   if (process.platform === 'darwin') {
+    const { MacOsKeyboard } = require('./macos');
     return new MacOsKeyboard();
   }
 
@@ -68,6 +68,7 @@ function getKeyboard(): Keyboard {
 
 function getSystemIntegrator(): SystemIntegrator {
   if (process.platform === 'darwin') {
+    const { MacOsSystemIntegrator } = require('./macos');
     return new MacOsSystemIntegrator();
   }
 
@@ -77,6 +78,7 @@ function getSystemIntegrator(): SystemIntegrator {
 let userSaysQuit = false;
 
 let keyboard;
+
 function createDisplayChampionWindow() {
   // Create the browser window.
   displayChampionWindow = new BrowserWindow({width: 800, height: 600, show: false});
@@ -223,7 +225,9 @@ function checkForUpdates() {
   });
 }
 
-app.dock.setIcon(path.join(__dirname, 'icons', 'idle.png'));
+if (process.platform === 'darwin') {
+  app.dock.setIcon(path.join(__dirname, 'icons', 'idle.png'));
+}
 
 app.commandLine.appendSwitch('--disable-renderer-backgrounding');
 if (isDebugToolsEnabled()) {
