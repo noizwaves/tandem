@@ -1,14 +1,8 @@
 import * as Rx from 'rxjs';
 
+import {MousePosition, MousePositionDetector} from '../domain/mouse-position-detector';
 
-export interface MousePosition {
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-}
-
-export class MousePositionDetector {
+export class ElementMousePositionDetector implements MousePositionDetector {
   readonly position: Rx.Observable<MousePosition>;
 
   private readonly _position: Rx.Subject<MousePosition>;

@@ -2,7 +2,8 @@ import {KeyPressDetector} from '../domain/key-press-detector';
 import {KeyDownEvent, KeyUpEvent} from '../domain/keyboard';
 import {MouseButton, MouseButtonEvent} from '../domain/mouse';
 import {MouseWheelDetector} from '../platform/mouse-wheel';
-import {MousePositionDetector} from '../platform/mouse-position';
+import {MousePositionDetector} from '../domain/mouse-position-detector';
+import {DetectorFactory} from '../domain/detector-factory';
 
 import * as Peer from 'simple-peer';
 import * as PeerMsgs from '../peer-msgs';
@@ -11,7 +12,6 @@ import {preferVP8WithBoostedBitrate} from '../sdp-codec-adjuster';
 
 import {getLogger} from '../logging';
 import {ElementMouseButtonDetector} from '../platform/element-mouse-button-detector';
-import {KeyPressDetectorFactory} from '../domain/key-press-detector-factory';
 
 const logger = getLogger();
 
@@ -39,7 +39,7 @@ export class JoinPeer {
   private _keyUpSubscription: Rx.Subscription;
   private _keyDownSubscription: Rx.Subscription;
 
-  constructor(iceServers, remoteScreen: HTMLMediaElement, detectorFactory: KeyPressDetectorFactory) {
+  constructor(iceServers, remoteScreen: HTMLMediaElement, detectorFactory: DetectorFactory) {
     const answer = new Rx.Subject<any>();
     this.answer = answer;
 
@@ -49,7 +49,7 @@ export class JoinPeer {
     this._screenSize = new Rx.Subject<{ height: number, width: number }>();
     this.screenSize = this._screenSize;
 
-    this.positionDetector = new MousePositionDetector(remoteScreen);
+    this.positionDetector = detectorFactory.getMousePositionDetector();
     this.buttonDetector = new ElementMouseButtonDetector(remoteScreen);
     this.wheelDetector = new MouseWheelDetector(remoteScreen);
     this.keyPressDetector = detectorFactory.getKeyPressDetector();
