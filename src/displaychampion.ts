@@ -4,12 +4,11 @@ import * as DisplayChampionIPC from './displaychampion.ipc';
 
 import {getLogger} from './logging';
 import {HostPeer} from './peer/host-peer';
-import {DetectorFactory, JoinPeer} from './peer/join-peer';
-import {KeyboardKeyPressDetector} from './platform/keyboard-key-press-detector';
-import {KeyPressDetector} from './domain/key-press-detector';
-import {WindowKeyPressDetector} from './platform/window-key-press-detector';
+import {JoinPeer} from './peer/join-peer';
+import {OptimalKeyPressDetectorFactory} from './platform/optimal-key-press-detector-factory';
 
 const logger = getLogger();
+
 
 function getScreenStream(): Promise<any> {
   return new Promise(((resolve, reject) => {
@@ -83,7 +82,7 @@ DisplayChampionIPC.RequestAnswer.on(ipc, offer => {
   show("#remote-screen");
   const remoteScreen = <HTMLMediaElement> document.querySelector('#remote-screen');
 
-  const detectorFactory = new ExternalDetectorFactory(externalKeyboard, ipc, window);
+  const detectorFactory = new OptimalKeyPressDetectorFactory(externalKeyboardDetected, ipc, window);
   joinPeer = new JoinPeer(iceServers, remoteScreen, detectorFactory);
 
   joinPeer.answer.subscribe(data => {
@@ -109,19 +108,8 @@ DisplayChampionIPC.GiveAnswer.on(ipc, answer => {
   hostPeer.acceptAnswer(JSON.parse(answer));
 });
 
-class ExternalDetectorFactory implements DetectorFactory {
-  constructor(private externalKeyboard: boolean, private ipc, private window) {
-  }
-
-  getKeyPressDetector(): KeyPressDetector {
-    return this.externalKeyboard
-      ? new KeyboardKeyPressDetector(this.ipc)
-      : new WindowKeyPressDetector(this.window);
-  }
-}
-
-let externalKeyboard = false;
-DisplayChampionIPC.ExternalKeyboardResponse.on(ipc, result => externalKeyboard = result);
+let externalKeyboardDetected = false;
+DisplayChampionIPC.ExternalKeyboardResponse.on(ipc, result => externalKeyboardDetected = result);
 // TODO: replace 'request' with "window.webContents.once('dom-ready', () => { ... }"
 DisplayChampionIPC.ExternalKeyboardRequest.send(ipc);
 

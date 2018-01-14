@@ -11,6 +11,7 @@ import {preferVP8WithBoostedBitrate} from '../sdp-codec-adjuster';
 
 import {getLogger} from '../logging';
 import {ElementMouseButtonDetector} from '../platform/element-mouse-button-detector';
+import {KeyPressDetectorFactory} from '../domain/key-press-detector-factory';
 
 const logger = getLogger();
 
@@ -38,7 +39,7 @@ export class JoinPeer {
   private _keyUpSubscription: Rx.Subscription;
   private _keyDownSubscription: Rx.Subscription;
 
-  constructor(iceServers, remoteScreen: HTMLMediaElement, detectorFactory: DetectorFactory) {
+  constructor(iceServers, remoteScreen: HTMLMediaElement, detectorFactory: KeyPressDetectorFactory) {
     const answer = new Rx.Subject<any>();
     this.answer = answer;
 
@@ -210,10 +211,6 @@ export class JoinPeer {
     this.wheelDetector.dispose();
     this.keyPressDetector.dispose();
   }
-}
-
-export interface DetectorFactory {
-  getKeyPressDetector(): KeyPressDetector;
 }
 
 function toMessageButtonType(button: MouseButton): PeerMsgs.MouseButton {
