@@ -1,7 +1,7 @@
 import * as Rx from 'rxjs';
 import {IpcRenderer} from 'electron';
 
-import {KeyCode, KeyDownEvent, KeyUpEvent, ModifierCode} from './keyboard';
+import {KeyCode, KeyDownEvent, KeyUpEvent, ModifierCode} from './domain/keyboard';
 import {KeyDownChannel, KeyUpChannel} from './keyboard.ipc';
 import {getLogger} from './logging';
 

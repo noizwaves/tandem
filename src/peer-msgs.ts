@@ -1,4 +1,4 @@
-import {KeyCode, Modifiers} from './keyboard';
+import {KeyCode, Modifiers} from './domain/keyboard';
 
 
 export const MOUSEMOVE = 'mousemove';

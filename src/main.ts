@@ -1,10 +1,11 @@
 import {app, BrowserWindow, ipcMain as ipc, Menu, Tray, screen as electronScreen} from 'electron';
 import * as Rx from 'rxjs';
-import {Keyboard} from './keyboard';
+import {Keyboard} from './domain/keyboard';
 import {KeyDownChannel, KeyUpChannel} from './keyboard.ipc';
 import * as DisplayChampionIPC from './displaychampion.ipc';
 import * as ReceptionIPC from './reception.ipc';
-import {NoopSystemIntegrator, SystemIntegrator} from './system-integrator';
+import {KeyboardFactory} from './platform/keyboard-factory';
+import {SystemIntegratorFactory} from './platform/system-integrator-factory';
 import {configureLogging, getLogger} from './logging';
 
 import axios from 'axios';
@@ -51,33 +52,18 @@ const dcMenu = Menu.buildFromTemplate([
   }
 ]);
 
+const keyboardFactory = new KeyboardFactory();
+const systemIntegratorFactory = new SystemIntegratorFactory();
+
 let displayChampionWindow: BrowserWindow;
 let receptionWindow: BrowserWindow;
 let tray: Tray;
 
 let sessionAsJoiner = false;
 
-function getKeyboard(): Keyboard {
-  if (process.platform === 'darwin') {
-    const { MacOsKeyboard } = require('./macos');
-    return new MacOsKeyboard();
-  }
-
-  return null;
-}
-
-function getSystemIntegrator(): SystemIntegrator {
-  if (process.platform === 'darwin') {
-    const { MacOsSystemIntegrator } = require('./macos');
-    return new MacOsSystemIntegrator();
-  }
-
-  return new NoopSystemIntegrator();
-}
-
 let userSaysQuit = false;
 
-let keyboard;
+let keyboard: Keyboard = null;
 
 function createDisplayChampionWindow() {
   // Create the browser window.
@@ -96,7 +82,7 @@ function createDisplayChampionWindow() {
     displayChampionWindow.webContents.openDevTools();
   }
 
-  keyboard = getKeyboard();
+  keyboard = keyboardFactory.getKeyboard();
   const keyDownChannel = new KeyDownChannel();
   const keyUpChannel = new KeyUpChannel();
 
@@ -166,7 +152,7 @@ function createDisplayChampionWindow() {
 }
 
 function createReceptionWindow() {
-  const integrator = getSystemIntegrator();
+  const integrator = systemIntegratorFactory.getSystemIntegrator();
 
   let trustSubscription: Rx.Subscription = null;
 
