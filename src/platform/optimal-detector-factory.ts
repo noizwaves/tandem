@@ -6,6 +6,8 @@ import {MousePositionDetector} from '../domain/mouse-position-detector';
 import {ElementMousePositionDetector} from './element-mouse-position-detector';
 import {MouseButtonDetector} from '../domain/mouse';
 import {ElementMouseButtonDetector} from './element-mouse-button-detector';
+import {MouseWheelDetector} from '../domain/mouse-wheel-detector';
+import {ElementMouseWheelDetector} from './element-mouse-wheel-detector';
 
 export class OptimalDetectorFactory implements DetectorFactory {
   constructor(private externalKeyboard: boolean,
@@ -26,5 +28,9 @@ export class OptimalDetectorFactory implements DetectorFactory {
 
   getMouseButtonDetector(): MouseButtonDetector {
     return new ElementMouseButtonDetector(this.remoteScreen);
+  }
+
+  getMouseWheelDetector(): MouseWheelDetector {
+    return new ElementMouseWheelDetector(this.remoteScreen);
   }
 }
