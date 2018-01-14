@@ -1,24 +1,45 @@
 import {KeyCode, Modifiers} from './domain/keyboard';
 
 
-export const MOUSEMOVE = 'mousemove';
+export interface PeerMessageChannel<T> {
+  // GOAL: this is an implementation detail and not public
+  readonly type: string;
 
-export function sendMouseMove(peer, x: number, y: number) {
+  send(peer, message: T);
 
-  const data = {t: MOUSEMOVE, x, y};
-  peer.send(JSON.stringify(data));
-}
-
-export function unpackMouseMove(message): { x: number, y: number } {
-
-  const x = <number> message.x;
-  const y = <number> message.y;
-  return {x, y};
-
+  // GOAL: on(peer, (message: T) => void)
+  unpack(message: object): T;
 }
 
 
-export const MOUSEDOWN = 'mousedown';
+export interface MouseMoveMessage {
+  x: number;
+  y: number;
+}
+
+class MouseMoveChannel implements PeerMessageChannel<MouseMoveMessage> {
+  readonly type = 'mousemove';
+
+  send(peer, message: MouseMoveMessage) {
+    const data = {t: this.type, x: message.x, y: message.y};
+    peer.send(JSON.stringify(data));
+  }
+
+  unpack(message: object): MouseMoveMessage {
+    const x = <number> (<any> message).x;
+    const y = <number> (<any> message).y;
+    return {x, y};
+  }
+}
+
+export const MouseMove: PeerMessageChannel<MouseMoveMessage> = new MouseMoveChannel();
+
+
+export interface MouseButtonMessage {
+  x: number;
+  y: number;
+  button: MouseButton;
+}
 
 export enum MouseButton {
   LEFT = 'left',
@@ -26,118 +47,170 @@ export enum MouseButton {
   RIGHT = 'right',
 }
 
-export function sendMouseDown(peer, x: number, y: number, button: MouseButton) {
-  const data = {t: MOUSEDOWN, x, y, b: button};
-  peer.send(JSON.stringify(data));
+
+class MouseDownChannel implements PeerMessageChannel<MouseButtonMessage> {
+  readonly type = 'mousedown';
+
+  send(peer, message: MouseButtonMessage) {
+    const data = {t: this.type, x: message.x, y: message.y, b: message.button};
+    peer.send(JSON.stringify(data));
+  }
+
+  unpack(message: object): MouseButtonMessage {
+    const x = <number> (<any>message).x;
+    const y = <number> (<any>message).y;
+    const button = <MouseButton> (<any>message).b;
+    return {x, y, button};
+  }
+
 }
 
-export function unpackMouseDown(message): { x: number, y: number, button: MouseButton } {
-  const x = <number> message.x;
-  const y = <number> message.y;
-  const button = <MouseButton> message.b;
-  return {x, y, button};
+export const MouseDown: PeerMessageChannel<MouseButtonMessage> = new MouseDownChannel();
+
+
+class MouseUpChannel implements PeerMessageChannel<MouseButtonMessage> {
+  readonly type = 'mouseup';
+
+  send(peer, message: MouseButtonMessage) {
+    const data = {t: this.type, x: message.x, y: message.y, b: message.button};
+    peer.send(JSON.stringify(data));
+  }
+
+  unpack(message: object): MouseButtonMessage {
+    const x = <number> (<any>message).x;
+    const y = <number> (<any>message).y;
+    const button = <MouseButton> (<any>message).b;
+    return {x, y, button};
+  }
+
 }
 
+export const MouseUp: PeerMessageChannel<MouseButtonMessage> = new MouseUpChannel();
 
-export const MOUSEUP = 'mouseup';
 
-export function sendMouseUp(peer, x: number, y: number, button: MouseButton) {
-  const data = {t: MOUSEUP, x, y, b: button};
-  peer.send(JSON.stringify(data));
+class DoubleClickChannel implements PeerMessageChannel<MouseButtonMessage> {
+  readonly type = 'dblclk';
+
+  send(peer, message: MouseButtonMessage) {
+    const data = {t: this.type, x: message.x, y: message.y, b: message.button};
+    peer.send(JSON.stringify(data));
+  }
+
+  unpack(message: object): MouseButtonMessage {
+    const x = <number> (<any>message).x;
+    const y = <number> (<any>message).y;
+    const button = <MouseButton> (<any>message).b;
+    return {x, y, button};
+  }
+
 }
 
-export function unpackMouseUp(message): { x: number, y: number, button: MouseButton } {
-  const x = <number> message.x;
-  const y = <number> message.y;
-  const button = <MouseButton> message.b;
-  return {x, y, button};
+export const DoubleClick: PeerMessageChannel<MouseButtonMessage> = new DoubleClickChannel();
+
+
+export interface ScrollMessage {
+  deltaX: number;
+  deltaY: number;
 }
 
+class ScrollChannel implements PeerMessageChannel<ScrollMessage> {
+  readonly type = 'scroll';
 
-export const DOUBLECLICK = 'dblclk';
+  send(peer, message: ScrollMessage) {
+    const data = {t: this.type, x: message.deltaX, y: message.deltaY};
+    peer.send(JSON.stringify(data));
+  }
 
-export function sendDoubleClick(peer, x: number, y: number, button: MouseButton) {
-  const data = {t: DOUBLECLICK, x, y, b: button};
-  peer.send(JSON.stringify(data));
+  unpack(message: object): ScrollMessage {
+    const deltaX = <number> (<any>message).x;
+    const deltaY = <number> (<any>message).y;
+    return {deltaX, deltaY};
+  }
+
 }
 
-export function unpackDoubleClick(message): { x: number, y: number, button: MouseButton } {
-  const x = <number> message.x;
-  const y = <number> message.y;
-  const button = <MouseButton> message.b;
-  return {x, y, button};
-}
+export const Scroll: PeerMessageChannel<ScrollMessage> = new ScrollChannel();
 
 
-export const SCROLL = 'scroll';
-
-export function sendScroll(peer, deltaX: number, deltaY: number) {
-  const data = {t: SCROLL, x: deltaX, y: deltaY};
-  peer.send(JSON.stringify(data));
-}
-
-export function unpackScroll(message): { x: number, y: number } {
-  const x = <number> message.x;
-  const y = <number> message.y;
-  return {x, y};
-}
-
-
-export const KEYUP = 'keyup';
-
-export function sendKeyUp(peer, code: KeyCode, modifiers: Modifiers) {
-  const message = {
-    t: KEYUP,
-    code: code.toString(),
-    modifiers: modifiers.map(m => m.toString())
-  };
-  const data = JSON.stringify(message);
-  peer.send(data);
-}
-
-export function unpackKeyUp(message): { code: KeyCode, modifiers: Modifiers } {
-  const code = <KeyCode> message.code;
-  const modifiers = <Modifiers> message.modifiers;
-
-  return {code, modifiers};
-}
-
-
-export const KEYDOWN = 'keydown';
-
-export function sendKeyDown(peer, code: KeyCode, modifiers: Modifiers) {
-  const message = {
-    t: KEYDOWN,
-    code: code.toString(),
-    modifiers: modifiers.map(m => m.toString())
-  };
-  const data = JSON.stringify(message);
-  peer.send(data);
-}
-
-export function unpackKeyDown(message): { code: KeyCode, modifiers: Modifiers } {
-  const code = <KeyCode> message.code;
-  const modifiers = <Modifiers> message.modifiers;
-
-  return {code, modifiers};
+export interface KeyMessage {
+  code: KeyCode;
+  modifiers: Modifiers;
 }
 
 
-export const SCREEN_SIZE = 'screensize';
+class KeyUpChannel implements PeerMessageChannel<KeyMessage> {
+  readonly type = 'keyup';
 
-export function sendScreenSize(peer, height: number, width: number) {
-  const message = {
-    t: SCREEN_SIZE,
-    h: height,
-    w: width
-  };
-  const data = JSON.stringify(message);
-  peer.send(data);
+  send(peer, message: KeyMessage) {
+    const data = JSON.stringify({
+      t: this.type,
+      code: message.code.toString(),
+      modifiers: message.modifiers.map(m => m.toString())
+    });
+    peer.send(data);
+  }
+
+  unpack(message: object): KeyMessage {
+    const code = <KeyCode> (<any>message).code;
+    const modifiers = <Modifiers> (<any>message).modifiers;
+
+    return {code, modifiers};
+  }
+
 }
 
-export function unpackScreenSize(message): { height: number, width: number } {
-  const height = <number> message.h;
-  const width = <number> message.w;
+export const KeyUp: PeerMessageChannel<KeyMessage> = new KeyUpChannel();
 
-  return {height, width};
+
+class KeyDownChannel implements PeerMessageChannel<KeyMessage> {
+  readonly type = 'keydown';
+
+  send(peer, message: KeyMessage) {
+    const data = JSON.stringify({
+      t: this.type,
+      code: message.code.toString(),
+      modifiers: message.modifiers.map(m => m.toString())
+    });
+    peer.send(data);
+  }
+
+  unpack(message: object): KeyMessage {
+    const code = <KeyCode> (<any>message).code;
+    const modifiers = <Modifiers> (<any>message).modifiers;
+
+    return {code, modifiers};
+  }
+
 }
+
+export const KeyDown: PeerMessageChannel<KeyMessage> = new KeyDownChannel();
+
+
+export interface ScreenSizeMessage {
+  height: number;
+  width: number;
+}
+
+
+class ScreenSizeChannel implements PeerMessageChannel<ScreenSizeMessage> {
+  readonly type = 'screensize';
+
+  send(peer, message: ScreenSizeMessage) {
+    const data = JSON.stringify({
+      t: this.type,
+      h: message.height,
+      w: message.width,
+    });
+    peer.send(data);
+  }
+
+  unpack(message: object): ScreenSizeMessage {
+    const height = <number> (<any>message).h;
+    const width = <number> (<any>message).w;
+
+    return {height, width};
+  }
+
+}
+
+export const ScreenSize: PeerMessageChannel<ScreenSizeMessage> = new ScreenSizeChannel();

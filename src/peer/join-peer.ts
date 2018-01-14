@@ -1,7 +1,6 @@
 import {KeyPressDetector} from '../domain/key-press-detector';
 import {KeyDownEvent, KeyUpEvent} from '../domain/keyboard';
-import {MouseButton, MouseButtonDetector, MouseButtonEvent} from '../domain/mouse';
-import {ElementMouseWheelDetector} from '../platform/element-mouse-wheel-detector';
+import {MouseButton, MouseButtonDetector} from '../domain/mouse';
 import {MousePositionDetector} from '../domain/mouse-position-detector';
 import {MouseWheelDetector} from '../domain/mouse-wheel-detector';
 import {DetectorFactory} from '../domain/detector-factory';
@@ -101,10 +100,10 @@ export class JoinPeer {
         this._positionSubscription = this.positionDetector.position.subscribe(mouseMove => {
           const xMove = mouseMove.x / mouseMove.width;
           const yMove = mouseMove.y / mouseMove.height;
-          PeerMsgs.sendMouseMove(p, xMove, yMove);
+          PeerMsgs.MouseMove.send(p, {x: xMove, y: yMove});
         });
 
-        const buttonMsgSender = (event: MouseButtonEvent, sendButtonMessage: (peer, x: number, y: number, button: MouseButton) => void) => {
+        this._downButtonSubscription = this.buttonDetector.down.subscribe(event => {
           const xDown = event.x / event.width;
           const yDown = event.y / event.height;
 
@@ -116,10 +115,22 @@ export class JoinPeer {
             return;
           }
 
-          sendButtonMessage(p, xDown, yDown, msgButton);
-        };
-        this._downButtonSubscription = this.buttonDetector.down.subscribe((e) => buttonMsgSender(e, PeerMsgs.sendMouseDown));
-        this._upButtonSubscription = this.buttonDetector.up.subscribe((e) => buttonMsgSender(e, PeerMsgs.sendMouseUp));
+          PeerMsgs.MouseDown.send(p, {x: xDown, y: yDown, button: msgButton});
+        });
+        this._upButtonSubscription = this.buttonDetector.up.subscribe(event => {
+          const xDown = event.x / event.width;
+          const yDown = event.y / event.height;
+
+          let msgButton: PeerMsgs.MouseButton = null;
+          try {
+            msgButton = toMessageButtonType(event.button);
+          } catch (e) {
+            logger.error(`[JoinPeer] Error getting message button type: ${e.message}`);
+            return;
+          }
+
+          PeerMsgs.MouseUp.send(p, {x: xDown, y: yDown, button: msgButton});
+        });
 
         this._doubleClickSubscription = this.buttonDetector.double.subscribe(event => {
           const xDown = event.x / event.width;
@@ -133,18 +144,18 @@ export class JoinPeer {
             return;
           }
 
-          PeerMsgs.sendDoubleClick(p, xDown, yDown, msgButton);
+          PeerMsgs.DoubleClick.send(p, {x: xDown, y: yDown, button: msgButton});
         });
 
         this._wheelChangeSubscription = this.wheelDetector.wheelChange.subscribe((wheelDelta) => {
-          PeerMsgs.sendScroll(p, -1 * wheelDelta.deltaX, -1 * wheelDelta.deltaY);
+          PeerMsgs.Scroll.send(p, {deltaX: -1 * wheelDelta.deltaX, deltaY: -1 * wheelDelta.deltaY});
         });
 
         this._keyUpSubscription = this.keyPressDetector.keyUp.subscribe((e: KeyUpEvent) => {
-          PeerMsgs.sendKeyUp(p, e.key, e.modifiers);
+          PeerMsgs.KeyUp.send(p, {code: e.key, modifiers: e.modifiers});
         });
         this._keyDownSubscription = this.keyPressDetector.keyDown.subscribe((e: KeyDownEvent) => {
-          PeerMsgs.sendKeyDown(p, e.key, e.modifiers);
+          PeerMsgs.KeyDown.send(p, {code: e.key, modifiers: e.modifiers});
         });
       };
     });
@@ -172,8 +183,8 @@ export class JoinPeer {
 
     let result = null;
     switch (message.t) {
-      case PeerMsgs.SCREEN_SIZE:
-        const {height, width} = PeerMsgs.unpackScreenSize(message);
+      case PeerMsgs.ScreenSize.type:
+        const {height, width} = PeerMsgs.ScreenSize.unpack(message);
         this._screenSize.next({height, width});
         break;
       default:
