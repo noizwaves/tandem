@@ -1,7 +1,7 @@
 import * as robot from 'robotjs';
 
-import {ButtonType, CursorMover} from './cursor-mover';
-import {getLogger} from './logging';
+import {ButtonType, CursorMover} from '../domain/cursor-mover';
+import {getLogger} from '../logging';
 
 const logger = getLogger();
 
