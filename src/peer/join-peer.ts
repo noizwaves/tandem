@@ -1,8 +1,9 @@
 import {KeyPressDetector} from '../domain/key-press-detector';
 import {KeyDownEvent, KeyUpEvent} from '../domain/keyboard';
 import {MouseButton, MouseButtonDetector, MouseButtonEvent} from '../domain/mouse';
-import {MouseWheelDetector} from '../platform/mouse-wheel';
+import {ElementMouseWheelDetector} from '../platform/element-mouse-wheel-detector';
 import {MousePositionDetector} from '../domain/mouse-position-detector';
+import {MouseWheelDetector} from '../domain/mouse-wheel-detector';
 import {DetectorFactory} from '../domain/detector-factory';
 
 import * as Peer from 'simple-peer';
@@ -50,7 +51,7 @@ export class JoinPeer {
 
     this.positionDetector = detectorFactory.getMousePositionDetector();
     this.buttonDetector = detectorFactory.getMouseButtonDetector();
-    this.wheelDetector = new MouseWheelDetector(remoteScreen);
+    this.wheelDetector = detectorFactory.getMouseWheelDetector();
     this.keyPressDetector = detectorFactory.getKeyPressDetector();
 
     const p = new Peer({

@@ -1,12 +1,9 @@
 import * as Rx from 'rxjs';
 
+import {MouseWheelChange, MouseWheelDetector} from '../domain/mouse-wheel-detector';
 
-export interface MouseWheelChange {
-  deltaX: number;
-  deltaY: number;
-}
 
-export class MouseWheelDetector {
+export class ElementMouseWheelDetector implements MouseWheelDetector {
   readonly wheelChange: Rx.Observable<MouseWheelChange>;
 
   private readonly _wheelChange: Rx.Subject<MouseWheelChange>;
