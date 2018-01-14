@@ -1,32 +1,11 @@
-import * as Rx from 'rxjs';
+import * as Rx from 'rxjs/Rx';
 
-import {getLogger} from './logging';
+import {DoubleClickEvent, MouseButton, MouseButtonDetector, MouseButtonDirection, MouseButtonEvent} from '../domain/mouse';
+import {getLogger} from '../logging';
 
 const logger = getLogger();
 
-
-export enum MouseButton {LEFT, MIDDLE, RIGHT};
-
-export enum MouseButtonDirection {UP, DOWN};
-
-export interface MouseButtonEvent {
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-  button: MouseButton;
-  direction: MouseButtonDirection;
-}
-
-export interface DoubleClickEvent {
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-  button: MouseButton;
-}
-
-export class MouseButtonDetector {
+export class ElementMouseButtonDetector implements MouseButtonDetector {
   readonly up: Rx.Observable<MouseButtonEvent>;
   readonly down: Rx.Observable<MouseButtonEvent>;
   readonly double: Rx.Observable<DoubleClickEvent>;
@@ -52,7 +31,7 @@ export class MouseButtonDetector {
       event.stopPropagation();
       event.preventDefault();
 
-      logger.debug(`[MouseButtonDetector] button event detected for ${event.button} going ${direction}`);
+      logger.debug(`[ElementMouseButtonDetector] button event detected for ${event.button} going ${direction}`);
 
       let targetSub: Rx.Subject<MouseButtonEvent> = null;
       switch (direction) {
@@ -63,13 +42,13 @@ export class MouseButtonDetector {
           targetSub = this._up;
           break;
         default:
-          logger.error(`[MouseButtonDetector] Unhandled direction of ${direction} when picking target subject`);
+          logger.error(`[ElementMouseButtonDetector] Unhandled direction of ${direction} when picking target subject`);
           return;
       }
 
       let button = extractMouseButton(event);
       if (button === null) {
-        logger.error(`[MouseButtonDetector] Unhandled button of ${event.button} when mapping to MouseButton`);
+        logger.error(`[ElementMouseButtonDetector] Unhandled button of ${event.button} when mapping to MouseButton`);
         return;
       }
 
@@ -93,11 +72,11 @@ export class MouseButtonDetector {
       event.stopPropagation();
       event.preventDefault();
 
-      logger.debug(`[MouseButtonDetector] double click event detected for ${event.button}`);
+      logger.debug(`[ElementMouseButtonDetector] double click event detected for ${event.button}`);
 
       let button = extractMouseButton(event);
       if (button === null) {
-        logger.error(`[MouseButtonDetector] Unhandled button of ${event.button} when mapping to MouseButton`);
+        logger.error(`[ElementMouseButtonDetector] Unhandled button of ${event.button} when mapping to MouseButton`);
         return;
       }
 

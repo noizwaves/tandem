@@ -1,36 +1,10 @@
-import * as Rx from 'rxjs';
-import {IpcRenderer} from 'electron';
+import * as Rx from 'rxjs/Rx';
 
-import {KeyCode, KeyDownEvent, KeyUpEvent, ModifierCode} from './domain/keyboard';
-import {KeyDownChannel, KeyUpChannel} from './keyboard.ipc';
-import {getLogger} from './logging';
+import {KeyPressDetector} from '../domain/key-press-detector';
+import {KeyCode, KeyDownEvent, KeyUpEvent, ModifierCode} from '../domain/keyboard';
+import {getLogger} from '../logging';
 
 const logger = getLogger();
-
-export interface KeyPressDetector {
-  readonly keyUp: Rx.Observable<KeyUpEvent>;
-  readonly keyDown: Rx.Observable<KeyDownEvent>;
-  dispose(): void;
-}
-
-function isMeta(rawCode: string): boolean {
-  switch (rawCode) {
-    case 'ShiftLeft':
-    case 'ShiftRight':
-      return true;
-    case 'ControlLeft':
-    case 'ControlRight':
-      return true;
-    case 'AltLeft':
-    case 'AltRight':
-      return true;
-    case 'MetaLeft':
-    case 'MetaRight':
-      return true;
-    default:
-      return false;
-  }
-}
 
 export class WindowKeyPressDetector implements KeyPressDetector {
   readonly keyUp: Rx.Observable<KeyUpEvent>;
@@ -95,30 +69,21 @@ export class WindowKeyPressDetector implements KeyPressDetector {
   }
 }
 
-export class ExternalKeyPressDetector implements KeyPressDetector {
-  readonly keyUp: Rx.Observable<KeyUpEvent>;
-  readonly keyDown: Rx.Observable<KeyDownEvent>;
-
-  private readonly _keyUp: Rx.Subject<KeyUpEvent>;
-  private readonly _keyDown: Rx.Subject<KeyDownEvent>;
-  private readonly keyUpChannel: KeyUpChannel;
-  private readonly keyDownChannel: KeyDownChannel;
-
-  constructor(ipc: IpcRenderer) {
-    this._keyUp = new Rx.Subject<KeyUpEvent>();
-    this._keyDown = new Rx.Subject<KeyDownEvent>();
-    this.keyUp = this._keyUp;
-    this.keyDown = this._keyDown;
-
-    this.keyUpChannel = new KeyUpChannel();
-    this.keyUpChannel.on(ipc, e => this._keyUp.next(e));
-
-    this.keyDownChannel = new KeyDownChannel();
-    this.keyDownChannel.on(ipc, e => this._keyDown.next(e));
-  }
-
-  dispose(): void {
-    this.keyUpChannel.dispose();
-    this.keyDownChannel.dispose();
+function isMeta(rawCode: string): boolean {
+  switch (rawCode) {
+    case 'ShiftLeft':
+    case 'ShiftRight':
+      return true;
+    case 'ControlLeft':
+    case 'ControlRight':
+      return true;
+    case 'AltLeft':
+    case 'AltRight':
+      return true;
+    case 'MetaLeft':
+    case 'MetaRight':
+      return true;
+    default:
+      return false;
   }
 }

@@ -5,7 +5,9 @@ import * as DisplayChampionIPC from './displaychampion.ipc';
 import {getLogger} from './logging';
 import {HostPeer} from './peer/host-peer';
 import {DetectorFactory, JoinPeer} from './peer/join-peer';
-import {ExternalKeyPressDetector, KeyPressDetector, WindowKeyPressDetector} from './key-press-detector';
+import {KeyboardKeyPressDetector} from './platform/keyboard-key-press-detector';
+import {KeyPressDetector} from './domain/key-press-detector';
+import {WindowKeyPressDetector} from './platform/window-key-press-detector';
 
 const logger = getLogger();
 
@@ -113,7 +115,7 @@ class ExternalDetectorFactory implements DetectorFactory {
 
   getKeyPressDetector(): KeyPressDetector {
     return this.externalKeyboard
-      ? new ExternalKeyPressDetector(this.ipc)
+      ? new KeyboardKeyPressDetector(this.ipc)
       : new WindowKeyPressDetector(this.window);
   }
 }

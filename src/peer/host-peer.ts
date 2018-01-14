@@ -1,7 +1,7 @@
-import {ButtonType as CursorMoverButtonType, CursorMover} from '../cursor-mover';
+import {ButtonType as CursorMoverButtonType, CursorMover} from '../domain/cursor-mover';
 import {KeyPresser} from '../domain/key-presser';
 import {RobotKeyPresser} from '../platform/robot-key-presser';
-import {RobotCursorMover} from '../robot-cursor-mover';
+import {RobotCursorMover} from '../platform/robot-cursor-mover';
 
 import * as Peer from 'simple-peer';
 import * as PeerMsgs from '../peer-msgs';

@@ -1,8 +1,8 @@
-import {KeyPressDetector} from '../key-press-detector';
+import {KeyPressDetector} from '../domain/key-press-detector';
 import {KeyDownEvent, KeyUpEvent} from '../domain/keyboard';
-import {MouseButton, MouseButtonDetector, MouseButtonEvent} from '../mouse-button';
-import {MouseWheelDetector} from '../mouse-wheel';
-import {MousePositionDetector} from '../mouse-position';
+import {MouseButton, MouseButtonEvent} from '../domain/mouse';
+import {MouseWheelDetector} from '../platform/mouse-wheel';
+import {MousePositionDetector} from '../platform/mouse-position';
 
 import * as Peer from 'simple-peer';
 import * as PeerMsgs from '../peer-msgs';
@@ -10,6 +10,7 @@ import * as Rx from 'rxjs/Rx';
 import {preferVP8WithBoostedBitrate} from '../sdp-codec-adjuster';
 
 import {getLogger} from '../logging';
+import {ElementMouseButtonDetector} from '../platform/element-mouse-button-detector';
 
 const logger = getLogger();
 
@@ -22,7 +23,7 @@ export class JoinPeer {
   private readonly p: Peer;
 
   private readonly positionDetector: MousePositionDetector;
-  private readonly buttonDetector: MouseButtonDetector;
+  private readonly buttonDetector: ElementMouseButtonDetector;
   private readonly wheelDetector: MouseWheelDetector;
   private readonly keyPressDetector: KeyPressDetector;
 
@@ -48,7 +49,7 @@ export class JoinPeer {
     this.screenSize = this._screenSize;
 
     this.positionDetector = new MousePositionDetector(remoteScreen);
-    this.buttonDetector = new MouseButtonDetector(remoteScreen);
+    this.buttonDetector = new ElementMouseButtonDetector(remoteScreen);
     this.wheelDetector = new MouseWheelDetector(remoteScreen);
     this.keyPressDetector = detectorFactory.getKeyPressDetector();
 
