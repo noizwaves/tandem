@@ -1,11 +1,8 @@
 import * as Rx from 'rxjs';
 
-import {getLogger} from '../logging';
+export enum MouseButton {LEFT, MIDDLE, RIGHT}
 
-
-export enum MouseButton {LEFT, MIDDLE, RIGHT};
-
-export enum MouseButtonDirection {UP, DOWN};
+export enum MouseButtonDirection {UP, DOWN}
 
 export interface MouseButtonEvent {
   x: number;

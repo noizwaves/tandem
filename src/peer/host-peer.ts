@@ -49,7 +49,7 @@ export class HostPeer {
     p.on('connect', function () {
       logger.info('[HostPeer] CONNECT');
 
-      PeerMsgs.sendScreenSize(p, screen.height, screen.width);
+      PeerMsgs.ScreenSize.send(p, {height: screen.height, width: screen.width});
 
       connected.next(true);
     });
@@ -92,60 +92,61 @@ export class HostPeer {
     }
 
     let result = null;
+    // Leaky abstraction for how type is encoded :(
     switch (message.t) {
-      case PeerMsgs.MOUSEMOVE:
-        const mouseMoveMsg = PeerMsgs.unpackMouseMove(message);
+      case PeerMsgs.MouseMove.type:
+        const mouseMoveMsg = PeerMsgs.MouseMove.unpack(message);
         this.cursorMover.move(mouseMoveMsg.x, mouseMoveMsg.y);
         break;
-      case PeerMsgs.MOUSEDOWN:
-        const mouseDownMsg = PeerMsgs.unpackMouseDown(message);
+      case PeerMsgs.MouseDown.type:
+        const mouseDownMsg = PeerMsgs.MouseDown.unpack(message);
 
         let downButtonType: CursorMoverButtonType = null;
         try {
           downButtonType = toCursorMoverButtonType(mouseDownMsg.button);
         } catch (e) {
-          logger.error(`[HostPeer] '${PeerMsgs.MOUSEDOWN}' error, ${e.message}`);
+          logger.error(`[HostPeer] '${PeerMsgs.MouseDown.type}' error, ${e.message}`);
           return;
         }
 
         this.cursorMover.buttonDown(mouseDownMsg.x, mouseDownMsg.y, downButtonType);
         break;
-      case PeerMsgs.MOUSEUP:
-        const mouseUpMsg = PeerMsgs.unpackMouseUp(message);
+      case PeerMsgs.MouseUp.type:
+        const mouseUpMsg = PeerMsgs.MouseUp.unpack(message);
 
         let upButtonType: CursorMoverButtonType = null;
         try {
           upButtonType = toCursorMoverButtonType(mouseUpMsg.button);
         } catch (e) {
-          logger.error(`[HostPeer] '${PeerMsgs.MOUSEUP}' error, ${e.message}`);
+          logger.error(`[HostPeer] '${PeerMsgs.MouseUp.type}' error, ${e.message}`);
           return;
         }
 
         this.cursorMover.buttonUp(mouseUpMsg.x, mouseUpMsg.y, upButtonType);
         break;
-      case PeerMsgs.DOUBLECLICK:
-        const dblClkMsg = PeerMsgs.unpackDoubleClick(message);
+      case PeerMsgs.DoubleClick.type:
+        const dblClkMsg = PeerMsgs.DoubleClick.unpack(message);
 
         let dblClickButton: CursorMoverButtonType = null;
         try {
           dblClickButton = toCursorMoverButtonType(dblClkMsg.button);
         } catch (e) {
-          logger.error(`[HostPeer] '${PeerMsgs.DOUBLECLICK} error, ${e.message}`);
+          logger.error(`[HostPeer] '${PeerMsgs.DoubleClick.type} error, ${e.message}`);
           return;
         }
 
         this.cursorMover.doubleClick(dblClkMsg.x, dblClkMsg.y, dblClickButton);
         break;
-      case PeerMsgs.SCROLL:
-        const scrollMsg = PeerMsgs.unpackScroll(message);
-        this.cursorMover.scroll(scrollMsg.x, scrollMsg.y);
+      case PeerMsgs.Scroll.type:
+        const scrollMsg = PeerMsgs.Scroll.unpack(message);
+        this.cursorMover.scroll(scrollMsg.deltaX, scrollMsg.deltaY);
         break;
-      case PeerMsgs.KEYUP:
-        const keyUp = PeerMsgs.unpackKeyUp(message);
+      case PeerMsgs.KeyUp.type:
+        const keyUp = PeerMsgs.KeyUp.unpack(message);
         this.keyPresser.pressUp(keyUp.code, keyUp.modifiers);
         break;
-      case PeerMsgs.KEYDOWN:
-        const keyDown = PeerMsgs.unpackKeyDown(message);
+      case PeerMsgs.KeyDown.type:
+        const keyDown = PeerMsgs.KeyDown.unpack(message);
         this.keyPresser.pressDown(keyDown.code, keyDown.modifiers);
         break;
       default:
