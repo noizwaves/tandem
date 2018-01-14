@@ -1,6 +1,6 @@
 import {ButtonType as CursorMoverButtonType, CursorMover} from '../cursor-mover';
-import {KeyPresser} from '../domain/keyboard';
-import {RobotKeyMover} from '../robot-key-mover';
+import {KeyPresser} from '../domain/key-presser';
+import {RobotKeyPresser} from '../platform/robot-key-presser';
 import {RobotCursorMover} from '../robot-cursor-mover';
 
 import * as Peer from 'simple-peer';
@@ -29,7 +29,7 @@ export class HostPeer {
     const connected = new Rx.Subject<boolean>();
     this.connected = connected;
 
-    this.keyPresser = new RobotKeyMover();
+    this.keyPresser = new RobotKeyPresser();
     this.cursorMover = new RobotCursorMover();
 
     const p = new Peer({

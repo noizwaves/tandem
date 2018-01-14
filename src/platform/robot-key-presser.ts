@@ -1,7 +1,8 @@
 import * as robot from 'robotjs';
 
-import {KeyCode, KeyPresser, ModifierCode, Modifiers} from './domain/keyboard';
-import {getLogger} from './logging';
+import {KeyCode, ModifierCode, Modifiers} from '../domain/keyboard';
+import {getLogger} from '../logging';
+import {KeyPresser} from '../domain/key-presser';
 
 const logger = getLogger();
 
@@ -126,7 +127,7 @@ function toRobotKeyModifier(code: ModifierCode): string {
   }
 }
 
-export class RobotKeyMover implements KeyPresser {
+export class RobotKeyPresser implements KeyPresser {
   pressDown(code: KeyCode, modifiers: Modifiers): void {
     const robotKey = toRobotKey(code);
     if (!robotKey) {
@@ -134,8 +135,8 @@ export class RobotKeyMover implements KeyPresser {
       return;
     }
 
-    logger.debugSensitive('[RobotKeyMover] Told to press down key', robotKey);
-    logger.debugSensitive('[RobotKeyMover] ... using modifiers', modifiers);
+    logger.debugSensitive('[RobotKeyPresser] Told to press down key', robotKey);
+    logger.debugSensitive('[RobotKeyPresser] ... using modifiers', modifiers);
 
     const robotModifiers = modifiers.map(toRobotKeyModifier);
     robot.keyToggle(robotKey, 'down', robotModifiers);
@@ -148,8 +149,8 @@ export class RobotKeyMover implements KeyPresser {
       return;
     }
 
-    logger.debugSensitive('[RobotKeyMover] Told to press up key', robotKey);
-    logger.debugSensitive('[RobotKeyMover] ... using modifiers', modifiers);
+    logger.debugSensitive('[RobotKeyPresser] Told to press up key', robotKey);
+    logger.debugSensitive('[RobotKeyPresser] ... using modifiers', modifiers);
 
     const robotModifiers = modifiers.map(toRobotKeyModifier);
     robot.keyToggle(robotKey, 'up', robotModifiers);
