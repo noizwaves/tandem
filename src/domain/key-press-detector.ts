@@ -1,4 +1,5 @@
 import * as Rx from 'rxjs/Rx';
+
 import {KeyDownEvent, KeyUpEvent} from './keyboard';
 
 export interface KeyPressDetector {
