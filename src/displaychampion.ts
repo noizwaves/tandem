@@ -5,7 +5,7 @@ import * as DisplayChampionIPC from './displaychampion.ipc';
 import {getLogger} from './logging';
 import {HostPeer} from './peer/host-peer';
 import {JoinPeer} from './peer/join-peer';
-import {OptimalKeyPressDetectorFactory} from './platform/optimal-key-press-detector-factory';
+import {OptimalDetectorFactory} from './platform/optimal-detector-factory';
 
 const logger = getLogger();
 
@@ -82,7 +82,7 @@ DisplayChampionIPC.RequestAnswer.on(ipc, offer => {
   show("#remote-screen");
   const remoteScreen = <HTMLMediaElement> document.querySelector('#remote-screen');
 
-  const detectorFactory = new OptimalKeyPressDetectorFactory(externalKeyboardDetected, ipc, window);
+  const detectorFactory = new OptimalDetectorFactory(externalKeyboardDetected, ipc, window, remoteScreen);
   joinPeer = new JoinPeer(iceServers, remoteScreen, detectorFactory);
 
   joinPeer.answer.subscribe(data => {
