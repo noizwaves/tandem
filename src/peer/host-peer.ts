@@ -1,7 +1,6 @@
 import {CursorMover} from '../domain/cursor-mover';
 import {KeyPresser} from '../domain/key-presser';
-import {RobotKeyPresser} from '../platform/robot-key-presser';
-import {RobotCursorMover} from '../platform/robot-cursor-mover';
+import {ActuatorFactory} from '../domain/actuator-factory';
 
 import * as Peer from 'simple-peer';
 import * as PeerMsgs from '../peer-msgs';
@@ -22,15 +21,15 @@ export class HostPeer {
 
   private readonly p: Peer;
 
-  constructor(iceServers, screenStream) {
+  constructor(iceServers, screenStream, actuatorFactory: ActuatorFactory) {
     const offer = new Rx.Subject<any>();
     this.offer = offer;
 
     const connected = new Rx.Subject<boolean>();
     this.connected = connected;
 
-    this.keyPresser = new RobotKeyPresser();
-    this.cursorMover = new RobotCursorMover();
+    this.keyPresser = actuatorFactory.getKeyPresser();
+    this.cursorMover = actuatorFactory.getCursorMover();
 
     const p = new Peer({
       config: {
