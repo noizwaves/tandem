@@ -1,4 +1,4 @@
-import {ButtonType as CursorMoverButtonType, CursorMover} from '../domain/cursor-mover';
+import {CursorMover} from '../domain/cursor-mover';
 import {KeyPresser} from '../domain/key-presser';
 import {RobotKeyPresser} from '../platform/robot-key-presser';
 import {RobotCursorMover} from '../platform/robot-cursor-mover';
@@ -100,42 +100,15 @@ export class HostPeer {
         break;
       case PeerMsgs.MouseDown.type:
         const mouseDownMsg = PeerMsgs.MouseDown.unpack(message);
-
-        let downButtonType: CursorMoverButtonType = null;
-        try {
-          downButtonType = toCursorMoverButtonType(mouseDownMsg.button);
-        } catch (e) {
-          logger.error(`[HostPeer] '${PeerMsgs.MouseDown.type}' error, ${e.message}`);
-          return;
-        }
-
-        this.cursorMover.buttonDown(mouseDownMsg.x, mouseDownMsg.y, downButtonType);
+        this.cursorMover.buttonDown(mouseDownMsg.x, mouseDownMsg.y, mouseDownMsg.button);
         break;
       case PeerMsgs.MouseUp.type:
         const mouseUpMsg = PeerMsgs.MouseUp.unpack(message);
-
-        let upButtonType: CursorMoverButtonType = null;
-        try {
-          upButtonType = toCursorMoverButtonType(mouseUpMsg.button);
-        } catch (e) {
-          logger.error(`[HostPeer] '${PeerMsgs.MouseUp.type}' error, ${e.message}`);
-          return;
-        }
-
-        this.cursorMover.buttonUp(mouseUpMsg.x, mouseUpMsg.y, upButtonType);
+        this.cursorMover.buttonUp(mouseUpMsg.x, mouseUpMsg.y, mouseUpMsg.button);
         break;
       case PeerMsgs.DoubleClick.type:
         const dblClkMsg = PeerMsgs.DoubleClick.unpack(message);
-
-        let dblClickButton: CursorMoverButtonType = null;
-        try {
-          dblClickButton = toCursorMoverButtonType(dblClkMsg.button);
-        } catch (e) {
-          logger.error(`[HostPeer] '${PeerMsgs.DoubleClick.type} error, ${e.message}`);
-          return;
-        }
-
-        this.cursorMover.doubleClick(dblClkMsg.x, dblClkMsg.y, dblClickButton);
+        this.cursorMover.doubleClick(dblClkMsg.x, dblClkMsg.y, dblClkMsg.button);
         break;
       case PeerMsgs.Scroll.type:
         const scrollMsg = PeerMsgs.Scroll.unpack(message);
@@ -156,17 +129,3 @@ export class HostPeer {
     return result;
   }
 }
-
-function toCursorMoverButtonType(button: PeerMsgs.MouseButton): CursorMoverButtonType {
-  switch (button) {
-    case PeerMsgs.MouseButton.LEFT:
-      return CursorMoverButtonType.LEFT;
-    case PeerMsgs.MouseButton.MIDDLE:
-      return CursorMoverButtonType.MIDDLE;
-    case PeerMsgs.MouseButton.RIGHT:
-      return CursorMoverButtonType.RIGHT;
-    default:
-      throw new Error(`Unknown message button type '${button}', cannot map`);
-  }
-}
-

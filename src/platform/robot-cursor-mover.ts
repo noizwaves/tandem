@@ -1,6 +1,7 @@
 import * as robot from 'robotjs';
 
-import {ButtonType, CursorMover} from '../domain/cursor-mover';
+import {CursorMover} from '../domain/cursor-mover';
+import {MouseButton} from '../domain/mouse';
 import {getLogger} from '../logging';
 
 const logger = getLogger();
@@ -17,16 +18,16 @@ export class RobotCursorMover implements CursorMover {
     const moveX = Math.round(x * screen.width);
     const moveY = Math.round(y * screen.height);
 
-    logger.debug(`[RobotCursorMover] move to rel(${x},${y}) abs(${moveX},${moveY})`);
-
     if (!this._buttonDown) {
+      logger.debug(`[RobotCursorMover] move to rel(${x},${y}) abs(${moveX},${moveY})`);
       robot.moveMouse(moveX, moveY);
     } else {
+      logger.debug(`[RobotCursorMover] drag to rel(${x},${y}) abs(${moveX},${moveY})`);
       robot.dragMouse(moveX, moveY);
     }
   }
 
-  buttonDown(x: number, y: number, button: ButtonType): void {
+  buttonDown(x: number, y: number, button: MouseButton): void {
     logger.debug(`[RobotCursorMover] mouseDown of button '${button.toString()}'`);
 
     let robotButton: string = null;
@@ -43,7 +44,7 @@ export class RobotCursorMover implements CursorMover {
     this._buttonDown = true;
   }
 
-  buttonUp(x: number, y: number, button: ButtonType): void {
+  buttonUp(x: number, y: number, button: MouseButton): void {
     logger.debug(`[RobotCursorMover] mouseUp of button '${button.toString()}'`);
 
     let robotButton: string = null;
@@ -60,7 +61,7 @@ export class RobotCursorMover implements CursorMover {
     this._buttonDown = false;
   }
 
-  doubleClick(x: number, y: number, button: ButtonType): void {
+  doubleClick(x: number, y: number, button: MouseButton): void {
     logger.debug(`[RobotCursorMover] double click of button '${button.toString()}'`);
 
     let robotButton: string = null;
@@ -79,13 +80,13 @@ export class RobotCursorMover implements CursorMover {
     robot.scrollMouse(xDelta, yDelta);
   }
 
-  private static toRobotButtonString(button: ButtonType) {
+  private static toRobotButtonString(button: MouseButton) {
     switch (button) {
-      case ButtonType.LEFT:
+      case MouseButton.LEFT:
         return 'left';
-      case ButtonType.MIDDLE:
+      case MouseButton.MIDDLE:
         return 'middle';
-      case ButtonType.RIGHT:
+      case MouseButton.RIGHT:
         return 'right';
       default:
         throw new Error(`Unhandled ButtonType '${button}'`);
