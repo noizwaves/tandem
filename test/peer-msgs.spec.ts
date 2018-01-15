@@ -2,11 +2,9 @@ import {expect, use as chaiUse} from 'chai';
 import 'mocha';
 import * as sinon from 'sinon';
 
-import {
-  DoubleClick, KeyDown, KeyUp, MouseButton, MouseDown, MouseMove, MouseUp, ScreenSize,
-  Scroll,
-} from '../src/peer-msgs';
+import {DoubleClick, KeyDown, KeyUp, MouseDown, MouseMove, MouseUp, ScreenSize, Scroll,} from '../src/peer-msgs';
 import {KeyCode, ModifierCode} from '../src/domain/keyboard';
+import {MouseButton} from '../src/domain/mouse';
 
 chaiUse(require('sinon-chai'));
 
@@ -66,9 +64,9 @@ describe('peer-msgs', () => {
     });
 
     it('unpacks an object', () => {
-      const result = MouseUp.unpack({x: 0.12, y: 0.9, b: 'left'});
+      const result = MouseUp.unpack({x: 0.12, y: 0.9, b: 'middle'});
 
-      expect(result).to.deep.equal({x: 0.12, y: 0.9, button: MouseButton.LEFT});
+      expect(result).to.deep.equal({x: 0.12, y: 0.9, button: MouseButton.MIDDLE});
     });
   });
 
@@ -76,9 +74,9 @@ describe('peer-msgs', () => {
     it('sends the expected JSON message', () => {
       const peer = {send: sinon.stub()};
 
-      DoubleClick.send(peer, {x: 0.7, y: 0.333, button: MouseButton.LEFT});
+      DoubleClick.send(peer, {x: 0.7, y: 0.333, button: MouseButton.RIGHT});
 
-      expect(peer.send).to.have.been.calledWith('{"t":"dblclk","x":0.7,"y":0.333,"b":"left"}');
+      expect(peer.send).to.have.been.calledWith('{"t":"dblclk","x":0.7,"y":0.333,"b":"right"}');
     });
 
     it('has the correct type', () => {

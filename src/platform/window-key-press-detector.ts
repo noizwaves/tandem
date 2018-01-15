@@ -56,7 +56,6 @@ export class WindowKeyPressDetector implements KeyPressDetector {
 
       const modifiers = Array.from(this._heldModifiers.values());
       this._keyUp.next({key: <KeyCode> rawCode, modifiers});
-      logger.debug(`[WindowKeyPressDetector] Key up with modifiers`);
       logger.debugSensitive('[WindowKeyPressDetector] Key up', rawCode);
       logger.debugSensitive('[WindowKeyPressDetector] ... with modifiers', modifiers);
     };

@@ -1,6 +1,10 @@
 import * as Rx from 'rxjs';
 
-export enum MouseButton {LEFT, MIDDLE, RIGHT}
+export enum MouseButton {
+  LEFT = 'left',
+  MIDDLE = 'middle',
+  RIGHT = 'right',
+}
 
 export enum MouseButtonDirection {UP, DOWN}
 

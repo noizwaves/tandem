@@ -1,4 +1,5 @@
 import {KeyCode, Modifiers} from './domain/keyboard';
+import {MouseButton} from './domain/mouse';
 
 
 export interface PeerMessageChannel<T> {
@@ -41,7 +42,7 @@ export interface MouseButtonMessage {
   button: MouseButton;
 }
 
-export enum MouseButton {
+export enum DeprecatedMouseButton {
   LEFT = 'left',
   MIDDLE = 'middle',
   RIGHT = 'right',
@@ -62,7 +63,6 @@ class MouseDownChannel implements PeerMessageChannel<MouseButtonMessage> {
     const button = <MouseButton> (<any>message).b;
     return {x, y, button};
   }
-
 }
 
 export const MouseDown: PeerMessageChannel<MouseButtonMessage> = new MouseDownChannel();
@@ -82,7 +82,6 @@ class MouseUpChannel implements PeerMessageChannel<MouseButtonMessage> {
     const button = <MouseButton> (<any>message).b;
     return {x, y, button};
   }
-
 }
 
 export const MouseUp: PeerMessageChannel<MouseButtonMessage> = new MouseUpChannel();
@@ -102,7 +101,6 @@ class DoubleClickChannel implements PeerMessageChannel<MouseButtonMessage> {
     const button = <MouseButton> (<any>message).b;
     return {x, y, button};
   }
-
 }
 
 export const DoubleClick: PeerMessageChannel<MouseButtonMessage> = new DoubleClickChannel();

@@ -1,6 +1,6 @@
 import {KeyPressDetector} from '../domain/key-press-detector';
 import {KeyDownEvent, KeyUpEvent} from '../domain/keyboard';
-import {MouseButton, MouseButtonDetector} from '../domain/mouse';
+import {MouseButtonDetector} from '../domain/mouse';
 import {MousePositionDetector} from '../domain/mouse-position-detector';
 import {MouseWheelDetector} from '../domain/mouse-wheel-detector';
 import {DetectorFactory} from '../domain/detector-factory';
@@ -100,6 +100,7 @@ export class JoinPeer {
         this._positionSubscription = this.positionDetector.position.subscribe(mouseMove => {
           const xMove = mouseMove.x / mouseMove.width;
           const yMove = mouseMove.y / mouseMove.height;
+
           PeerMsgs.MouseMove.send(p, {x: xMove, y: yMove});
         });
 
@@ -107,44 +108,20 @@ export class JoinPeer {
           const xDown = event.x / event.width;
           const yDown = event.y / event.height;
 
-          let msgButton: PeerMsgs.MouseButton = null;
-          try {
-            msgButton = toMessageButtonType(event.button);
-          } catch (e) {
-            logger.error(`[JoinPeer] Error getting message button type: ${e.message}`);
-            return;
-          }
-
-          PeerMsgs.MouseDown.send(p, {x: xDown, y: yDown, button: msgButton});
+          PeerMsgs.MouseDown.send(p, {x: xDown, y: yDown, button: event.button});
         });
         this._upButtonSubscription = this.buttonDetector.up.subscribe(event => {
           const xDown = event.x / event.width;
           const yDown = event.y / event.height;
 
-          let msgButton: PeerMsgs.MouseButton = null;
-          try {
-            msgButton = toMessageButtonType(event.button);
-          } catch (e) {
-            logger.error(`[JoinPeer] Error getting message button type: ${e.message}`);
-            return;
-          }
-
-          PeerMsgs.MouseUp.send(p, {x: xDown, y: yDown, button: msgButton});
+          PeerMsgs.MouseUp.send(p, {x: xDown, y: yDown, button: event.button});
         });
 
         this._doubleClickSubscription = this.buttonDetector.double.subscribe(event => {
           const xDown = event.x / event.width;
           const yDown = event.y / event.height;
 
-          let msgButton: PeerMsgs.MouseButton = null;
-          try {
-            msgButton = toMessageButtonType(event.button);
-          } catch (e) {
-            logger.error(`[JoinPeer] Error getting message button type: ${e.message}`);
-            return;
-          }
-
-          PeerMsgs.DoubleClick.send(p, {x: xDown, y: yDown, button: msgButton});
+          PeerMsgs.DoubleClick.send(p, {x: xDown, y: yDown, button: event.button});
         });
 
         this._wheelChangeSubscription = this.wheelDetector.wheelChange.subscribe((wheelDelta) => {
@@ -221,18 +198,5 @@ export class JoinPeer {
     this.positionDetector.dispose();
     this.wheelDetector.dispose();
     this.keyPressDetector.dispose();
-  }
-}
-
-function toMessageButtonType(button: MouseButton): PeerMsgs.MouseButton {
-  switch (button) {
-    case MouseButton.LEFT:
-      return PeerMsgs.MouseButton.LEFT;
-    case MouseButton.MIDDLE:
-      return PeerMsgs.MouseButton.MIDDLE;
-    case MouseButton.RIGHT:
-      return PeerMsgs.MouseButton.RIGHT;
-    default:
-      throw new Error(`Unknown MouseButton value '${button}', cannot map`);
   }
 }
