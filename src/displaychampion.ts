@@ -6,6 +6,7 @@ import {getLogger} from './logging';
 import {HostPeer} from './peer/host-peer';
 import {JoinPeer} from './peer/join-peer';
 import {OptimalDetectorFactory} from './platform/optimal-detector-factory';
+import {RobotActuatorFactory} from './platform/robot-actuator-factory';
 
 const logger = getLogger();
 
@@ -38,7 +39,7 @@ function getScreenStream(): Promise<any> {
           video: video
         })
         .then(function (stream) {
-          resolve(stream)
+          resolve(stream);
         })
         .catch(function (err) {
           logger.error(`getUserMedia: ${err}`);
@@ -65,7 +66,9 @@ DisplayChampionIPC.ReadyToJoin.on(ipc, (clientIceServers) => {
 let hostPeer: HostPeer;
 DisplayChampionIPC.RequestOffer.on(ipc, async () => {
   const screenStream = await getScreenStream();
-  hostPeer = new HostPeer(iceServers, screenStream);
+  const actuatorFactory = new RobotActuatorFactory();
+
+  hostPeer = new HostPeer(iceServers, screenStream, actuatorFactory);
 
   hostPeer.offer.subscribe(offer => {
     const encodedOffer = JSON.stringify(offer);
@@ -79,7 +82,7 @@ DisplayChampionIPC.RequestOffer.on(ipc, async () => {
 
 let joinPeer: JoinPeer;
 DisplayChampionIPC.RequestAnswer.on(ipc, offer => {
-  show("#remote-screen");
+  show('#remote-screen');
   const remoteScreen = <HTMLMediaElement> document.querySelector('#remote-screen');
 
   const detectorFactory = new OptimalDetectorFactory(externalKeyboardDetected, ipc, window, remoteScreen);
