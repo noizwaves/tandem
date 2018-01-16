@@ -19,10 +19,8 @@ export class RobotCursorMover implements CursorMover {
     const moveY = Math.round(y * screen.height);
 
     if (!this._buttonDown) {
-      logger.debug(`[RobotCursorMover] move to rel(${x},${y}) abs(${moveX},${moveY})`);
       robot.moveMouse(moveX, moveY);
     } else {
-      logger.debug(`[RobotCursorMover] drag to rel(${x},${y}) abs(${moveX},${moveY})`);
       robot.dragMouse(moveX, moveY);
     }
   }
