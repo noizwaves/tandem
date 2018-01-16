@@ -59,8 +59,6 @@ let displayChampionWindow: BrowserWindow;
 let receptionWindow: BrowserWindow;
 let tray: Tray;
 
-let sessionAsJoiner = false;
-
 let userSaysQuit = false;
 
 let keyboard: Keyboard = null;
@@ -211,9 +209,6 @@ function checkForUpdates() {
   });
 }
 
-if (process.platform === 'darwin') {
-  app.dock.setIcon(path.join(__dirname, 'icons', 'idle.png'));
-}
 
 app.commandLine.appendSwitch('--disable-renderer-backgrounding');
 if (isDebugToolsEnabled()) {
@@ -255,6 +250,9 @@ app.on('before-quit', () => {
 });
 
 // Host/client discovery
+let sessionAsJoiner = false;
+let sessionAsHost = false;
+
 ReceptionIPC.ReadyToHost.on(ipc, function (iceServers) {
   DisplayChampionIPC.ReadyToHost.send(displayChampionWindow, iceServers);
 });
@@ -267,6 +265,8 @@ ReceptionIPC.ReadyToJoin.on(ipc, function (iceServers) {
 ReceptionIPC.RequestOffer.on(ipc, function () {
   logger.info('[main] Getting offer from DisplayChampion...');
   tray.setImage(path.join(__dirname, 'icons', 'busy.png'));
+
+  sessionAsHost = true;
 
   DisplayChampionIPC.RequestOffer.send(displayChampionWindow);
 });
@@ -315,7 +315,7 @@ DisplayChampionIPC.ScreenSize.on(ipc, function (dimensions) {
 DisplayChampionIPC.ConnectionStateChanged.on(ipc, function (connected) {
   ReceptionIPC.ConnectionStateChanged.send(receptionWindow, connected);
 
-  if (!sessionAsJoiner) {
+  if (sessionAsHost) {
     if (connected) {
       const connectedNotification = new Notification({
         title: 'Session started',
@@ -332,18 +332,19 @@ DisplayChampionIPC.ConnectionStateChanged.on(ipc, function (connected) {
   }
 
   if (!connected) {
-    logger.info('[main] Disconnected');
-
-    tray.setImage(path.join(__dirname, 'icons', 'idle.png'));
-
     if (sessionAsJoiner) {
       // TODO: encapsulate this inside of a DisplayChampion Window class
-      sessionAsJoiner = false;
       if (keyboard) {
         keyboard.unplug();
       }
       displayChampionWindow.hide();
     }
+
+    logger.info('[main] Disconnected');
+    sessionAsJoiner = false;
+    sessionAsHost = false;
+
+    tray.setImage(path.join(__dirname, 'icons', 'idle.png'));
   }
 });
 
