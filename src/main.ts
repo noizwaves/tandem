@@ -1,4 +1,4 @@
-import {app, BrowserWindow, ipcMain as ipc, Menu, Tray, screen as electronScreen} from 'electron';
+import {app, BrowserWindow, ipcMain as ipc, Menu, Notification, screen as electronScreen, Tray} from 'electron';
 import * as Rx from 'rxjs';
 import {Keyboard} from './domain/keyboard';
 import {KeyDownChannel, KeyUpChannel} from './keyboard.ipc';
@@ -314,6 +314,22 @@ DisplayChampionIPC.ScreenSize.on(ipc, function (dimensions) {
 
 DisplayChampionIPC.ConnectionStateChanged.on(ipc, function (connected) {
   ReceptionIPC.ConnectionStateChanged.send(receptionWindow, connected);
+
+  if (!sessionAsJoiner) {
+    if (connected) {
+      const connectedNotification = new Notification({
+        title: 'Session started',
+        body: 'Your pair has connected',
+      });
+      connectedNotification.show();
+    } else {
+      const disconnectedNotification = new Notification({
+        title: 'Session ended',
+        body: 'Your pair has disconnected',
+      });
+      disconnectedNotification.show();
+    }
+  }
 
   if (!connected) {
     logger.info('[main] Disconnected');
