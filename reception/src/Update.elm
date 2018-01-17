@@ -120,10 +120,8 @@ update msg model =
         case model.name of
           ValidName name ->
             case model.intent of
-              Connected PreviouslyHosting nameInformation ->
-                ( { model | intent = Browsing Nothing }, sendLeaveIntent name)
-              Connected PreviouslyJoining nameInformation ->
-                ( { model | intent = Browsing Nothing }, sendLeaveIntent name)
+              Connected _ nameInformation ->
+                ( { model | intent = Browsing (Just nameInformation) }, sendLeaveIntent name)
               _ ->
                 ( model, Cmd.none )
           _ ->
@@ -148,7 +146,7 @@ debounceNameConfig =
 
 save : ValidatedName -> Cmd Msg
 save name =
-    Task.perform SetThrottledName (Task.succeed name)
+  Task.perform SetThrottledName (Task.succeed name)
 
 
 initiateHandshakeIfRequired : NameInformation -> Cmd Msg
