@@ -1,5 +1,5 @@
 {
-    "version": "0.3.2-dev",
+    "version": "0.3.2",
     "summary": "Remote pair programming tool",
     "repository": "https://github.com/noizwaves/tandem.git",
     "license": "UNLICENSED",
