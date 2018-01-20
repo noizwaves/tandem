@@ -5,6 +5,9 @@ import {MousePositionDetector} from '../domain/mouse-position-detector';
 import {MouseWheelDetector} from '../domain/mouse-wheel-detector';
 import {DetectorFactory} from '../domain/detector-factory';
 
+import {JoinerPeerStatisticsSource} from '../platform/statistics/joiner-peer-statistics-source';
+import {JoinerStatisticsSource} from '../domain/connection-statistics';
+
 import * as Peer from 'simple-peer';
 import * as PeerMsgs from '../peer-msgs';
 import * as Rx from 'rxjs/Rx';
@@ -37,6 +40,8 @@ export class JoinPeer {
   private _wheelChangeSubscription: Rx.Subscription;
   private _keyUpSubscription: Rx.Subscription;
   private _keyDownSubscription: Rx.Subscription;
+
+  private _statsSubscription: Rx.Subscription;
 
   constructor(iceServers, remoteScreen: HTMLMediaElement, detectorFactory: DetectorFactory) {
     const answer = new Rx.Subject<any>();
@@ -96,6 +101,11 @@ export class JoinPeer {
       remoteScreen.srcObject = stream;
       remoteScreen.onloadedmetadata = () => {
         remoteScreen.play();
+
+        const source: JoinerStatisticsSource = new JoinerPeerStatisticsSource(p);
+        this._statsSubscription = source.statistics.subscribe(stats => {
+          logger.debug(`[JoinPeer] stats: ${JSON.stringify(stats)}`);
+        });
 
         this._positionSubscription = this.positionDetector.position.subscribe(mouseMove => {
           const xMove = mouseMove.x / mouseMove.width;
@@ -192,6 +202,9 @@ export class JoinPeer {
     }
     if (this._keyDownSubscription) {
       this._keyDownSubscription.unsubscribe();
+    }
+    if (this._statsSubscription) {
+      this._statsSubscription.unsubscribe();
     }
 
     this.buttonDetector.dispose();
