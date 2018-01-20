@@ -75,21 +75,26 @@ view model =
       NoUpdatesAvailable ->
         text ""
 
-    randomButton =
-      button [ type_ "button", class "random-button", onClick GenerateRandomName, disabled (not inputEnabled) ]
-        [ i [ class "fas fa-random", title "Generate random name" ] [] ]
+    randomButton = case model.intent of
+      Browsing _ ->
+        button [ type_ "button", class "random-button", onClick GenerateRandomName   ]
+          [ i [ class "fas fa-random", title "Generate random name" ] [] ]
+      _ ->
+        text ""
+
+    nameInput = input
+      [ autofocus True
+      , class inputClass
+      , placeholder "Enter session name to begin"
+      , type_ "text"
+      , onInput RawNameChanged
+      , disabled (not inputEnabled)
+      , value model.rawName
+      ]
+      [ ]
 
     nameForm = form formAttrs
-      [ input
-        [ autofocus True
-        , class inputClass
-        , placeholder "Enter session name to begin"
-        , type_ "text"
-        , onInput RawNameChanged
-        , disabled (not inputEnabled)
-        , value model.rawName
-        ]
-        [ ]
+      [ nameInput
       , randomButton
       , nameErrorMessage
       , div [ class "start-buttons" ] buttons
