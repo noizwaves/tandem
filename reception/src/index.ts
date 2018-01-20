@@ -1,4 +1,4 @@
-import {ipcRenderer as ipc} from 'electron';
+import {ipcRenderer as ipc, shell} from 'electron';
 import * as ReceptionIPC from '../../src/reception.ipc';
 
 require('./style/main.scss');
@@ -33,6 +33,18 @@ app.ports.requestProcessTrust.subscribe(function() {
 
 ReceptionIPC.ProcessTrust.on(ipc, function(processTrust: boolean) {
   app.ports.updateProcessTrust.send(processTrust);
+});
+
+app.ports.openExternalWebsite.subscribe((websiteCode: string) => {
+  const help = 'https://tandem.stream/help';
+  switch (websiteCode) {
+    case 'MacOsAccessibilityHow':
+      shell.openExternal(`${help}/macos/how-to-enable-accessibility.html`);
+      break;
+    case 'MacOsAccessibilityWhy':
+      shell.openExternal(`${help}/macos/why-tandem-needs-accessibility.html`);
+      break;
+  }
 });
 
 

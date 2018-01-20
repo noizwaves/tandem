@@ -12,6 +12,8 @@ type Msg
   | SetThrottledName ValidatedName
 
   | UpdateProcessTrust Bool
+  | ShowMacOsAccessibilityHow
+  | ShowMacOsAccessibilityWhy
 
   | ReceiveApiMessage String
 
