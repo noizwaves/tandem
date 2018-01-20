@@ -19,6 +19,7 @@ suite =
 standardModel : Model
 standardModel =
   { appUpdates = UpdateStatusUnknown
+  , rawName = "foo"
   , name = ValidName "foo"
   , nameDebouncer = Debounce.init
   , throttledName = ValidName "foo"

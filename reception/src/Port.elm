@@ -6,6 +6,7 @@ port appUpdateAvailable : (Bool -> msg) -> Sub msg
 
 port requestProcessTrust : Bool -> Cmd msg
 port updateProcessTrust : (Bool -> msg) -> Sub msg
+port openExternalWebsite : String -> Cmd msg
 
 port readyToHost : NameInformation -> Cmd msg
 port readyToJoin : NameInformation -> Cmd msg

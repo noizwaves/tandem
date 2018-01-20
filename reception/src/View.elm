@@ -1,8 +1,8 @@
 module View exposing (..)
 
-import Html exposing (Html, button, div, form, i, text, input, span)
-import Html.Attributes exposing (title, autofocus, class, value, disabled, type_, placeholder)
-import Html.Events exposing (onClick, onInput, onSubmit)
+import Html exposing (Html, a, button, div, form, i, text, input, span)
+import Html.Attributes exposing (title, autofocus, class, href, value, disabled, type_, placeholder)
+import Html.Events exposing (onClick, onInput, onSubmit, onWithOptions)
 
 import Model exposing (..)
 import Message exposing (..)
@@ -58,8 +58,14 @@ view model =
     accessibilityCheck = case model.trust of
       Untrusted ->
         div [ class "accessibility-alert" ]
-          [ text "Enable Accessibility for Tandem in "
-          , span [ class "steps"] [ text "System Preferences > Security & Privacy > Privacy" ]
+          [ text "Tandem needs enhanced accessibility. "
+          , span [ class "steps"]
+            [ text "Read "
+            , button [ class "how-button", onClick ShowMacOsAccessibilityHow ] [ text "how" ]
+            , text " and "
+            , button [ class "why-button", onClick ShowMacOsAccessibilityWhy ] [ text "why" ]
+            , text "."
+            ]
           ]
       TrustUnknown ->
         text ""

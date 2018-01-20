@@ -46,6 +46,10 @@ update msg model =
         trust = if isTrusted then Trusted else Untrusted
       in
         ( { model | trust = trust }, Cmd.none )
+    ShowMacOsAccessibilityHow ->
+      ( model, openExternalWebsite "MacOsAccessibilityHow" )
+    ShowMacOsAccessibilityWhy ->
+      ( model, openExternalWebsite "MacOsAccessibilityWhy" )
 
     ReceiveApiMessage raw ->
       let
