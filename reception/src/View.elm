@@ -1,8 +1,8 @@
 module View exposing (..)
 
-import Html exposing (Html, button, div, form, text, input, span)
-import Html.Attributes exposing (autofocus, class, disabled, type_, placeholder)
-import Html.Events exposing (onInput, onSubmit)
+import Html exposing (Html, button, div, form, i, text, input, span)
+import Html.Attributes exposing (title, autofocus, class, value, disabled, type_, placeholder)
+import Html.Events exposing (onClick, onInput, onSubmit)
 
 import Model exposing (..)
 import Message exposing (..)
@@ -75,6 +75,10 @@ view model =
       NoUpdatesAvailable ->
         text ""
 
+    randomButton =
+      button [ type_ "button", class "random-button", onClick GenerateRandomName, disabled (not inputEnabled) ]
+        [ i [ class "fas fa-random", title "Generate random name" ] [] ]
+
     nameForm = form formAttrs
       [ input
         [ autofocus True
@@ -83,8 +87,10 @@ view model =
         , type_ "text"
         , onInput RawNameChanged
         , disabled (not inputEnabled)
+        , value model.rawName
         ]
         [ ]
+      , randomButton
       , nameErrorMessage
       , div [ class "start-buttons" ] buttons
       ]

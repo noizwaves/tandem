@@ -2,6 +2,9 @@
 @import 'form';
 @import 'alert';
 
+@import 'fontawesome-5.0.4/fontawesome.scss';
+@import 'fontawesome-5.0.4/fa-solid';
+
 body, input {
   font-family: sans-serif;
 }
@@ -28,6 +31,11 @@ body, input {
   .start-buttons {
     margin-top: 10px;
   }
+}
+
+.or-separator {
+  font-size: 12px;
+  margin: 14px;
 }
 
 .name-error {
