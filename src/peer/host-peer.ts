@@ -2,6 +2,9 @@ import {CursorMover} from '../domain/cursor-mover';
 import {KeyPresser} from '../domain/key-presser';
 import {ActuatorFactory} from '../domain/actuator-factory';
 
+import {HostPeerStatisticsSource} from '../platform/statistics/host-peer-statistics-source';
+import {HostStatisticsSource} from '../domain/connection-statistics';
+
 import * as Peer from 'simple-peer';
 import * as PeerMsgs from '../peer-msgs';
 import * as Rx from 'rxjs/Rx';
@@ -20,6 +23,8 @@ export class HostPeer {
   private readonly cursorMover: CursorMover;
 
   private readonly p: Peer;
+
+  private _statsSubscription: Rx.Subscription;
 
   constructor(iceServers, screenStream, actuatorFactory: ActuatorFactory) {
     const offer = new Rx.Subject<any>();
@@ -45,18 +50,24 @@ export class HostPeer {
       offer.next(data);
     });
 
-    p.on('connect', function () {
+    p.on('connect', () => {
       logger.info('[HostPeer] CONNECT');
 
       PeerMsgs.ScreenSize.send(p, {height: screen.height, width: screen.width});
 
+      const statisticsSource: HostStatisticsSource = new HostPeerStatisticsSource(p);
+      this._statsSubscription = statisticsSource.statistics.subscribe((stats) => {
+        logger.debug(`[HostPeer] stats: ${JSON.stringify(stats)}`);
+      });
+
       connected.next(true);
     });
 
-    p.on('close', function () {
+    p.on('close', () => {
       logger.info('[HostPeer] CLOSE');
 
       screenStream.getTracks().forEach(t => t.stop());
+      this.dispose();
 
       connected.next(false);
     });
@@ -77,6 +88,12 @@ export class HostPeer {
 
   public acceptAnswer(answer): void {
     this.p.signal(answer);
+  }
+
+  private dispose() {
+    if (this._statsSubscription) {
+      this._statsSubscription.unsubscribe();
+    }
   }
 
   private handleMessage(data: string) {
