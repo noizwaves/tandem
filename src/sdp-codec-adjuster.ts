@@ -32,3 +32,13 @@ export function preferVP9(sdp: string): string {
     .replace('SAVPF 96 98 100', 'SAVPF 98 96 100')
     .replace('a=rtcp-fb:98 transport-cc', 'a=rtcp-fb:98 transport-cc\r\na=fmtp:98 max-fr=60; max-fs=7200;');
 }
+
+// Cannot be used as an sdpTransform! (use AFTER peer signals)
+export function forceRelay(sdp: string): string {
+  return sdp
+    .split('\n')
+    .filter(line => !(line.startsWith('a=candidate') && line.indexOf('host') > 0))
+    .filter(line => !(line.startsWith('a=candidate') && line.indexOf('srflx') > 0))
+    .filter(line => !(line.startsWith('a=candidate') && line.indexOf('prflx') > 0))
+    .join('\n');
+}

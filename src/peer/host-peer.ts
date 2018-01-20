@@ -47,7 +47,9 @@ export class HostPeer {
     });
 
     p.on('signal', (data) => {
-      offer.next(data);
+      const sdp = data.sdp;
+      // const sdp = forceRelay(data.sdp);
+      offer.next({sdp, type: data.type});
     });
 
     p.on('connect', () => {

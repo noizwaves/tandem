@@ -70,7 +70,9 @@ export class JoinPeer {
     this.p = p;
 
     p.on('signal', (data) => {
-      answer.next(data);
+      const sdp = data.sdp;
+      // const sdp = forceRelay(data.sdp);
+      answer.next({sdp, type: data.type});
     });
 
     p.on('connect', () => {
