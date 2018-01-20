@@ -4,12 +4,14 @@ import Json.Decode as Decode
 
 import Model exposing (..)
 import Message exposing (..)
+import NameGenerator exposing (randomName)
 import Decoder exposing (..)
 import Port exposing (..)
 import Api exposing (..)
 import Debounce exposing (Debounce)
 import Time exposing (millisecond)
 import Task
+import Random
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -21,13 +23,15 @@ update msg model =
       in
         ( { model | appUpdates = updates }, Cmd.none )
 
+    GenerateRandomName ->
+      ( model, Random.generate RawNameChanged randomName )
 
     RawNameChanged userInput ->
       let
         validatedName = validateName userInput
         (debounce, cmd) = Debounce.push debounceNameConfig validatedName model.nameDebouncer
       in
-        ( { model | name = validatedName, throttledName = NoNameEntered, intent = Browsing Nothing, nameDebouncer = debounce }, cmd )
+        ( { model | rawName = userInput, name = validatedName, throttledName = NoNameEntered, intent = Browsing Nothing, nameDebouncer = debounce }, cmd )
     DebouncedNameChange msg ->
       let
         doSetThrottledName = \name -> Task.perform SetThrottledName (Task.succeed name)
@@ -36,7 +40,6 @@ update msg model =
         ( { model | nameDebouncer = debounce }, cmd )
     SetThrottledName validatedName ->
       ( { model | throttledName = validatedName }, Cmd.none )
-
 
     UpdateProcessTrust isTrusted ->
       let

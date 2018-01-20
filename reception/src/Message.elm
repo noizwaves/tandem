@@ -6,6 +6,7 @@ import Debounce
 type Msg
   = AppUpdateAvailable Bool
 
+  | GenerateRandomName
   | RawNameChanged String
   | DebouncedNameChange Debounce.Msg
   | SetThrottledName ValidatedName

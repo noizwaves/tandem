@@ -6,6 +6,7 @@ import Debounce
 
 type alias Model =
   { appUpdates: AppUpdateAvailability
+  , rawName: String
   , name: ValidatedName
   , nameDebouncer: Debounce.Debounce ValidatedName
   , throttledName: ValidatedName

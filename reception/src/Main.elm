@@ -16,6 +16,7 @@ init flags =
     connectivity = if flags.online then Online else Offline
   in
     { appUpdates = UpdateStatusUnknown
+    , rawName = ""
     , name = NoNameEntered
     , nameDebouncer = Debounce.init
     , throttledName = NoNameEntered
