@@ -1,6 +1,6 @@
 {
   "name": "tandem",
-  "version": "0.3.2",
+  "version": "0.3.2-dev",
   "description": "Remote pair programming tool",
   "productName": "Tandem",
   "main": "main.js",
