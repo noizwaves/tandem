@@ -11,50 +11,15 @@ import Message exposing (..)
 view : Model -> Html Msg
 view model =
   let
-    (buttons, inputEnabled) = case model.intent of
+    nameForm = case model.intent of
       Browsing name information ->
-        (viewUnconnectedButtons information, True)
-      Hosting name information ->
-        (viewHostingButtons information, False)
+        viewBrowsing name information
       Joining name information ->
-        (viewJoiningButtons information, False)
-      Connected name _ ->
-        ([ text "Connected" ], False)
-
-    inputClass = case model.intent of
-      Browsing name _ ->
-        case name.validated of
-          NoNameEntered -> "name"
-          ValidName _ -> "name"
-          InvalidName _ -> "name invalid"
-      _ ->
-        "name"
-
-    nameErrorMessage = case model.intent of
-      Browsing name _ ->
-        case name.validated of
-          InvalidName reason ->
-            case reason of
-              TooShort ->
-                div [ class "name-error" ] [ text "Session name must be longer than 4 characters" ]
-              InvalidCharacters ->
-                div [ class "name-error" ] [ text "Session name must contain only alpha-numeric characters, dashes, and underscores" ]
-          _ ->
-            text ""
-      _ ->
-        text ""
-
-    noSubmit = onSubmit Cmd.none
-    formAttrs = case model.intent of
-      Browsing name (Just info) ->
-        if info.canHost then
-          [ class "start-form", onSubmit (HostSession info) ]
-        else if info.canJoin then
-          [ class "start-form", onSubmit (JoinSession info) ]
-        else
-          [ class "start-form", onSubmit Noop ]
-      _ ->
-        [ class "start-form", onSubmit Noop ]
+        viewJoining name information
+      Hosting name information ->
+        viewHosting name information
+      Connected name information ->
+        viewConnected name information
 
     connectivityAlert = case model.connectivity of
       Online ->
@@ -89,40 +54,6 @@ view model =
       NoUpdatesAvailable ->
         text ""
 
-    randomButton = case model.intent of
-      Browsing name information ->
-        button [ type_ "button", class "random-button", onClick GenerateRandomName   ]
-          [ i [ class "fas fa-random", title "Generate random name" ] [] ]
-      _ ->
-        text ""
-
-    raw = case model.intent of
-      Browsing name _ ->
-        name.raw
-      Joining name _ ->
-        name
-      Hosting name _ ->
-        name
-      Connected name _ ->
-        name
-
-    nameInput = input
-      [ autofocus True
-      , class inputClass
-      , placeholder "Enter session name to begin"
-      , type_ "text"
-      , onInput RawNameChanged
-      , disabled (not inputEnabled)
-      , value raw
-      ]
-      [ ]
-
-    nameForm = form formAttrs
-      [ nameInput
-      , randomButton
-      , nameErrorMessage
-      , div [ class "start-buttons" ] buttons
-      ]
   in
     div []
       [ appUpdateAlert
@@ -131,9 +62,138 @@ view model =
       , accessibilityCheck
       ]
 
+viewBrowsing : DebouncedValidatedName -> (Maybe NameInformation) -> Html Msg
+viewBrowsing name information =
+  let
+    formAttrs = case information of
+      Just info ->
+        if info.canHost then
+          [ class "start-form", onSubmit (HostSession info) ]
+        else if info.canJoin then
+          [ class "start-form", onSubmit (JoinSession info) ]
+        else
+          [ class "start-form", onSubmit Noop ]
+      Nothing ->
+        [ class "start-form", onSubmit Noop ]
 
-viewUnconnectedButtons : Maybe NameInformation -> List (Html Msg)
-viewUnconnectedButtons information =
+    inputClass = case name.validated of
+      NoNameEntered -> "name"
+      ValidName _ -> "name"
+      InvalidName _ -> "name invalid"
+
+    nameInput = input
+      [ autofocus True
+      , class inputClass
+      , placeholder "Enter session name to begin"
+      , type_ "text"
+      , onInput RawNameChanged
+      , value name.raw
+      ]
+      [ ]
+
+    randomButton = button [ type_ "button", class "random-button", onClick GenerateRandomName ]
+      [ i [ class "fas fa-random", title "Generate random name" ] []
+      ]
+
+    nameErrorMessage = case name.validated of
+      InvalidName reason ->
+        case reason of
+          TooShort ->
+            div [ class "name-error" ]
+              [ text "Session name must be longer than 4 characters" ]
+          InvalidCharacters ->
+            div
+              [ class "name-error" ] [ text "Session name must contain only alpha-numeric characters, dashes, and underscores" ]
+      NoNameEntered ->
+        text ""
+      ValidName _ ->
+        text ""
+
+    buttons = viewBrowsingButtons information
+  in
+    form formAttrs
+      [ nameInput
+      , randomButton
+      , nameErrorMessage
+      , div [ class "start-buttons" ] buttons
+      ]
+
+viewJoining : ValidSessionName -> NameInformation -> Html Msg
+viewJoining name information =
+  let
+    buttons = viewJoiningButtons information
+
+    formAttrs =
+      [ class "start-form"
+      , onSubmit Noop
+      ]
+
+    nameInput = input
+      [ class "name"
+      , placeholder "Enter session name to begin"
+      , type_ "text"
+      , disabled True
+      , value name
+      ]
+      [ ]
+  in
+    form formAttrs
+      [ nameInput
+      , div [ class "start-buttons" ] buttons
+      ]
+
+viewHosting : ValidSessionName -> NameInformation -> Html Msg
+viewHosting name information =
+  let
+    buttons = viewHostingButtons information
+
+    formAttrs =
+      [ class "start-form"
+      , onSubmit Noop
+      ]
+
+    nameInput = input
+      [ class "name"
+      , placeholder "Enter session name to begin"
+      , type_ "text"
+      , disabled True
+      , value name
+      ]
+      [ ]
+  in
+    form formAttrs
+      [ nameInput
+      , div [ class "start-buttons" ] buttons
+      ]
+
+viewConnected : ValidSessionName -> NameInformation -> Html Msg
+viewConnected name information =
+  let
+    formAttrs =
+      [ class "start-form"
+      , onSubmit Noop
+      ]
+
+    nameInput = input
+      [ class "name"
+      , placeholder "Enter session name to begin"
+      , type_ "text"
+      , onInput RawNameChanged
+      , disabled True
+      , value name
+      ]
+      [ ]
+  in
+    form formAttrs
+      [ nameInput
+      , div [ class "start-buttons" ]
+        [ text "Connected"
+        ]
+      ]
+
+
+viewBrowsingButtons : Maybe NameInformation -> List (Html Msg)
+viewBrowsingButtons information =
   case information of
     Nothing ->
       [ ]
