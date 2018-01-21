@@ -31,7 +31,7 @@ view model =
     accessibilityCheck = case model.trust of
       Untrusted ->
         div [ class "accessibility-alert" ]
-          [ text "Tandem needs enhanced accessibility. "
+          [ text "Tandem needs enhanced accessibility. It's easy to enable. "
           , span [ class "steps"]
             [ text "Read "
             , button [ class "how-button", onClick ShowMacOsAccessibilityHow ] [ text "how" ]
