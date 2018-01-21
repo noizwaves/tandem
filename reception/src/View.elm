@@ -188,15 +188,18 @@ viewConnected name information stats =
       Just s ->
         let
           method = case s.method of
-            Direct -> "Direct"
-            Relay -> "Relay"
+            Just Direct -> "Direct"
+            Just Relay -> "Relay"
+            Nothing -> "-"
 
           methodDiv = div [ ]
             [ text "Connection Type: "
             , text method
             ]
 
-          rtt = (toString s.roundTripTime) ++ "ms"
+          rtt = case s.roundTripTimeMs of
+            Just value -> (toString value) ++ "ms"
+            Nothing -> "-"
 
           rttDiv = div [ ]
             [ text "Round Trip Time: "

@@ -148,12 +148,6 @@ export class JoinPeer {
     this.stats = source.statistics
       .do(stats => {
         logger.debug(`[JoinPeer] stats: ${JSON.stringify(stats)}`);
-      })
-      .map(s => {
-        return {
-          roundTripTime: s.roundTripTimeMs,
-          method: s.connection.method,
-        };
       });
   }
 

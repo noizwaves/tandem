@@ -49,8 +49,8 @@ type ConnectionIntent
   | Connected ValidSessionName NameInformation (Maybe ConnectionStats)
 
 type alias ConnectionStats =
-  { method: ConnectionMethod
-  , roundTripTime: Int
+  { method: Maybe ConnectionMethod
+  , roundTripTimeMs: Maybe Int
   }
 
 type ConnectionMethod = Direct | Relay

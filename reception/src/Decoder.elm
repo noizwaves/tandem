@@ -46,8 +46,8 @@ decodeIceServerConfiguration =
 decodeConnectionStats : Decode.Decoder ConnectionStats
 decodeConnectionStats =
   Decode.succeed ConnectionStats
-    |: Decode.field "method" decodeConnectionMethod
-    |: Decode.field "roundTripTime" Decode.int
+    |: Decode.at ["connection", "method"] (Decode.maybe decodeConnectionMethod)
+    |: Decode.field "roundTripTimeMs" (Decode.maybe Decode.int)
 
 decodeConnectionMethod : Decode.Decoder ConnectionMethod
 decodeConnectionMethod =
