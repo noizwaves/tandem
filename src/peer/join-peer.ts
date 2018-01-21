@@ -66,6 +66,8 @@ export class JoinPeer {
       trickle: false
     });
 
+    const source: JoinerStatisticsSource = new JoinerPeerStatisticsSource(p);
+
     this.p = p;
 
     p.on('signal', (data) => {
@@ -143,7 +145,6 @@ export class JoinPeer {
       };
     });
 
-    const source: JoinerStatisticsSource = new JoinerPeerStatisticsSource(p);
     this.stats = source.statistics
       .do(stats => {
         logger.debug(`[JoinPeer] stats: ${JSON.stringify(stats)}`);
