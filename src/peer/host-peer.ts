@@ -25,6 +25,9 @@ export class HostPeer {
 
   private readonly p: Peer;
 
+  private readonly _stats: Rx.Subject<ConnectionSnapshot>;
+  private _statsSubscription: Rx.Subscription;
+
   constructor(iceServers, screenStream, actuatorFactory: ActuatorFactory) {
     const offer = new Rx.Subject<any>();
     this.offer = offer;
@@ -58,6 +61,13 @@ export class HostPeer {
 
       PeerMsgs.ScreenSize.send(p, {height: screen.height, width: screen.width});
 
+      this._statsSubscription = source.statistics
+        .do((stats) => {
+          logger.debug(`[HostPeer] stats: ${JSON.stringify(stats)}`);
+          this._stats.next(stats);
+        })
+        .subscribe();
+
       connected.next(true);
     });
 
@@ -81,10 +91,8 @@ export class HostPeer {
       }
     });
 
-    this.stats = source.statistics
-      .do((stats) => {
-        logger.debug(`[HostPeer] stats: ${JSON.stringify(stats)}`);
-      });
+    this._stats = new Rx.Subject<ConnectionSnapshot>();
+    this.stats = this._stats.asObservable();
 
     this.p = p;
   }
@@ -94,6 +102,10 @@ export class HostPeer {
   }
 
   private dispose() {
+    if (this._statsSubscription) {
+      this._statsSubscription.unsubscribe();
+    }
+    this._stats.complete();
   }
 
   private handleMessage(data: string) {

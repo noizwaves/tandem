@@ -33,6 +33,7 @@ export class JoinPeer {
 
   private readonly _screenSize: Rx.Subject<{ height: number, width: number }>;
   private readonly _connected: Rx.Subject<boolean>;
+  private readonly _stats: Rx.Subject<ConnectionSnapshot>;
 
   private _positionSubscription: Rx.Subscription;
   private _downButtonSubscription: Rx.Subscription;
@@ -41,6 +42,7 @@ export class JoinPeer {
   private _wheelChangeSubscription: Rx.Subscription;
   private _keyUpSubscription: Rx.Subscription;
   private _keyDownSubscription: Rx.Subscription;
+  private _statsSubscription: Rx.Subscription;
 
   constructor(iceServers, remoteScreen: HTMLMediaElement, detectorFactory: DetectorFactory) {
     const answer = new Rx.Subject<any>();
@@ -78,6 +80,13 @@ export class JoinPeer {
 
     p.on('connect', () => {
       logger.info('[JoinPeer] CONNECT');
+
+      this._statsSubscription = source.statistics
+        .do(stats => {
+          logger.debug(`[JoinPeer] stats: ${JSON.stringify(stats)}`);
+          this._stats.next(stats);
+        })
+        .subscribe();
 
       this._connected.next(true);
     });
@@ -145,10 +154,8 @@ export class JoinPeer {
       };
     });
 
-    this.stats = source.statistics
-      .do(stats => {
-        logger.debug(`[JoinPeer] stats: ${JSON.stringify(stats)}`);
-      });
+    this._stats = new Rx.Subject<ConnectionSnapshot>();
+    this.stats = this._stats.asObservable();
   }
 
   public acceptOffer(offer) {
@@ -206,10 +213,14 @@ export class JoinPeer {
     if (this._keyDownSubscription) {
       this._keyDownSubscription.unsubscribe();
     }
+    if (this._statsSubscription) {
+      this._statsSubscription.unsubscribe();
+    }
 
     this.buttonDetector.dispose();
     this.positionDetector.dispose();
     this.wheelDetector.dispose();
     this.keyPressDetector.dispose();
+    this._stats.complete();
   }
 }
