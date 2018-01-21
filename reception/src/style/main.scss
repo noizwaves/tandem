@@ -49,5 +49,28 @@ body, input {
 }
 
 .stats {
-  margin-top: 1rem;
+  margin-top: 6 * $standard-spacing;
+  margin-left: auto;
+  margin-right: auto;
+  text-align: center;
+
+  .stats--title {
+    font-size: $base-font-size;
+  }
+}
+
+.stat {
+  line-height: 2 * $standard-spacing;
+
+  .stat--name, .stat--value {
+    font-size: 0.8 * $base-font-size;
+  }
+
+  .stat--name {
+    color: #888;
+  }
+
+  .stat--value {
+    color: #444;
+  }
 }

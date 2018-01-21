@@ -188,39 +188,35 @@ viewConnected name information stats =
       Just s ->
         let
           method = case s.method of
-            Just Direct -> "Direct"
-            Just Relay -> "Relay"
-            Nothing -> "-"
+            Just Direct -> " (Direct)"
+            Just Relay -> " (Relay)"
+            Nothing -> ""
 
-          methodDiv = div [ ]
-            [ text "Connection Type: "
-            , text method
-            ]
+          statusDiv = div [ ] [ text <| "Connected" ++ method ]
 
           rtt = case s.roundTripTimeMs of
             Just value -> (toString value) ++ "ms"
             Nothing -> "-"
 
-          rttDiv = div [ ]
-            [ text "Round Trip Time: "
-            , text rtt
+          rttDiv = div [ class "stat" ]
+            [ span [ class "stat--name" ] [ text "Round Trip Time: " ]
+            , span [ class "stat--value" ] [ text rtt ]
             ]
         in
           div [ class "stats" ]
-            [ methodDiv
+            [ statusDiv
             , rttDiv
             ]
       Nothing ->
-        div [] [ text "Awaiting stats..." ]
+        div [ class "stats" ]
+          [ text "Connected, awaiting stats..." ]
 
   in
-    form formAttrs
-      [ nameInput
-      , div [ class "start-buttons" ]
-        [ text "Connected"
-        ]
+    div [ ]
+      [ form formAttrs [ nameInput ]
       , statsDiv
       ]
+
 
 
 viewBrowsingButtons : Maybe NameInformation -> List (Html Msg)
