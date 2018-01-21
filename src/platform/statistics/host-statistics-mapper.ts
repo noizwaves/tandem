@@ -12,14 +12,14 @@ export class HostStatisticsMapper implements StatisticsMapper<HostConnectionSnap
 
     const candidatePair = webRtcStats
       .filter(r => r.type === 'candidate-pair')
-      .filter(r => r.id === transport.selectedCandidatePairId)[0];
+      .filter(r => transport && r.id === transport.selectedCandidatePairId)[0];
 
     const outboundRtp = webRtcStats
       .filter(r => r.type === 'outbound-rtp')[0];
 
     const remoteCandidate = webRtcStats
       .filter(r => r.type === 'remote-candidate')
-      .filter(r => r.id === candidatePair.remoteCandidateId)[0];
+      .filter(r => candidatePair && r.id === candidatePair.remoteCandidateId)[0];
 
     const roundTripTimeMs = (candidatePair && candidatePair.currentRoundTripTime)
       ? candidatePair.currentRoundTripTime * 1000
@@ -27,12 +27,19 @@ export class HostStatisticsMapper implements StatisticsMapper<HostConnectionSnap
 
     const bytesSent = outboundRtp ? outboundRtp.bytesSent : null;
 
-    const connection = {
-      protocol: remoteCandidate.protocol === 'udp' ? Protocol.UDP : Protocol.TCP,
-      ip: remoteCandidate.ip,
-      port: remoteCandidate.port,
-      method: remoteCandidate.candidateType === 'relay' ? Method.Relay : Method.Direct,
-    };
+    const connection = (remoteCandidate)
+      ? {
+        protocol: remoteCandidate.protocol === 'udp' ? Protocol.UDP : Protocol.TCP,
+        ip: remoteCandidate.ip,
+        port: remoteCandidate.port,
+        method: remoteCandidate.candidateType === 'relay' ? Method.Relay : Method.Direct,
+      }
+      : {
+        protocol: null,
+        ip: null,
+        port: null,
+        method: null,
+      };
 
     return {
       roundTripTimeMs,

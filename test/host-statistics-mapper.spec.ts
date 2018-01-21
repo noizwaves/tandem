@@ -9,6 +9,50 @@ chaiUse(require('sinon-chai'));
 
 describe('HostStatisticsMapper', () => {
   describe('parseWebRtcStats', () => {
+    describe('no transport', () => {
+      const result = new HostStatisticsMapper().parseWebRtcStats([
+        {type: 'candidate-pair', id: 'foo'},
+        {type: 'remote-candidate', id:' bar',}
+      ]);
+
+      it('nulls out the roundTripTimeMs', () => {
+        expect(result.roundTripTimeMs).to.be.null;
+      });
+
+      it('nulls out each value in connection', () => {
+        expect(result.connection).to.deep.equal({
+          ip: null,
+          protocol: null,
+          port: null,
+          method: null,
+        });
+      });
+    });
+
+    describe('no selected candidate pair', () => {
+      const noSelectedCandidatePair = [
+        {type: 'transport', selectedCandidatePairId: null},
+        {type: 'candidate-pair', id: 'foo'},
+        {type: 'remote-candidate', id:' bar',}
+      ];
+
+      it('nulls out the roundTripTimeMs', () => {
+        const result = new HostStatisticsMapper().parseWebRtcStats(noSelectedCandidatePair);
+
+        expect(result.roundTripTimeMs).to.be.null;
+      });
+
+      it('nulls out each value in connection', () => {
+        const result = new HostStatisticsMapper().parseWebRtcStats(noSelectedCandidatePair);
+
+        expect(result.connection).to.deep.equal({
+          ip: null,
+          protocol: null,
+          port: null,
+          method: null,
+        });
+      });
+    });
 
     describe('multiple candidate-pair stats', () => {
       const multiplePairsStats = [
@@ -38,7 +82,7 @@ describe('HostStatisticsMapper', () => {
           port: 333,
           method: ConnectionMethod.Relay,
         });
-      })
+      });
     });
 
     describe('handles missing fields', () => {
