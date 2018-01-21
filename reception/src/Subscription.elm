@@ -31,7 +31,7 @@ subscriptions model =
         [ WebSocket.listen (apiUrl ++ name) ReceiveApiMessage ]
       Hosting name _ ->
         [ WebSocket.listen (apiUrl ++ name) ReceiveApiMessage ]
-      Connected name _ _ ->
+      Connected name _ ->
         [ WebSocket.listen (apiUrl ++ name) ReceiveApiMessage ]
   in
     Sub.batch (base ++ sessionWs)

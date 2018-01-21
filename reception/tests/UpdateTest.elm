@@ -13,7 +13,6 @@ import Model exposing
   , DebouncedValidatedName
   , Model
   , NameInformation
-  , PreConnectionIntent(..)
   , ProcessTrustLevel(..)
   , ValidatedName(..)
   )
@@ -54,13 +53,13 @@ connectionStateChangedSuite =
   describe "handling ConnectionStateChanged"
     [ test "disconnected while hosting" <|
       \_ ->
-        { standardModel | intent = Connected "bar123" PreviouslyHosting standardInfo }
+        { standardModel | intent = Connected "bar123" standardInfo }
         |> update (ConnectionStateChanged False)
         |> Tuple.first
         |> Expect.equal { standardModel | intent = Browsing (standardName "bar123") (Just standardInfo) }
     , test "disconnected while joined" <|
       \_ ->
-        { standardModel | intent = Connected "bar123" PreviouslyJoining standardInfo }
+        { standardModel | intent = Connected "bar123" standardInfo }
         |> update (ConnectionStateChanged False)
         |> Tuple.first
         |> Expect.equal { standardModel | intent = Browsing (standardName "bar123") (Just standardInfo) }
