@@ -92,8 +92,8 @@ update msg model =
                 ( { model | intent = Hosting name newInformation }, initiateHandshakeIfRequired newInformation )
               Joining name _ ->
                 ( { model | intent = Joining name newInformation }, Cmd.none )
-              Connected name previous _ ->
-                ( { model | intent = Connected name previous newInformation }, Cmd.none )
+              Connected name _ ->
+                ( { model | intent = Connected name newInformation }, Cmd.none )
           Ok (ApiAnswerRequest offer) ->
             ( model, requestAnswer offer.answerRequest )
           Ok (ApiAnswerResponse answer) ->
@@ -152,16 +152,16 @@ update msg model =
       if connected then
         case model.intent of
           Hosting name nameInformation ->
-            ( { model | intent = Connected name PreviouslyHosting nameInformation }, Cmd.none )
+            ( { model | intent = Connected name nameInformation }, Cmd.none )
           Joining name nameInformation ->
-            ( { model | intent = Connected name PreviouslyJoining nameInformation }, Cmd.none )
+            ( { model | intent = Connected name nameInformation }, Cmd.none )
           Browsing _ _ ->
             ( model, Cmd.none )
-          Connected _ _ _ ->
+          Connected _ _ ->
             ( model, Cmd.none )
       else
         case model.intent of
-          Connected name _ nameInformation ->
+          Connected name nameInformation ->
             let
               browsingName = initNameFromString name
             in

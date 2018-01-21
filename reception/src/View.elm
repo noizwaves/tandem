@@ -18,7 +18,7 @@ view model =
         (viewHostingButtons information, False)
       Joining name information ->
         (viewJoiningButtons information, False)
-      Connected name _ _ ->
+      Connected name _ ->
         ([ text "Connected" ], False)
 
     inputClass = case model.intent of
@@ -103,7 +103,7 @@ view model =
         name
       Hosting name _ ->
         name
-      Connected name _ _ ->
+      Connected name _ ->
         name
 
     nameInput = input

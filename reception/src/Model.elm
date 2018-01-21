@@ -42,15 +42,11 @@ type ApiMessage
   | ApiAnswerRequest AnswerRequest
   | ApiAnswerResponse AnswerResponse
 
-type PreConnectionIntent
-  = PreviouslyHosting
-  | PreviouslyJoining
-
 type ConnectionIntent
   = Browsing DebouncedValidatedName (Maybe NameInformation)
   | Hosting ValidSessionName NameInformation
   | Joining ValidSessionName NameInformation
-  | Connected ValidSessionName PreConnectionIntent NameInformation
+  | Connected ValidSessionName NameInformation
 
 type alias DebouncedValidatedName =
   { raw: String
