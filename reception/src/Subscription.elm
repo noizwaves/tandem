@@ -8,7 +8,6 @@ import Message exposing (..)
 import Port exposing (..)
 
 
-
 subscriptions : Model -> Sub Msg
 subscriptions model =
   let
@@ -16,19 +15,23 @@ subscriptions model =
       [ updateProcessTrust UpdateProcessTrust
       , appUpdateAvailable AppUpdateAvailable
       , connectivityChanged UpdateConnectivity
+      , receiveOffer ReceiveOfferFromDC
+      , receiveAnswer ReceiveAnswerFromDC
+      , connectionStateChanged ConnectionStateChanged
       ]
 
-    room = case model.throttledName of
-      Model.ValidName name ->
-        [ WebSocket.listen (apiUrl ++ name) ReceiveApiMessage
-        , receiveOffer ReceiveOfferFromDC
-        , receiveAnswer ReceiveAnswerFromDC
-        , connectionStateChanged ConnectionStateChanged
-        , updateProcessTrust UpdateProcessTrust
-        ]
-      Model.InvalidName _ ->
-        [ ]
-      Model.NoNameEntered ->
-        []
+    sessionWs = case model.intent of
+      Browsing browsingName _ ->
+        case browsingName.throttled of
+          ValidName name ->
+            [ WebSocket.listen (apiUrl ++ name) ReceiveApiMessage ]
+          _ ->
+            [ ]
+      Joining name _ ->
+        [ WebSocket.listen (apiUrl ++ name) ReceiveApiMessage ]
+      Hosting name _ ->
+        [ WebSocket.listen (apiUrl ++ name) ReceiveApiMessage ]
+      Connected name _ _ ->
+        [ WebSocket.listen (apiUrl ++ name) ReceiveApiMessage ]
   in
-    Sub.batch (base ++ room)
+    Sub.batch (base ++ sessionWs)

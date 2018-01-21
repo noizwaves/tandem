@@ -12,33 +12,41 @@ view : Model -> Html Msg
 view model =
   let
     (buttons, inputEnabled) = case model.intent of
-      Browsing information ->
+      Browsing name information ->
         (viewUnconnectedButtons information, True)
-      Hosting information ->
+      Hosting name information ->
         (viewHostingButtons information, False)
-      Joining information ->
+      Joining name information ->
         (viewJoiningButtons information, False)
-      Connected _ _ ->
+      Connected name _ _ ->
         ([ text "Connected" ], False)
 
-    inputClass = case model.name of
-      NoNameEntered -> "name"
-      ValidName _ -> "name"
-      InvalidName _ -> "name invalid"
+    inputClass = case model.intent of
+      Browsing name _ ->
+        case name.validated of
+          NoNameEntered -> "name"
+          ValidName _ -> "name"
+          InvalidName _ -> "name invalid"
+      _ ->
+        "name"
 
-    nameErrorMessage = case model.name of
-      InvalidName reason ->
-        case reason of
-          TooShort ->
-            div [ class "name-error" ] [ text "Session name must be longer than 4 characters" ]
-          InvalidCharacters ->
-            div [ class "name-error" ] [ text "Session name must contain only alpha-numeric characters, dashes, and underscores" ]
+    nameErrorMessage = case model.intent of
+      Browsing name _ ->
+        case name.validated of
+          InvalidName reason ->
+            case reason of
+              TooShort ->
+                div [ class "name-error" ] [ text "Session name must be longer than 4 characters" ]
+              InvalidCharacters ->
+                div [ class "name-error" ] [ text "Session name must contain only alpha-numeric characters, dashes, and underscores" ]
+          _ ->
+            text ""
       _ ->
         text ""
 
     noSubmit = onSubmit Cmd.none
     formAttrs = case model.intent of
-      Browsing (Just info) ->
+      Browsing name (Just info) ->
         if info.canHost then
           [ class "start-form", onSubmit (HostSession info) ]
         else if info.canJoin then
@@ -82,11 +90,21 @@ view model =
         text ""
 
     randomButton = case model.intent of
-      Browsing _ ->
+      Browsing name information ->
         button [ type_ "button", class "random-button", onClick GenerateRandomName   ]
           [ i [ class "fas fa-random", title "Generate random name" ] [] ]
       _ ->
         text ""
+
+    raw = case model.intent of
+      Browsing name _ ->
+        name.raw
+      Joining name _ ->
+        name
+      Hosting name _ ->
+        name
+      Connected name _ _ ->
+        name
 
     nameInput = input
       [ autofocus True
@@ -95,7 +113,7 @@ view model =
       , type_ "text"
       , onInput RawNameChanged
       , disabled (not inputEnabled)
-      , value model.rawName
+      , value raw
       ]
       [ ]
 

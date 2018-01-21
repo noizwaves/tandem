@@ -27,19 +27,47 @@ update msg model =
       ( model, Random.generate RawNameChanged randomName )
 
     RawNameChanged userInput ->
-      let
-        validatedName = validateName userInput
-        (debounce, cmd) = Debounce.push debounceNameConfig validatedName model.nameDebouncer
-      in
-        ( { model | rawName = userInput, name = validatedName, throttledName = NoNameEntered, intent = Browsing Nothing, nameDebouncer = debounce }, cmd )
-    DebouncedNameChange msg ->
-      let
-        doSetThrottledName = \name -> Task.perform SetThrottledName (Task.succeed name)
-        (debounce, cmd) = Debounce.update debounceNameConfig (Debounce.takeLast doSetThrottledName) msg model.nameDebouncer
-      in
-        ( { model | nameDebouncer = debounce }, cmd )
+      case model.intent of
+        Browsing debouncedName _ ->
+          let
+            validatedName = validateName userInput
+
+            (debounce, cmd) = Debounce.push debounceNameConfig validatedName debouncedName.debouncer
+
+            name =
+              { raw = userInput
+              , validated = validatedName
+              , throttled = NoNameEntered
+              , debouncer = debounce
+              }
+
+            browsing = Browsing name Nothing
+          in
+            ( { model | intent = browsing }, cmd )
+        _ ->
+          ( model, Cmd.none )
+    DebouncedNameChange dmsg ->
+      case model.intent of
+        Browsing debouncedName information ->
+          let
+            doSetThrottledName = \name -> Task.perform SetThrottledName (Task.succeed name)
+            (debounce, cmd) = Debounce.update debounceNameConfig (Debounce.takeLast doSetThrottledName) dmsg debouncedName.debouncer
+            name = { debouncedName | debouncer = debounce }
+            browsing = Browsing name information
+          in
+            ( { model | intent = browsing }, cmd )
+        _ ->
+          ( model, Cmd.none )
     SetThrottledName validatedName ->
-      ( { model | throttledName = validatedName }, Cmd.none )
+      case model.intent of
+        Browsing debouncedName information ->
+          let
+            name = { debouncedName | throttled = validatedName }
+            browsing = Browsing name information
+          in
+            ( { model | intent = browsing }, Cmd.none )
+        _ ->
+          ( model, Cmd.none )
 
     UpdateProcessTrust isTrusted ->
       let
@@ -58,14 +86,14 @@ update msg model =
         case apiMsg of
           Ok (ApiNameInformation newInformation) ->
             case model.intent of
-              Browsing _ ->
-                ( { model | intent = Browsing (Just newInformation) }, Cmd.none )
-              Hosting _ ->
-                ( { model | intent = Hosting newInformation }, initiateHandshakeIfRequired newInformation )
-              Joining _ ->
-                ( { model | intent = Joining newInformation }, Cmd.none )
-              Connected previous _ ->
-                ( { model | intent = Connected previous newInformation }, Cmd.none )
+              Browsing name _ ->
+                ( { model | intent = Browsing name (Just newInformation) }, Cmd.none )
+              Hosting name _ ->
+                ( { model | intent = Hosting name newInformation }, initiateHandshakeIfRequired newInformation )
+              Joining name _ ->
+                ( { model | intent = Joining name newInformation }, Cmd.none )
+              Connected name previous _ ->
+                ( { model | intent = Connected name previous newInformation }, Cmd.none )
           Ok (ApiAnswerRequest offer) ->
             ( model, requestAnswer offer.answerRequest )
           Ok (ApiAnswerResponse answer) ->
@@ -75,62 +103,69 @@ update msg model =
             ( model, Cmd.none )
 
     HostSession information ->
-      case model.name of
-        ValidName name ->
-          ( { model | intent = Hosting information }
-          , Cmd.batch
-            [ sendHostingIntent name
-            , readyToHost information
-            ]
-          )
+      case model.intent of
+        Browsing name _ ->
+          case name.throttled of
+            ValidName name ->
+              ( { model | intent = Hosting name information }
+              , Cmd.batch
+                [ sendHostingIntent name
+                , readyToHost information
+                ]
+              )
+            _ ->
+              ( model, Cmd.none )
         _ ->
           ( model, Cmd.none )
 
     JoinSession information ->
-      case model.name of
-        ValidName name ->
-          ( { model | intent = Joining information }
-          , Cmd.batch
-            [ sendJoiningIntent name
-            , readyToJoin information
-            ]
-          )
+      case model.intent of
+        Browsing name _ ->
+          case name.throttled of
+            ValidName name ->
+              ( { model | intent = Joining name information }
+              , Cmd.batch
+                [ sendJoiningIntent name
+                , readyToJoin information
+                ]
+              )
+            _ ->
+              ( model, Cmd.none )
         _ ->
           ( model, Cmd.none )
 
     ReceiveOfferFromDC offer ->
-      case model.name of
-        ValidName name ->
-          ( model , sendAnswerRequest name offer )
+      case model.intent of
+        Hosting name _ ->
+          ( model, sendAnswerRequest name offer )
         _ ->
           ( model, Cmd.none )
 
     ReceiveAnswerFromDC answer ->
-      case model.name of
-        ValidName name ->
-          ( model , sendAnswerResponse name answer )
+      case model.intent of
+        Joining name _ ->
+          ( model, sendAnswerResponse name answer )
         _ ->
-          ( model , Cmd.none )
+          ( model, Cmd.none )
 
     ConnectionStateChanged connected ->
       if connected then
         case model.intent of
-          Hosting nameInformation ->
-            ( { model | intent = Connected PreviouslyHosting nameInformation }, Cmd.none )
-          Joining nameInformation ->
-            ( { model | intent = Connected PreviouslyJoining nameInformation }, Cmd.none )
-          Browsing _ ->
+          Hosting name nameInformation ->
+            ( { model | intent = Connected name PreviouslyHosting nameInformation }, Cmd.none )
+          Joining name nameInformation ->
+            ( { model | intent = Connected name PreviouslyJoining nameInformation }, Cmd.none )
+          Browsing _ _ ->
             ( model, Cmd.none )
-          Connected _ _ ->
+          Connected _ _ _ ->
             ( model, Cmd.none )
       else
-        case model.name of
-          ValidName name ->
-            case model.intent of
-              Connected _ nameInformation ->
-                ( { model | intent = Browsing (Just nameInformation) }, sendLeaveIntent name)
-              _ ->
-                ( model, Cmd.none )
+        case model.intent of
+          Connected name _ nameInformation ->
+            let
+              browsingName = initNameFromString name
+            in
+              ( { model | intent = Browsing browsingName (Just nameInformation) }, sendLeaveIntent name)
           _ ->
             ( model, Cmd.none )
 
