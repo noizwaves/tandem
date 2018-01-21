@@ -53,13 +53,13 @@ connectionStateChangedSuite =
   describe "handling ConnectionStateChanged"
     [ test "disconnected while hosting" <|
       \_ ->
-        { standardModel | intent = Connected "bar123" standardInfo }
+        { standardModel | intent = Connected "bar123" standardInfo Nothing }
         |> update (ConnectionStateChanged False)
         |> Tuple.first
         |> Expect.equal { standardModel | intent = Browsing (standardName "bar123") (Just standardInfo) }
     , test "disconnected while joined" <|
       \_ ->
-        { standardModel | intent = Connected "bar123" standardInfo }
+        { standardModel | intent = Connected "bar123" standardInfo Nothing }
         |> update (ConnectionStateChanged False)
         |> Tuple.first
         |> Expect.equal { standardModel | intent = Browsing (standardName "bar123") (Just standardInfo) }

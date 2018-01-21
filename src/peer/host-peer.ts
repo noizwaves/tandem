@@ -84,12 +84,6 @@ export class HostPeer {
     this.stats = source.statistics
       .do((stats) => {
         logger.debug(`[HostPeer] stats: ${JSON.stringify(stats)}`);
-      })
-      .map(s => {
-        return {
-          roundTripTime: s.roundTripTimeMs,
-          method: s.connection.method
-        };
       });
 
     this.p = p;
