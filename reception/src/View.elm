@@ -18,8 +18,8 @@ view model =
         viewJoining name information
       Hosting name information ->
         viewHosting name information
-      Connected name information ->
-        viewConnected name information
+      Connected name information stats ->
+        viewConnected name information stats
 
     connectivityAlert = case model.connectivity of
       Online ->
@@ -166,8 +166,8 @@ viewHosting name information =
       , div [ class "start-buttons" ] buttons
       ]
 
-viewConnected : ValidSessionName -> NameInformation -> Html Msg
-viewConnected name information =
+viewConnected : ValidSessionName -> NameInformation -> Maybe ConnectionStats -> Html Msg
+viewConnected name information stats =
   let
     formAttrs =
       [ class "start-form"
@@ -183,12 +183,40 @@ viewConnected name information =
       , value name
       ]
       [ ]
+
+    statsDiv = case stats of
+      Just s ->
+        let
+          method = case s.method of
+            Direct -> "Direct"
+            Relay -> "Relay"
+
+          methodDiv = div [ ]
+            [ text "Connection Type: "
+            , text method
+            ]
+
+          rtt = (toString s.roundTripTime) ++ "ms"
+
+          rttDiv = div [ ]
+            [ text "Round Trip Time: "
+            , text rtt
+            ]
+        in
+          div [ class "stats" ]
+            [ methodDiv
+            , rttDiv
+            ]
+      Nothing ->
+        div [] [ text "Awaiting stats..." ]
+
   in
     form formAttrs
       [ nameInput
       , div [ class "start-buttons" ]
         [ text "Connected"
         ]
+      , statsDiv
       ]
 
 

@@ -3,7 +3,7 @@ import {KeyPresser} from '../domain/key-presser';
 import {ActuatorFactory} from '../domain/actuator-factory';
 
 import {HostPeerStatisticsSource} from '../platform/statistics/host-peer-statistics-source';
-import {HostStatisticsSource} from '../domain/connection-statistics';
+import {ConnectionSnapshot, HostStatisticsSource} from '../domain/connection-statistics';
 
 import * as Peer from 'simple-peer';
 import * as PeerMsgs from '../peer-msgs';
@@ -18,13 +18,12 @@ const logger = getLogger();
 export class HostPeer {
   public readonly offer: Rx.Observable<any>;
   public readonly connected: Rx.Observable<boolean>;
+  public readonly stats: Rx.Observable<ConnectionSnapshot>;
 
   private readonly keyPresser: KeyPresser;
   private readonly cursorMover: CursorMover;
 
   private readonly p: Peer;
-
-  private _statsSubscription: Rx.Subscription;
 
   constructor(iceServers, screenStream, actuatorFactory: ActuatorFactory) {
     const offer = new Rx.Subject<any>();
@@ -46,6 +45,8 @@ export class HostPeer {
       stream: screenStream
     });
 
+    const source: HostStatisticsSource = new HostPeerStatisticsSource(p);
+
     p.on('signal', (data) => {
       const sdp = data.sdp;
       // const sdp = forceRelay(data.sdp);
@@ -56,11 +57,6 @@ export class HostPeer {
       logger.info('[HostPeer] CONNECT');
 
       PeerMsgs.ScreenSize.send(p, {height: screen.height, width: screen.width});
-
-      const statisticsSource: HostStatisticsSource = new HostPeerStatisticsSource(p);
-      this._statsSubscription = statisticsSource.statistics.subscribe((stats) => {
-        logger.debug(`[HostPeer] stats: ${JSON.stringify(stats)}`);
-      });
 
       connected.next(true);
     });
@@ -85,6 +81,17 @@ export class HostPeer {
       }
     });
 
+    this.stats = source.statistics
+      .do((stats) => {
+        logger.debug(`[HostPeer] stats: ${JSON.stringify(stats)}`);
+      })
+      .map(s => {
+        return {
+          roundTripTime: s.roundTripTimeMs,
+          method: s.connection.method
+        };
+      });
+
     this.p = p;
   }
 
@@ -93,9 +100,6 @@ export class HostPeer {
   }
 
   private dispose() {
-    if (this._statsSubscription) {
-      this._statsSubscription.unsubscribe();
-    }
   }
 
   private handleMessage(data: string) {

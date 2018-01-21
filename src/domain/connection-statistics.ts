@@ -1,5 +1,10 @@
 import * as Rx from 'rxjs';
 
+export interface ConnectionSnapshot {
+  readonly roundTripTime: number;
+  readonly method: ConnectionMethod;
+}
+
 export interface JoinerConnectionSnapshot {
   readonly roundTripTimeMs: number;
   readonly connection: Connection;

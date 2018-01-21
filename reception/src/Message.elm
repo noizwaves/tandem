@@ -1,6 +1,6 @@
 module Message exposing (..)
 
-import Model exposing (NameInformation, ValidatedName)
+import Model exposing (NameInformation, ValidatedName, ConnectionStats)
 import Debounce
 
 type Msg
@@ -24,6 +24,7 @@ type Msg
   | ReceiveAnswerFromDC String
 
   | ConnectionStateChanged Bool
+  | ConnectionStatsUpdated String
 
   | UpdateConnectivity Bool
 

@@ -62,7 +62,6 @@ DisplayChampionIPC.ReadyToJoin.on(ipc, (clientIceServers) => {
   iceServers = clientIceServers;
 });
 
-
 let hostPeer: HostPeer;
 DisplayChampionIPC.RequestOffer.on(ipc, async () => {
   const screenStream = await getScreenStream();
@@ -77,6 +76,10 @@ DisplayChampionIPC.RequestOffer.on(ipc, async () => {
 
   hostPeer.connected.subscribe(connected => {
     DisplayChampionIPC.ConnectionStateChanged.send(ipc, connected);
+  });
+
+  hostPeer.stats.subscribe(stats => {
+    DisplayChampionIPC.ConnectionStats.send(ipc, stats);
   });
 });
 
@@ -105,6 +108,10 @@ DisplayChampionIPC.RequestAnswer.on(ipc, offer => {
 
   DisplayChampionIPC.CloseSession.on(ipc, () => {
     joinPeer.disconnect();
+  });
+
+  joinPeer.stats.subscribe(stats => {
+    DisplayChampionIPC.ConnectionStats.send(ipc, stats);
   });
 });
 DisplayChampionIPC.GiveAnswer.on(ipc, answer => {

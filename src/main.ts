@@ -348,6 +348,10 @@ DisplayChampionIPC.ConnectionStateChanged.on(ipc, function (connected) {
   }
 });
 
+DisplayChampionIPC.ConnectionStats.on(ipc, (stats) => {
+  ReceptionIPC.ConnectionStats.send(receptionWindow, stats);
+});
+
 function isDebugToolsEnabled() {
   const raw = process.env.TANDEM_DEBUG_TOOLS;
   const sanitised = (raw || '').toLowerCase();

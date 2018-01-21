@@ -6,7 +6,7 @@ import {MouseWheelDetector} from '../domain/mouse-wheel-detector';
 import {DetectorFactory} from '../domain/detector-factory';
 
 import {JoinerPeerStatisticsSource} from '../platform/statistics/joiner-peer-statistics-source';
-import {JoinerStatisticsSource} from '../domain/connection-statistics';
+import {ConnectionSnapshot, JoinerStatisticsSource} from '../domain/connection-statistics';
 
 import * as Peer from 'simple-peer';
 import * as PeerMsgs from '../peer-msgs';
@@ -22,6 +22,7 @@ export class JoinPeer {
   public readonly answer: Rx.Observable<any>;
   public readonly connected: Rx.Observable<boolean>;
   public readonly screenSize: Rx.Observable<{ height: number, width: number }>;
+  public readonly stats: Rx.Observable<ConnectionSnapshot>;
 
   private readonly p: Peer;
 
@@ -40,8 +41,6 @@ export class JoinPeer {
   private _wheelChangeSubscription: Rx.Subscription;
   private _keyUpSubscription: Rx.Subscription;
   private _keyDownSubscription: Rx.Subscription;
-
-  private _statsSubscription: Rx.Subscription;
 
   constructor(iceServers, remoteScreen: HTMLMediaElement, detectorFactory: DetectorFactory) {
     const answer = new Rx.Subject<any>();
@@ -104,11 +103,6 @@ export class JoinPeer {
       remoteScreen.onloadedmetadata = () => {
         remoteScreen.play();
 
-        const source: JoinerStatisticsSource = new JoinerPeerStatisticsSource(p);
-        this._statsSubscription = source.statistics.subscribe(stats => {
-          logger.debug(`[JoinPeer] stats: ${JSON.stringify(stats)}`);
-        });
-
         this._positionSubscription = this.positionDetector.position.subscribe(mouseMove => {
           const xMove = mouseMove.x / mouseMove.width;
           const yMove = mouseMove.y / mouseMove.height;
@@ -148,6 +142,18 @@ export class JoinPeer {
         });
       };
     });
+
+    const source: JoinerStatisticsSource = new JoinerPeerStatisticsSource(p);
+    this.stats = source.statistics
+      .do(stats => {
+        logger.debug(`[JoinPeer] stats: ${JSON.stringify(stats)}`);
+      })
+      .map(s => {
+        return {
+          roundTripTime: s.roundTripTimeMs,
+          method: s.connection.method,
+        };
+      });
   }
 
   public acceptOffer(offer) {
@@ -204,9 +210,6 @@ export class JoinPeer {
     }
     if (this._keyDownSubscription) {
       this._keyDownSubscription.unsubscribe();
-    }
-    if (this._statsSubscription) {
-      this._statsSubscription.unsubscribe();
     }
 
     this.buttonDetector.dispose();

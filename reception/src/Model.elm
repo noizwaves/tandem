@@ -46,7 +46,14 @@ type ConnectionIntent
   = Browsing DebouncedValidatedName (Maybe NameInformation)
   | Hosting ValidSessionName NameInformation
   | Joining ValidSessionName NameInformation
-  | Connected ValidSessionName NameInformation
+  | Connected ValidSessionName NameInformation (Maybe ConnectionStats)
+
+type alias ConnectionStats =
+  { method: ConnectionMethod
+  , roundTripTime: Int
+  }
+
+type ConnectionMethod = Direct | Relay
 
 type alias DebouncedValidatedName =
   { raw: String

@@ -92,8 +92,8 @@ update msg model =
                 ( { model | intent = Hosting name newInformation }, initiateHandshakeIfRequired newInformation )
               Joining name _ ->
                 ( { model | intent = Joining name newInformation }, Cmd.none )
-              Connected name _ ->
-                ( { model | intent = Connected name newInformation }, Cmd.none )
+              Connected name _ stats ->
+                ( { model | intent = Connected name newInformation stats }, Cmd.none )
           Ok (ApiAnswerRequest offer) ->
             ( model, requestAnswer offer.answerRequest )
           Ok (ApiAnswerResponse answer) ->
@@ -151,22 +151,36 @@ update msg model =
     ConnectionStateChanged connected ->
       if connected then
         case model.intent of
-          Hosting name nameInformation ->
-            ( { model | intent = Connected name nameInformation }, Cmd.none )
-          Joining name nameInformation ->
-            ( { model | intent = Connected name nameInformation }, Cmd.none )
+          Hosting name information ->
+            ( { model | intent = Connected name information Nothing }, Cmd.none )
+          Joining name information ->
+            ( { model | intent = Connected name information Nothing }, Cmd.none )
           Browsing _ _ ->
             ( model, Cmd.none )
-          Connected _ _ ->
+          Connected _ _ _ ->
             ( model, Cmd.none )
       else
         case model.intent of
-          Connected name nameInformation ->
+          Connected name nameInformation _ ->
             let
               browsingName = initNameFromString name
             in
               ( { model | intent = Browsing browsingName (Just nameInformation) }, sendLeaveIntent name)
           _ ->
+            ( model, Cmd.none )
+
+    ConnectionStatsUpdated raw ->
+      let
+        statsUpdate = Decode.decodeString decodeConnectionStats raw
+      in
+        case statsUpdate of
+          Ok stats ->
+            case model.intent of
+              Connected name info _ ->
+                ( { model | intent = Connected name info (Just stats) }, Cmd.none )
+              _ ->
+                ( model, Cmd.none )
+          Err _ ->
             ( model, Cmd.none )
 
     UpdateConnectivity online ->

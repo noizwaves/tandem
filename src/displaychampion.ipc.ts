@@ -1,4 +1,5 @@
 import {TypedMessageChannel, MessageChannel} from './ipc-messaging';
+import {ConnectionSnapshot} from './domain/connection-statistics';
 
 export const RequestOffer = new MessageChannel('dc-request-offer');
 
@@ -17,6 +18,8 @@ export const ExternalKeyboardRequest = new MessageChannel('dc-external-keyboard-
 export const ExternalKeyboardResponse = new TypedMessageChannel<boolean>('dc-external-keyboard-res');
 
 export const ConnectionStateChanged = new TypedMessageChannel<boolean>('dc-connection-state-changed');
+
+export const ConnectionStats = new TypedMessageChannel<ConnectionSnapshot>('dc-conncection-stats');
 
 export const ReadyToHost = new TypedMessageChannel<any[]>('dc-ready-to-host');
 
