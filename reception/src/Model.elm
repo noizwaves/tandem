@@ -6,10 +6,6 @@ import Debounce
 
 type alias Model =
   { appUpdates: AppUpdateAvailability
-  , rawName: String
-  , name: ValidatedName
-  , nameDebouncer: Debounce.Debounce ValidatedName
-  , throttledName: ValidatedName
   , intent: ConnectionIntent
   , trust: ProcessTrustLevel
   , connectivity: ConnectivityLevel
@@ -51,10 +47,16 @@ type PreConnectionIntent
   | PreviouslyJoining
 
 type ConnectionIntent
-  = Browsing (Maybe NameInformation)
-  | Hosting NameInformation
-  | Joining NameInformation
-  | Connected PreConnectionIntent NameInformation
+  = Browsing DebouncedValidatedName (Maybe NameInformation)
+  | Hosting ValidSessionName NameInformation
+  | Joining ValidSessionName NameInformation
+  | Connected ValidSessionName PreConnectionIntent NameInformation
+
+type alias DebouncedValidatedName =
+  { raw: String
+  , validated: ValidatedName
+  , debouncer: Debounce.Debounce ValidatedName
+  , throttled: ValidatedName}
 
 type AppUpdateAvailability
   = UpdateStatusUnknown
@@ -65,14 +67,24 @@ type InvalidNameReason
   = TooShort
   | InvalidCharacters
 
+type alias ValidSessionName = String
+
 type ValidatedName
   = NoNameEntered
   | InvalidName InvalidNameReason
-  | ValidName String
+  | ValidName ValidSessionName
 
 type ConnectivityLevel
   = Online
   | Offline
+
+initNameFromString : String -> DebouncedValidatedName
+initNameFromString value =
+  { raw = value
+  , validated = validateName value
+  , debouncer = Debounce.init
+  , throttled = validateName value
+  }
 
 validCharacters : Regex
 validCharacters =

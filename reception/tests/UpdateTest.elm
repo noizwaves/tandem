@@ -6,7 +6,17 @@ import Test exposing (..)
 import Debounce
 import Update exposing (update)
 import Message exposing (Msg(..))
-import Model exposing (Model, NameInformation, AppUpdateAvailability(..), ValidatedName(..), ConnectionIntent(..), ProcessTrustLevel(..), ConnectivityLevel(..), PreConnectionIntent(..))
+import Model exposing
+  ( AppUpdateAvailability(..)
+  , ConnectionIntent(..)
+  , ConnectivityLevel(..)
+  , DebouncedValidatedName
+  , Model
+  , NameInformation
+  , PreConnectionIntent(..)
+  , ProcessTrustLevel(..)
+  , ValidatedName(..)
+  )
 
 
 suite : Test
@@ -16,14 +26,18 @@ suite =
       [ connectionStateChangedSuite ]
     ]
 
+standardName : String -> DebouncedValidatedName
+standardName value =
+  { raw = value
+  , validated = ValidName value
+  , debouncer = Debounce.init
+  , throttled = ValidName value
+  }
+
 standardModel : Model
 standardModel =
   { appUpdates = UpdateStatusUnknown
-  , rawName = "foo"
-  , name = ValidName "foo"
-  , nameDebouncer = Debounce.init
-  , throttledName = ValidName "foo"
-  , intent = (Browsing Nothing)
+  , intent = Browsing (standardName "foo456") Nothing
   , trust = TrustUnknown
   , connectivity = Online
   }
@@ -40,14 +54,14 @@ connectionStateChangedSuite =
   describe "handling ConnectionStateChanged"
     [ test "disconnected while hosting" <|
       \_ ->
-        { standardModel | intent = Connected PreviouslyHosting standardInfo }
+        { standardModel | intent = Connected "bar123" PreviouslyHosting standardInfo }
         |> update (ConnectionStateChanged False)
         |> Tuple.first
-        |> Expect.equal { standardModel | intent = Browsing (Just standardInfo) }
+        |> Expect.equal { standardModel | intent = Browsing (standardName "bar123") (Just standardInfo) }
     , test "disconnected while joined" <|
       \_ ->
-        { standardModel | intent = Connected PreviouslyJoining standardInfo }
+        { standardModel | intent = Connected "bar123" PreviouslyJoining standardInfo }
         |> update (ConnectionStateChanged False)
         |> Tuple.first
-        |> Expect.equal { standardModel | intent = Browsing (Just standardInfo) }
+        |> Expect.equal { standardModel | intent = Browsing (standardName "bar123") (Just standardInfo) }
     ]

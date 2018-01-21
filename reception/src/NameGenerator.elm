@@ -20,6 +20,7 @@ randomName =
       , "fluffy"
       , "egotistical"
       , "cloudlike"
+      , "crispy"
       ]
 
     nouns = fromList
@@ -33,6 +34,7 @@ randomName =
       , "elk"
       , "moose"
       , "cheetah"
+      , "lentil"
       ]
 
     adjective = randomStringArrayItem adjectives

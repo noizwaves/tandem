@@ -7,20 +7,17 @@ import Model exposing (ProcessTrustLevel(..))
 import Subscription exposing (subscriptions)
 import Update exposing (update)
 import View exposing (view)
-import Debounce
 
 
 init : Flags -> (Model, Cmd Msg)
 init flags =
   let
     connectivity = if flags.online then Online else Offline
+
+    emptyName = initNameFromString ""
   in
     { appUpdates = UpdateStatusUnknown
-    , rawName = ""
-    , name = NoNameEntered
-    , nameDebouncer = Debounce.init
-    , throttledName = NoNameEntered
-    , intent = (Browsing Nothing)
+    , intent = Browsing emptyName Nothing
     , trust = TrustUnknown
     , connectivity = connectivity
     } ! [requestProcessTrust True]
