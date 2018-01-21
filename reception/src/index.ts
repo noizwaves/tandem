@@ -31,11 +31,11 @@ ReceptionIPC.UpdateAvailable.on(ipc, available => {
 });
 
 
-app.ports.requestProcessTrust.subscribe(function() {
+app.ports.requestProcessTrust.subscribe(function () {
   ReceptionIPC.RequestProcessTrust.send(ipc);
 });
 
-ReceptionIPC.ProcessTrust.on(ipc, function(processTrust: boolean) {
+ReceptionIPC.ProcessTrust.on(ipc, function (processTrust: boolean) {
   app.ports.updateProcessTrust.send(processTrust);
 });
 
@@ -52,12 +52,12 @@ app.ports.openExternalWebsite.subscribe((websiteCode: string) => {
 });
 
 
-app.ports.readyToHost.subscribe(function(nameInformation: NameInformation) {
+app.ports.readyToHost.subscribe(function (nameInformation: NameInformation) {
   logger.debug(`[Reception] message on port readyToHost`);
   ReceptionIPC.ReadyToHost.send(ipc, nameInformation.iceServers);
 });
 
-app.ports.readyToJoin.subscribe(function(nameInformation: NameInformation) {
+app.ports.readyToJoin.subscribe(function (nameInformation: NameInformation) {
   logger.debug(`[Reception] message on port readyToJoin`);
   ReceptionIPC.ReadyToJoin.send(ipc, nameInformation.iceServers);
 });
@@ -88,9 +88,15 @@ app.ports.giveAnswer.subscribe(function (answer) {
 });
 
 
-ReceptionIPC.ConnectionStateChanged.on(ipc, function(connected) {
+ReceptionIPC.ConnectionStateChanged.on(ipc, function (connected) {
   logger.debug(`[Reception] ReceptionIPC.ConnectionStateChanged received`);
   app.ports.connectionStateChanged.send(connected);
+});
+
+ReceptionIPC.ConnectionStats.on(ipc, (stats) => {
+  const jsonStats = JSON.stringify(stats);
+  // logger.debugSensitive(`[Reception] ReceptionIPC.ConnectionStats forwarding stats to connectionStatsUpdated`, jsonStats);
+  app.ports.connectionStatsUpdated.send(jsonStats);
 });
 
 

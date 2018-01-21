@@ -41,3 +41,23 @@ decodeIceServerConfiguration =
     |: (Decode.field "urls" Decode.string)
     |: (Decode.field "username" Decode.string)
     |: (Decode.field "credential" Decode.string)
+
+
+decodeConnectionStats : Decode.Decoder ConnectionStats
+decodeConnectionStats =
+  Decode.succeed ConnectionStats
+    |: Decode.field "method" decodeConnectionMethod
+    |: Decode.field "roundTripTime" Decode.int
+
+decodeConnectionMethod : Decode.Decoder ConnectionMethod
+decodeConnectionMethod =
+  Decode.string
+    |> Decode.andThen (\str ->
+      case str of
+        "direct" ->
+          Decode.succeed Direct
+        "relay" ->
+          Decode.succeed Relay
+        unknown ->
+          Decode.fail ("Unknown method: " ++ unknown)
+    )

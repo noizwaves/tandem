@@ -18,6 +18,7 @@ subscriptions model =
       , receiveOffer ReceiveOfferFromDC
       , receiveAnswer ReceiveAnswerFromDC
       , connectionStateChanged ConnectionStateChanged
+      , connectionStatsUpdated ConnectionStatsUpdated
       ]
 
     sessionWs = case model.intent of
@@ -31,7 +32,7 @@ subscriptions model =
         [ WebSocket.listen (apiUrl ++ name) ReceiveApiMessage ]
       Hosting name _ ->
         [ WebSocket.listen (apiUrl ++ name) ReceiveApiMessage ]
-      Connected name _ ->
+      Connected name _ _ ->
         [ WebSocket.listen (apiUrl ++ name) ReceiveApiMessage ]
   in
     Sub.batch (base ++ sessionWs)
