@@ -21,6 +21,7 @@ type alias IceServerConfiguration =
  { urls: String
  , username: String
  , credential: String
+ , location: String
  }
 
 type alias NameInformation =
@@ -50,6 +51,7 @@ type ConnectionIntent
 
 type alias ConnectionStats =
   { method: Maybe ConnectionMethod
+  , relayLocation: Maybe String
   , roundTripTimeMs: Maybe Int
   }
 

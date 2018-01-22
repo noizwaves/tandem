@@ -1,9 +1,10 @@
 import {CursorMover} from '../domain/cursor-mover';
 import {KeyPresser} from '../domain/key-presser';
 import {ActuatorFactory} from '../domain/actuator-factory';
+import {IceServerLocator} from '../domain/ice-server';
+import {ConnectionSnapshot, HostStatisticsSource} from '../domain/connection-statistics';
 
 import {HostPeerStatisticsSource} from '../platform/statistics/host-peer-statistics-source';
-import {ConnectionSnapshot, HostStatisticsSource} from '../domain/connection-statistics';
 
 import * as Peer from 'simple-peer';
 import * as PeerMsgs from '../peer-msgs';
@@ -28,7 +29,7 @@ export class HostPeer {
   private readonly _stats: Rx.Subject<ConnectionSnapshot>;
   private _statsSubscription: Rx.Subscription;
 
-  constructor(iceServers, screenStream, actuatorFactory: ActuatorFactory) {
+  constructor(iceServers: IceServerLocator, screenStream, actuatorFactory: ActuatorFactory) {
     const offer = new Rx.Subject<any>();
     this.offer = offer;
 
@@ -40,7 +41,7 @@ export class HostPeer {
 
     const p = new Peer({
       config: {
-        iceServers: iceServers
+        iceServers: iceServers.servers
       },
       sdpTransform: preferVP8WithBoostedBitrate,
       initiator: true,
@@ -48,7 +49,7 @@ export class HostPeer {
       stream: screenStream
     });
 
-    const source: HostStatisticsSource = new HostPeerStatisticsSource(p);
+    const source: HostStatisticsSource = new HostPeerStatisticsSource(p, iceServers);
 
     p.on('signal', (data) => {
       const sdp = data.sdp;
