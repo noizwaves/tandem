@@ -14,13 +14,13 @@ suite =
     [ describe "decodeConnectionStats"
       [ test "all values present" <|
         \_ ->
-          "{\"roundTripTimeMs\":1234,\"connection\":{\"method\":\"relay\"}}"
+          "{\"roundTripTimeMs\":1234,\"connection\":{\"method\":\"relay\",\"relayLocation\":\"Earth\"}}"
             |> Decode.decodeString decodeConnectionStats
-            |> Expect.equal (Ok (ConnectionStats (Just Relay) (Just 1234)))
+            |> Expect.equal (Ok (ConnectionStats (Just Relay) (Just "Earth") (Just 1234)))
       , test "null values present" <|
         \_ ->
-          "{\"roundTripTimeMs\":null,\"connection\":{\"method\":null}}"
+          "{\"roundTripTimeMs\":null,\"connection\":{\"method\":null,\"relayLocation\":null}}"
             |> Decode.decodeString decodeConnectionStats
-            |> Expect.equal (Ok (ConnectionStats Nothing Nothing))
+            |> Expect.equal (Ok (ConnectionStats Nothing Nothing Nothing))
      ]
     ]

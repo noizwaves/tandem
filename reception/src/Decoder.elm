@@ -41,12 +41,14 @@ decodeIceServerConfiguration =
     |: (Decode.field "urls" Decode.string)
     |: (Decode.field "username" Decode.string)
     |: (Decode.field "credential" Decode.string)
+    |: (Decode.field "location" Decode.string)
 
 
 decodeConnectionStats : Decode.Decoder ConnectionStats
 decodeConnectionStats =
   Decode.succeed ConnectionStats
     |: Decode.at ["connection", "method"] (Decode.maybe decodeConnectionMethod)
+    |: Decode.at ["connection", "relayLocation"] (Decode.maybe Decode.string)
     |: Decode.field "roundTripTimeMs" (Decode.maybe Decode.int)
 
 decodeConnectionMethod : Decode.Decoder ConnectionMethod

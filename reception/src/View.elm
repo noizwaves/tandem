@@ -187,10 +187,11 @@ viewConnected name information stats =
     statsDiv = case stats of
       Just s ->
         let
-          method = case s.method of
-            Just Direct -> " (Direct)"
-            Just Relay -> " (Relay)"
-            Nothing -> ""
+          method = case ( s.method, s.relayLocation ) of
+            ( Just Direct, _ ) -> " (Direct)"
+            ( Just Relay, Nothing ) -> " (Relay)"
+            ( Just Relay, Just location ) -> " (Relay via " ++ location ++ ")"
+            ( Nothing, _ ) -> ""
 
           statusDiv = div [ ] [ text <| "Connected" ++ method ]
 

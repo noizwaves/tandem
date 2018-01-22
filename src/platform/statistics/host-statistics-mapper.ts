@@ -1,12 +1,14 @@
 import {
+  Connection,
   ConnectionMethod as Method,
   ConnectionProtocol as Protocol,
   HostConnectionSnapshot
 } from '../../domain/connection-statistics';
 import {StatisticsMapper} from './peer-statistics-source';
+import {LocatedIceServer} from '../../domain/ice-server';
 
 export class HostStatisticsMapper implements StatisticsMapper<HostConnectionSnapshot> {
-  parseWebRtcStats(webRtcStats) {
+  parseWebRtcStats(webRtcStats, iceServers: LocatedIceServer[]) {
     const transport = webRtcStats
       .filter(r => r.type === 'transport')[0];
 
@@ -27,18 +29,25 @@ export class HostStatisticsMapper implements StatisticsMapper<HostConnectionSnap
 
     const bytesSent = outboundRtp ? outboundRtp.bytesSent : null;
 
-    const connection = (remoteCandidate)
+    const relayServer = (iceServers && remoteCandidate && remoteCandidate.candidateType === 'relay')
+      ? iceServers
+        .filter(s => s.ip === remoteCandidate.ip)[0]
+      : null;
+
+    const connection: Connection = (remoteCandidate)
       ? {
         protocol: remoteCandidate.protocol === 'udp' ? Protocol.UDP : Protocol.TCP,
         ip: remoteCandidate.ip,
         port: remoteCandidate.port,
         method: remoteCandidate.candidateType === 'relay' ? Method.Relay : Method.Direct,
+        relayLocation: relayServer === null ? null : relayServer.location,
       }
       : {
         protocol: null,
         ip: null,
         port: null,
         method: null,
+        relayLocation: null,
       };
 
     return {

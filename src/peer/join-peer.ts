@@ -4,9 +4,10 @@ import {MouseButtonDetector} from '../domain/mouse';
 import {MousePositionDetector} from '../domain/mouse-position-detector';
 import {MouseWheelDetector} from '../domain/mouse-wheel-detector';
 import {DetectorFactory} from '../domain/detector-factory';
+import {IceServerLocator} from '../domain/ice-server';
+import {ConnectionSnapshot, JoinerStatisticsSource} from '../domain/connection-statistics';
 
 import {JoinerPeerStatisticsSource} from '../platform/statistics/joiner-peer-statistics-source';
-import {ConnectionSnapshot, JoinerStatisticsSource} from '../domain/connection-statistics';
 
 import * as Peer from 'simple-peer';
 import * as PeerMsgs from '../peer-msgs';
@@ -44,7 +45,7 @@ export class JoinPeer {
   private _keyDownSubscription: Rx.Subscription;
   private _statsSubscription: Rx.Subscription;
 
-  constructor(iceServers, remoteScreen: HTMLMediaElement, detectorFactory: DetectorFactory) {
+  constructor(iceServers: IceServerLocator, remoteScreen: HTMLMediaElement, detectorFactory: DetectorFactory) {
     const answer = new Rx.Subject<any>();
     this.answer = answer;
 
@@ -61,14 +62,14 @@ export class JoinPeer {
 
     const p = new Peer({
       config: {
-        iceServers: iceServers
+        iceServers: iceServers.servers
       },
       sdpTransform: preferVP8WithBoostedBitrate,
       initiator: false,
       trickle: false
     });
 
-    const source: JoinerStatisticsSource = new JoinerPeerStatisticsSource(p);
+    const source: JoinerStatisticsSource = new JoinerPeerStatisticsSource(p, iceServers);
 
     this.p = p;
 

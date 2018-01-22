@@ -7,6 +7,7 @@ import {HostPeer} from './peer/host-peer';
 import {JoinPeer} from './peer/join-peer';
 import {OptimalDetectorFactory} from './platform/optimal-detector-factory';
 import {RobotActuatorFactory} from './platform/robot-actuator-factory';
+import {DnsLocator} from './platform/dns-locator';
 
 const logger = getLogger();
 
@@ -54,12 +55,12 @@ function show(selector) {
 }
 
 
-let iceServers = null;
+let iceServerLocator: DnsLocator = null;
 DisplayChampionIPC.ReadyToHost.on(ipc, (hostIceServers) => {
-  iceServers = hostIceServers;
+  iceServerLocator = new DnsLocator(hostIceServers);
 });
 DisplayChampionIPC.ReadyToJoin.on(ipc, (clientIceServers) => {
-  iceServers = clientIceServers;
+  iceServerLocator = new DnsLocator(clientIceServers);
 });
 
 let hostPeer: HostPeer;
@@ -67,7 +68,7 @@ DisplayChampionIPC.RequestOffer.on(ipc, async () => {
   const screenStream = await getScreenStream();
   const actuatorFactory = new RobotActuatorFactory();
 
-  hostPeer = new HostPeer(iceServers, screenStream, actuatorFactory);
+  hostPeer = new HostPeer(iceServerLocator, screenStream, actuatorFactory);
 
   hostPeer.offer.subscribe(offer => {
     const encodedOffer = JSON.stringify(offer);
@@ -89,7 +90,7 @@ DisplayChampionIPC.RequestAnswer.on(ipc, offer => {
   const remoteScreen = <HTMLMediaElement> document.querySelector('#remote-screen');
 
   const detectorFactory = new OptimalDetectorFactory(externalKeyboardDetected, ipc, window, remoteScreen);
-  joinPeer = new JoinPeer(iceServers, remoteScreen, detectorFactory);
+  joinPeer = new JoinPeer(iceServerLocator, remoteScreen, detectorFactory);
 
   joinPeer.answer.subscribe(data => {
     const answer = JSON.stringify(data);

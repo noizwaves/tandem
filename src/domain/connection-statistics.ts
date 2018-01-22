@@ -33,6 +33,7 @@ export interface Connection {
   readonly protocol: ConnectionProtocol;
   readonly port: number;
   readonly method: ConnectionMethod;
+  readonly relayLocation: string;
 }
 
 export enum ConnectionMethod {
