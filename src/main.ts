@@ -349,6 +349,10 @@ DisplayChampionIPC.ConnectionStateChanged.on(ipc, function (connected) {
   }
 });
 
+ReceptionIPC.EndSession.on(ipc, () => {
+  DisplayChampionIPC.CloseSession.send(displayChampionWindow);
+});
+
 DisplayChampionIPC.ConnectionStats.on(ipc, (stats) => {
   ReceptionIPC.ConnectionStats.send(receptionWindow, stats);
 });

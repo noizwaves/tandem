@@ -134,6 +134,19 @@ update msg model =
         _ ->
           ( model, Cmd.none )
 
+    EndSession ->
+      case model.intent of
+        Connected name _ _ ->
+          let
+            endSessionCommands = Cmd.batch
+              [ sendLeaveIntent name
+              , endSession True
+              ]
+          in
+            ( model, endSessionCommands )
+        _ ->
+          ( model, Cmd.none )
+
     ReceiveOfferFromDC offer ->
       case model.intent of
         Hosting name _ ->

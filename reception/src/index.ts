@@ -87,6 +87,11 @@ app.ports.giveAnswer.subscribe(function (answer) {
   ReceptionIPC.GiveAnswer.send(ipc, answer);
 });
 
+app.ports.endSession.subscribe(function () {
+  logger.debug(`[Reception] message on endSession port`);
+  ReceptionIPC.EndSession.send(ipc);
+});
+
 
 ReceptionIPC.ConnectionStateChanged.on(ipc, function (connected) {
   logger.debug(`[Reception] ReceptionIPC.ConnectionStateChanged received`);

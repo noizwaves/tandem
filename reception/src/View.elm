@@ -184,6 +184,11 @@ viewConnected name information stats =
       ]
       [ ]
 
+    connectedButtons = div [ class "connected-buttons" ]
+      [ button [ class "end-session", type_ "button", onClick EndSession ]
+        [ text "End Session" ]
+      ]
+
     statsDiv = case stats of
       Just s ->
         let
@@ -215,6 +220,7 @@ viewConnected name information stats =
   in
     div [ ]
       [ form formAttrs [ nameInput ]
+      , connectedButtons
       , statsDiv
       ]
 
