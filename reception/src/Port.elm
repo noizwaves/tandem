@@ -10,6 +10,7 @@ port openExternalWebsite : String -> Cmd msg
 
 port readyToHost : NameInformation -> Cmd msg
 port readyToJoin : NameInformation -> Cmd msg
+port endSession : Bool -> Cmd msg
 
 port requestOffer : Bool -> Cmd msg
 port receiveOffer : (String -> msg) -> Sub msg

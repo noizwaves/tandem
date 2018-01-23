@@ -82,6 +82,10 @@ DisplayChampionIPC.RequestOffer.on(ipc, async () => {
   hostPeer.stats.subscribe(stats => {
     DisplayChampionIPC.ConnectionStats.send(ipc, stats);
   });
+
+  DisplayChampionIPC.CloseSession.on(ipc, () => {
+    hostPeer.disconnect();
+  });
 });
 
 let joinPeer: JoinPeer;

@@ -19,6 +19,7 @@ type Msg
 
   | HostSession NameInformation
   | JoinSession NameInformation
+  | EndSession
 
   | ReceiveOfferFromDC String
   | ReceiveAnswerFromDC String

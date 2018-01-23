@@ -1,6 +1,6 @@
 @import 'constants';
 
-.start-button, .random-button {
+.start-button, .random-button, .end-session {
   cursor: pointer;
   outline: none;
 
@@ -52,4 +52,14 @@
   &:disabled, &:disabled:hover {
     color: lighten($black, 50);
   }
+}
+
+.end-session {
+  border: 1px solid $red;
+  color: $white;
+  background-color: $red;
+
+  padding: 0.75 * $standard-spacing $standard-spacing;
+  font-size: 1.25 * $standard-spacing;
+  line-height: 1.25 * $standard-spacing;
 }

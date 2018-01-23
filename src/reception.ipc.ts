@@ -21,6 +21,8 @@ export const ReadyToHost = new TypedMessageChannel<any[]>('ready-to-host');
 
 export const ReadyToJoin = new TypedMessageChannel<any[]>('ready-to-join');
 
+export const EndSession = new MessageChannel('r-end-session');
+
 export const RequestProcessTrust = new MessageChannel('request-process-trust');
 
 export const ProcessTrust = new TypedMessageChannel<boolean>('process-trust');

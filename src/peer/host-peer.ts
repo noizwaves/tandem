@@ -102,6 +102,11 @@ export class HostPeer {
     this.p.signal(answer);
   }
 
+  public disconnect(): void {
+    this.dispose();
+    this.p.destroy();
+  }
+
   private dispose() {
     if (this._statsSubscription) {
       this._statsSubscription.unsubscribe();

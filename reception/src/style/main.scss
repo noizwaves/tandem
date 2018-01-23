@@ -49,7 +49,7 @@ body, input {
 }
 
 .stats {
-  margin-top: 6 * $standard-spacing;
+  margin-top: $standard-spacing;
   margin-left: auto;
   margin-right: auto;
   text-align: center;
@@ -73,4 +73,9 @@ body, input {
   .stat--value {
     color: #444;
   }
+}
+
+.connected-buttons {
+  text-align: center;
+  margin-bottom: 4 * $standard-spacing;
 }
