@@ -27,10 +27,9 @@
   "scripts": {
     "postinstall": "electron-builder install-app-deps",
     "build": "webpack --display-error-details",
-    "build:dev": "cross-env TANDEM_DEBUG_TOOLS=true webpack --display-error-details",
-    "build:debug": "cross-env TANDEM_DEBUG_TOOLS=true TANDEM_DEBUG_WINDOWS=true webpack --display-error-details",
     "start": "electron .",
-    "start:dev": "cross-env TANDEM_LOG_LEVEL=debug TANDEM_PRINT_SENSITIVE_VALUES_IN_LOGS=true electron .",
+    "start:dev": "cross-env TANDEM_DEVELOPER_TOOLS=true TANDEM_LOG_LEVEL=debug TANDEM_PRINT_SENSITIVE_VALUES_IN_LOGS=true electron .",
+    "start:debug": "cross-env TANDEM_DEVELOPER_TOOLS=true TANDEM_DEBUG_WINDOWS=true TANDEM_LOG_LEVEL=debug TANDEM_PRINT_SENSITIVE_VALUES_IN_LOGS=true TANDEM_VERBOSE_CHROMIUM=true electron .",
     "dist": "electron-builder",
     "test:unit": "tsc -p test --noEmit && mocha -r ts-node/register test/**/*.ts",
     "test:reception": "cd reception && elm test",

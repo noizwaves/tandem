@@ -75,7 +75,7 @@ function createDisplayChampionWindow() {
   }));
 
   // Open the DevTools.
-  if (isDebugToolsEnabled()) {
+  if (isDeveloperToolsEnabled()) {
     displayChampionWindow.show();
     displayChampionWindow.webContents.openDevTools();
   }
@@ -176,7 +176,7 @@ function createReceptionWindow() {
   });
 
   // Open the DevTools.
-  if (isDebugToolsEnabled()) {
+  if (isDeveloperToolsEnabled()) {
     receptionWindow.webContents.openDevTools();
   }
 
@@ -211,9 +211,10 @@ function checkForUpdates() {
 
 
 app.commandLine.appendSwitch('--disable-renderer-backgrounding');
-if (isDebugToolsEnabled()) {
-  // app.commandLine.appendSwitch('--enable-logging');
-  // app.commandLine.appendSwitch('--v', '1');
+
+if (isVerboseChromium()) {
+  app.commandLine.appendSwitch('--enable-logging');
+  app.commandLine.appendSwitch('--v', '1');
 }
 
 app.on('ready', () => {
@@ -352,15 +353,22 @@ DisplayChampionIPC.ConnectionStats.on(ipc, (stats) => {
   ReceptionIPC.ConnectionStats.send(receptionWindow, stats);
 });
 
-function isDebugToolsEnabled() {
-  const raw = process.env.TANDEM_DEBUG_TOOLS;
+function isDebugWindowsEnabled() {
+  const raw = process.env.TANDEM_DEBUG_WINDOWS;
   const sanitised = (raw || '').toLowerCase();
 
   return sanitised === 'true';
 }
 
-function isDebugWindowsEnabled() {
-  const raw = process.env.TANDEM_DEBUG_WINDOWS;
+function isVerboseChromium() {
+  const raw = process.env.TANDEM_VERBOSE_CHROMIUM;
+  const sanitised = (raw || '').toLowerCase();
+
+  return sanitised === 'true';
+}
+
+function isDeveloperToolsEnabled() {
+  const raw = process.env.TANDEM_DEVELOPER_TOOLS;
   const sanitised = (raw || '').toLowerCase();
 
   return sanitised === 'true';
