@@ -48,27 +48,29 @@ Remote pair programming tool
 
 ### For Development
 
-1. Build via `yarn build:dev`
+1. Build via `yarn build`
 1. Run via `yarn start:dev`
 
 ### For Debugging
 
-1. Build via `yarn build:debug`
-1. Run via `yarn start:dev`
+1. Build via `yarn build`
+1. Run via `yarn start:debug`
 
 
 ## Configuration
 
 The Tandem app observes environment variables for configuration.
 
-### At build time
+### Development
 
-- `TANDEM_DEBUG_TOOLS`: show Chrome developer tools, WebRTC stats, GPU stats, etc.
+- `TANDEM_DEBUG_WINDOWS`: show WebRTC stats, GPU stats, etc.
+- `TANDEM_DEVELOPER_TOOLS`: show Chrome developer tools in windows
 
-### At run time
+### Logging
 
 - `TANDEM_LOG_LEVEL`: sets logging level. Accepts `error`, `warn`, `info`, or `debug`.
 - `TANDEM_PRINT_SENSITIVE_VALUES_IN_LOGS`: replaces highly sensitive (i.e. key codes on key events) into logs. This triggers key logger behaviour. **Use at your own risk!**
+- `TANDEM_VERBOSE_CHROMIUM`: Turns on verbose logging out of the Chromium process within Electron.
 
 
 ## Architecture
