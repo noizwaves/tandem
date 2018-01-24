@@ -105,6 +105,10 @@ DisplayChampionIPC.RequestAnswer.on(ipc, offer => {
     DisplayChampionIPC.ConnectionStateChanged.send(ipc, connected);
   });
 
+  joinPeer.connectError.subscribe(error => {
+    DisplayChampionIPC.ConnectError.send(ipc, error);
+  });
+
   joinPeer.screenSize.subscribe(({height, width}) => {
     DisplayChampionIPC.ScreenSize.send(ipc, {height, width});
   });

@@ -13,6 +13,8 @@ export const ReceiveAnswer = new TypedMessageChannel<string>('receive-answer');
 
 export const GiveAnswer = new TypedMessageChannel<string>('give-answer');
 
+export const ConnectError = new TypedMessageChannel<string>('r-connect-error');
+
 export const ConnectionStateChanged = new TypedMessageChannel<boolean>('connection-state-changed');
 
 export const ConnectionStats = new TypedMessageChannel<ConnectionSnapshot>('connection-stats');

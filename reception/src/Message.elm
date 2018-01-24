@@ -19,10 +19,12 @@ type Msg
 
   | HostSession NameInformation
   | JoinSession NameInformation
+  | ReturnToBrowsing
   | EndSession
 
   | ReceiveOfferFromDC String
   | ReceiveAnswerFromDC String
+  | ConnectError String
 
   | ConnectionStateChanged Bool
   | ConnectionStatsUpdated String

@@ -42,11 +42,13 @@ type ApiMessage
   = ApiNameInformation NameInformation
   | ApiAnswerRequest AnswerRequest
   | ApiAnswerResponse AnswerResponse
+  | ApiConnectError String
 
 type ConnectionIntent
   = Browsing DebouncedValidatedName (Maybe NameInformation)
   | Hosting ValidSessionName NameInformation
   | Joining ValidSessionName NameInformation
+  | ConnectionFailed ValidSessionName NameInformation String
   | Connected ValidSessionName NameInformation (Maybe ConnectionStats)
 
 type alias ConnectionStats =
