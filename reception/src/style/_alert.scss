@@ -1,3 +1,5 @@
+@import 'constants';
+
 .accessibility-alert {
   position: fixed;
   bottom: 0;
@@ -47,4 +49,13 @@
 .offline-alert {
   background-color: #db4126;
   border-color: #db4126;
+}
+
+.connection-status {
+  text-align: center;
+  color: $black;
+
+  &.connection-status--error {
+    color: $red;
+  }
 }

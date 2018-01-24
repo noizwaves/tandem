@@ -349,6 +349,10 @@ DisplayChampionIPC.ConnectionStateChanged.on(ipc, function (connected) {
   }
 });
 
+DisplayChampionIPC.ConnectError.on(ipc, (error) => {
+  ReceptionIPC.ConnectError.send(receptionWindow, error);
+});
+
 ReceptionIPC.EndSession.on(ipc, () => {
   DisplayChampionIPC.CloseSession.send(displayChampionWindow);
 });

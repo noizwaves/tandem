@@ -1,10 +1,8 @@
 @import 'constants';
 
-.start-button, .random-button, .end-session {
+.start-button, .random-button, .end-session, .try-again-button {
   cursor: pointer;
   outline: none;
-
-  margin-right: 0.5 * $standard-spacing;
 
   display: inline-block;
   font-weight: 400;
@@ -18,7 +16,7 @@
   }
 }
 
-.start-button {
+.start-button, .try-again-button {
   border: 1px solid $primary-color;
   color: $white;
   background-color: $primary-color;

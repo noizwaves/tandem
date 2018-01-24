@@ -22,10 +22,12 @@ const logger = getLogger();
 export class JoinPeer {
   public readonly answer: Rx.Observable<any>;
   public readonly connected: Rx.Observable<boolean>;
+  public readonly connectError: Rx.Observable<string>;
   public readonly screenSize: Rx.Observable<{ height: number, width: number }>;
   public readonly stats: Rx.Observable<ConnectionSnapshot>;
 
   private readonly p: Peer;
+  private connectionEstablished = false;
 
   private readonly positionDetector: MousePositionDetector;
   private readonly buttonDetector: MouseButtonDetector;
@@ -34,6 +36,7 @@ export class JoinPeer {
 
   private readonly _screenSize: Rx.Subject<{ height: number, width: number }>;
   private readonly _connected: Rx.Subject<boolean>;
+  private readonly _connectError: Rx.Subject<string>;
   private readonly _stats: Rx.Subject<ConnectionSnapshot>;
 
   private _positionSubscription: Rx.Subscription;
@@ -54,6 +57,9 @@ export class JoinPeer {
 
     this._screenSize = new Rx.Subject<{ height: number, width: number }>();
     this.screenSize = this._screenSize;
+
+    this._connectError = new Rx.Subject<string>();
+    this.connectError = this._connectError.asObservable();
 
     this.positionDetector = detectorFactory.getMousePositionDetector();
     this.buttonDetector = detectorFactory.getMouseButtonDetector();
@@ -82,6 +88,8 @@ export class JoinPeer {
     p.on('connect', () => {
       logger.info('[JoinPeer] CONNECT');
 
+      this.connectionEstablished = true;
+
       this._statsSubscription = source.statistics
         .do(stats => {
           logger.debug(`[JoinPeer] stats: ${JSON.stringify(stats)}`);
@@ -99,8 +107,12 @@ export class JoinPeer {
       this._connected.next(false);
     });
 
-    p.on('error', function (err) {
+    p.on('error', (err: Error) => {
       logger.warn(`[JoinPeer] ERROR: ${err}`);
+
+      if (!this.connectionEstablished) {
+        this._connectError.next(err.message);
+      }
     });
 
     p.on('data', (data) => {
@@ -223,5 +235,6 @@ export class JoinPeer {
     this.wheelDetector.dispose();
     this.keyPressDetector.dispose();
     this._stats.complete();
+    this._connectError.complete();
   }
 }

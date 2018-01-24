@@ -12,6 +12,7 @@ decodeApiMessage =
    [ Decode.succeed ApiAnswerRequest |: decodeAnswerRequest
    , Decode.succeed ApiAnswerResponse |: decodeAnswerResponse
    , Decode.succeed ApiNameInformation |: decodeNameInformation
+   , Decode.succeed ApiConnectError |: decodeConnectError
    ]
 
 
@@ -33,6 +34,11 @@ decodeNameInformation =
     |: (Decode.field "canJoin" Decode.bool)
     |: (Decode.field "canHost" Decode.bool)
     |: (Decode.field "iceServers" (Decode.list decodeIceServerConfiguration))
+
+
+decodeConnectError : Decode.Decoder String
+decodeConnectError =
+  Decode.field "connectError" Decode.string
 
 
 decodeIceServerConfiguration : Decode.Decoder IceServerConfiguration

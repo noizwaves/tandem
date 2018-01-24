@@ -29,3 +29,7 @@ sendAnswerRequest name offer =
 sendAnswerResponse : String -> String -> Cmd Msg
 sendAnswerResponse name answer =
   WebSocket.send (apiUrl ++ name) ("answerResponse:" ++ answer)
+
+sendConnectError : String -> String -> Cmd Msg
+sendConnectError name error =
+  WebSocket.send (apiUrl ++ name) ("connectError:" ++ error)

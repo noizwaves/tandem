@@ -18,6 +18,8 @@ view model =
         viewJoining name information
       Hosting name information ->
         viewHosting name information
+      ConnectionFailed name _ error ->
+        viewConnectionFailed name error
       Connected name information stats ->
         viewConnected name information stats
 
@@ -164,6 +166,32 @@ viewHosting name information =
     form formAttrs
       [ nameInput
       , div [ class "start-buttons" ] buttons
+      ]
+
+viewConnectionFailed : ValidSessionName -> String -> Html Msg
+viewConnectionFailed name error =
+  let
+    formAttrs =
+      [ class "start-form"
+      , onSubmit Noop
+      ]
+
+    nameInput = input
+      [ class "name"
+      , type_ "text"
+      , disabled True
+      , value name
+      ]
+      [ ]
+
+
+    tryAgainButton = button [ class "try-again-button", type_ "button", onClick ReturnToBrowsing ] [ text "Try again" ]
+  in
+    div []
+      [ form formAttrs [ nameInput ]
+      , div [ class "connection-status connection-status--error" ]
+        [ text ("Connection failed: " ++ error) ]
+      , div [ class "connection-failed-buttons" ] [ tryAgainButton ]
       ]
 
 viewConnected : ValidSessionName -> NameInformation -> Maybe ConnectionStats -> Html Msg

@@ -11,6 +11,8 @@ export const ReceiveAnswer = new TypedMessageChannel<string>('dc-receive-answer'
 
 export const GiveAnswer = new TypedMessageChannel<string>('dc-give-answer');
 
+export const ConnectError = new TypedMessageChannel<string>('dc-connect-error');
+
 export const ScreenSize = new TypedMessageChannel<{height: number, width: number}>('dc-screensize');
 
 export const ExternalKeyboardRequest = new MessageChannel('dc-external-keyboard-req');

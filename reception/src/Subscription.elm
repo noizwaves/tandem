@@ -19,6 +19,7 @@ subscriptions model =
       , receiveAnswer ReceiveAnswerFromDC
       , connectionStateChanged ConnectionStateChanged
       , connectionStatsUpdated ConnectionStatsUpdated
+      , connectError ConnectError
       ]
 
     sessionWs = case model.intent of
@@ -31,6 +32,8 @@ subscriptions model =
       Joining name _ ->
         [ WebSocket.listen (apiUrl ++ name) ReceiveApiMessage ]
       Hosting name _ ->
+        [ WebSocket.listen (apiUrl ++ name) ReceiveApiMessage ]
+      ConnectionFailed name _ _ ->
         [ WebSocket.listen (apiUrl ++ name) ReceiveApiMessage ]
       Connected name _ _ ->
         [ WebSocket.listen (apiUrl ++ name) ReceiveApiMessage ]

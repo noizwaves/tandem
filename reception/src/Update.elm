@@ -92,12 +92,22 @@ update msg model =
                 ( { model | intent = Hosting name newInformation }, initiateHandshakeIfRequired newInformation )
               Joining name _ ->
                 ( { model | intent = Joining name newInformation }, Cmd.none )
+              ConnectionFailed name _ error ->
+                ( { model | intent = ConnectionFailed name newInformation error }, Cmd.none )
               Connected name _ stats ->
                 ( { model | intent = Connected name newInformation stats }, Cmd.none )
           Ok (ApiAnswerRequest offer) ->
             ( model, requestAnswer offer.answerRequest )
           Ok (ApiAnswerResponse answer) ->
             ( model, giveAnswer answer.answerResponse )
+          Ok (ApiConnectError error) ->
+            case model.intent of
+              Joining name info ->
+                ( { model | intent = ConnectionFailed name info error }, Cmd.none )
+              Hosting name info ->
+                ( { model | intent = ConnectionFailed name info error }, Cmd.none )
+              _ ->
+                ( model, Cmd.none )
 
           Err error ->
             ( model, Cmd.none )
@@ -134,6 +144,13 @@ update msg model =
         _ ->
           ( model, Cmd.none )
 
+    ReturnToBrowsing ->
+      case model.intent of
+        ConnectionFailed name info _ ->
+          ( { model | intent = Browsing (initNameFromString name) (Just info) }, sendLeaveIntent name )
+        _ ->
+          ( model, Cmd.none )
+
     EndSession ->
       case model.intent of
         Connected name _ _ ->
@@ -161,6 +178,19 @@ update msg model =
         _ ->
           ( model, Cmd.none )
 
+    ConnectError error ->
+      case model.intent of
+        Joining name info ->
+          ( { model | intent = ConnectionFailed name info error }
+          , Cmd.batch [ sendConnectError name error ]
+          )
+        Hosting name info ->
+          ( { model | intent = ConnectionFailed name info error }
+          , Cmd.batch [ sendConnectError name error ]
+          )
+        _ ->
+          ( model, Cmd.none )
+
     ConnectionStateChanged connected ->
       if connected then
         case model.intent of
@@ -169,6 +199,8 @@ update msg model =
           Joining name information ->
             ( { model | intent = Connected name information Nothing }, Cmd.none )
           Browsing _ _ ->
+            ( model, Cmd.none )
+          ConnectionFailed _ _ _ ->
             ( model, Cmd.none )
           Connected _ _ _ ->
             ( model, Cmd.none )

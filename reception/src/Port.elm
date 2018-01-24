@@ -17,6 +17,7 @@ port receiveOffer : (String -> msg) -> Sub msg
 port requestAnswer : String -> Cmd msg
 port receiveAnswer : (String -> msg) -> Sub msg
 port giveAnswer : String -> Cmd msg
+port connectError : (String -> msg) -> Sub msg
 
 port connectionStateChanged : (Bool -> msg) -> Sub msg
 port connectionStatsUpdated : (String -> msg) -> Sub msg
