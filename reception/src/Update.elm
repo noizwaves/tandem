@@ -22,6 +22,8 @@ update msg model =
         updates = if available then UpdatesAvailable else NoUpdatesAvailable
       in
         ( { model | appUpdates = updates }, Cmd.none )
+    ShowMacOsUpdateInstructions ->
+      ( model, openExternalWebsite "MacOsUpdateInstructions" )
 
     GenerateRandomName ->
       ( model, Random.generate RawNameChanged randomName )

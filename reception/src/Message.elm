@@ -5,6 +5,7 @@ import Debounce
 
 type Msg
   = AppUpdateAvailable Bool
+  | ShowMacOsUpdateInstructions
 
   | GenerateRandomName
   | RawNameChanged String
