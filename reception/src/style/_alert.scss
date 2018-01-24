@@ -44,6 +44,20 @@
 .update-alert {
   background-color: #db9b26;
   border-color: #db9b26;
+
+  .update-instructions-button {
+    font-size: 20px;
+    text-decoration: underline;
+    font-style: italic;
+
+    display: inline-block;
+    border: 0px;
+    cursor: pointer;
+
+    outline: none;
+    background: transparent;
+    color: $white;
+  }
 }
 
 .offline-alert {

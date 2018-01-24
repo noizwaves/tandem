@@ -48,6 +48,9 @@ app.ports.openExternalWebsite.subscribe((websiteCode: string) => {
     case 'MacOsAccessibilityWhy':
       shell.openExternal(`${help}/macos/why-tandem-needs-accessibility.html`);
       break;
+    case 'MacOsUpdateInstructions':
+      shell.openExternal(`${help}/macos/how-to-update.html`);
+      break;
   }
 });
 

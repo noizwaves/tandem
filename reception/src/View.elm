@@ -50,12 +50,14 @@ view model =
     appUpdateAlert = case model.appUpdates of
       UpdatesAvailable ->
         div [ class "update-alert" ]
-          [ text "Updates available! Please update Tandem manually ASAP." ]
+          [ text "Updates available! Please update Tandem manually ASAP. "
+          , button [ class "update-instructions-button", onClick ShowMacOsUpdateInstructions ]
+            [ text "Instructions here." ]
+          ]
       UpdateStatusUnknown ->
         text ""
       NoUpdatesAvailable ->
         text ""
-
   in
     div []
       [ appUpdateAlert
