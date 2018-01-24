@@ -12,7 +12,7 @@ describe('HostStatisticsMapper', () => {
     describe('no transport', () => {
       const result = new HostStatisticsMapper().parseWebRtcStats([
         {type: 'candidate-pair', id: 'foo'},
-        {type: 'remote-candidate', id:' bar',}
+        {type: 'local-candidate', id:' bar',}
       ], null);
 
       it('nulls out the roundTripTimeMs', () => {
@@ -34,7 +34,7 @@ describe('HostStatisticsMapper', () => {
       const noSelectedCandidatePair = [
         {type: 'transport', selectedCandidatePairId: null},
         {type: 'candidate-pair', id: 'foo'},
-        {type: 'remote-candidate', id:' bar',}
+        {type: 'local-candidate', id:' bar',}
       ];
 
       it('nulls out the roundTripTimeMs', () => {
@@ -59,14 +59,14 @@ describe('HostStatisticsMapper', () => {
     describe('multiple candidate-pair stats', () => {
       const multiplePairsStats = [
         {type: 'transport', selectedCandidatePairId: 'selected'},
-        {type: 'candidate-pair', id: 'not', remoteCandidateId: '1', currentRoundTripTime: 0.1},
-        {type: 'remote-candidate', id: '1', protocol: 'udp', ip: '1.1.1.1', port: 111, candidateType: 'host'},
-        {type: 'candidate-pair', id: 'selected', remoteCandidateId: '3', currentRoundTripTime: 0.123},
-        {type: 'remote-candidate', id: '2', protocol: 'tcp', ip: '2.2.2.2', port: 222, candidateType: 'relay'},
-        {type: 'remote-candidate', id: '3', protocol: 'udp', ip: '3.3.3.3', port: 333, candidateType: 'relay'},
-        {type: 'remote-candidate', id: '4', protocol: 'udp', ip: '4.4.4.4', port: 444, candidateType: 'host'},
-        {type: 'candidate-pair', id: 'negative', remoteCandidateId: '5', currentRoundTripTime: 0.2},
-        {type: 'remote-candidate', id: '5', protocol: 'udp', ip: '5.5.5.5', port: 555, candidateType: 'host'},
+        {type: 'candidate-pair', id: 'not', localCandidateId: '1', currentRoundTripTime: 0.1},
+        {type: 'local-candidate', id: '1', protocol: 'udp', ip: '1.1.1.1', port: 111, candidateType: 'host'},
+        {type: 'candidate-pair', id: 'selected', localCandidateId: '3', currentRoundTripTime: 0.123},
+        {type: 'local-candidate', id: '2', protocol: 'tcp', ip: '2.2.2.2', port: 222, candidateType: 'relay'},
+        {type: 'local-candidate', id: '3', protocol: 'udp', ip: '3.3.3.3', port: 333, candidateType: 'relay'},
+        {type: 'local-candidate', id: '4', protocol: 'udp', ip: '4.4.4.4', port: 444, candidateType: 'host'},
+        {type: 'candidate-pair', id: 'negative', localCandidateId: '5', currentRoundTripTime: 0.2},
+        {type: 'local-candidate', id: '5', protocol: 'udp', ip: '5.5.5.5', port: 555, candidateType: 'host'},
       ];
 
       it('gets the correct value for roundTripTimeMs', () => {
@@ -91,13 +91,13 @@ describe('HostStatisticsMapper', () => {
     describe('ice servers have been located', () => {
       const relayedStats = [
         {type: 'transport', selectedCandidatePairId: 'selected'},
-        {type: 'candidate-pair', id: 'selected', remoteCandidateId: '3', currentRoundTripTime: 0.123},
-        {type: 'remote-candidate', id: '3', protocol: 'udp', ip: '3.3.3.3', port: 333, candidateType: 'relay'},
+        {type: 'candidate-pair', id: 'selected', localCandidateId: '3', currentRoundTripTime: 0.123},
+        {type: 'local-candidate', id: '3', protocol: 'udp', ip: '3.3.3.3', port: 333, candidateType: 'relay'},
       ];
       const directStats = [
         {type: 'transport', selectedCandidatePairId: 'selected'},
-        {type: 'candidate-pair', id: 'selected', remoteCandidateId: '3', currentRoundTripTime: 0.123},
-        {type: 'remote-candidate', id: '3', protocol: 'udp', ip: '3.3.3.3', port: 333, candidateType: 'direct'},
+        {type: 'candidate-pair', id: 'selected', localCandidateId: '3', currentRoundTripTime: 0.123},
+        {type: 'local-candidate', id: '3', protocol: 'udp', ip: '3.3.3.3', port: 333, candidateType: 'direct'},
       ];
 
       it('uses the location when current candidate is relayed', () => {
@@ -125,8 +125,8 @@ describe('HostStatisticsMapper', () => {
       it('currentRoundTripTime field', () => {
         const result = new HostStatisticsMapper().parseWebRtcStats([
           {type: 'transport', selectedCandidatePairId: 'selected'},
-          {type: 'candidate-pair', id: 'selected', state: 'succeeded', remoteCandidateId: '2'},
-          {type: 'remote-candidate', id: '2', protocol: 'udp', ip: '2.2.2.2'},
+          {type: 'candidate-pair', id: 'selected', state: 'succeeded', localCandidateId: '2'},
+          {type: 'local-candidate', id: '2', protocol: 'udp', ip: '2.2.2.2'},
         ], null);
 
         expect(result.roundTripTimeMs).to.be.null;
@@ -137,8 +137,8 @@ describe('HostStatisticsMapper', () => {
       describe('when present', () => {
         const result = new HostStatisticsMapper().parseWebRtcStats([
           {type: 'transport', selectedCandidatePairId: 'selected'},
-          {type: 'candidate-pair', id: 'selected', remoteCandidateId: '2'},
-          {type: 'remote-candidate', id: '2', protocol: 'udp', ip: '2.2.2.2'},
+          {type: 'candidate-pair', id: 'selected', localCandidateId: '2'},
+          {type: 'local-candidate', id: '2', protocol: 'udp', ip: '2.2.2.2'},
           {type: 'outbound-rtp', bytesSent: 22},
           {}
         ], null);
@@ -151,8 +151,8 @@ describe('HostStatisticsMapper', () => {
       describe('when absent', () => {
         const result = new HostStatisticsMapper().parseWebRtcStats([
           {type: 'transport', selectedCandidatePairId: 'selected'},
-          {type: 'candidate-pair', id: 'selected', remoteCandidateId: '2'},
-          {type: 'remote-candidate', id: '2', protocol: 'udp', ip: '2.2.2.2'},
+          {type: 'candidate-pair', id: 'selected', localCandidateId: '2'},
+          {type: 'local-candidate', id: '2', protocol: 'udp', ip: '2.2.2.2'},
         ], null);
 
         it('nulls out bytesSent', () => {
@@ -165,8 +165,8 @@ describe('HostStatisticsMapper', () => {
       it('parses "udp" correctly', () => {
         const result = new HostStatisticsMapper().parseWebRtcStats([
           {type: 'transport', selectedCandidatePairId: 'selected'},
-          {type: 'candidate-pair', id: 'selected', state: 'succeeded', remoteCandidateId: '2'},
-          {type: 'remote-candidate', id: '2', protocol: 'udp', ip: '2.2.2.2', port: 444, candidateType: 'host'},
+          {type: 'candidate-pair', id: 'selected', state: 'succeeded', localCandidateId: '2'},
+          {type: 'local-candidate', id: '2', protocol: 'udp', ip: '2.2.2.2', port: 444, candidateType: 'host'},
         ], null);
 
         expect(result.connection.protocol).to.deep.equal(ConnectionProtocol.UDP);
@@ -177,8 +177,8 @@ describe('HostStatisticsMapper', () => {
       it('parses "relay" candidateType correctly', () => {
         const result = new HostStatisticsMapper().parseWebRtcStats([
           {type: 'transport', selectedCandidatePairId: 'selected'},
-          {type: 'candidate-pair', id: 'selected', state: 'succeeded', remoteCandidateId: '2'},
-          {type: 'remote-candidate', id: '2', protocol: 'udp', ip: '2.2.2.2', port: 444, candidateType: 'relay'},
+          {type: 'candidate-pair', id: 'selected', state: 'succeeded', localCandidateId: '2'},
+          {type: 'local-candidate', id: '2', protocol: 'udp', ip: '2.2.2.2', port: 444, candidateType: 'relay'},
         ], null);
 
         expect(result.connection.method).to.deep.equal(ConnectionMethod.Relay);
@@ -187,8 +187,8 @@ describe('HostStatisticsMapper', () => {
       it('parses "srflx" candidateType correctly', () => {
         const result = new HostStatisticsMapper().parseWebRtcStats([
           {type: 'transport', selectedCandidatePairId: 'selected'},
-          {type: 'candidate-pair', id: 'selected', state: 'succeeded', remoteCandidateId: '2'},
-          {type: 'remote-candidate', id: '2', protocol: 'udp', ip: '2.2.2.2', port: 444, candidateType: 'srflx'},
+          {type: 'candidate-pair', id: 'selected', state: 'succeeded', localCandidateId: '2'},
+          {type: 'local-candidate', id: '2', protocol: 'udp', ip: '2.2.2.2', port: 444, candidateType: 'srflx'},
         ], null);
 
         expect(result.connection.method).to.deep.equal(ConnectionMethod.Direct);
@@ -197,8 +197,8 @@ describe('HostStatisticsMapper', () => {
       it('parses "prflx" candidateType correctly', () => {
         const result = new HostStatisticsMapper().parseWebRtcStats([
           {type: 'transport', selectedCandidatePairId: 'selected'},
-          {type: 'candidate-pair', id: 'selected', state: 'succeeded', remoteCandidateId: '2'},
-          {type: 'remote-candidate', id: '2', protocol: 'udp', ip: '2.2.2.2', port: 444, candidateType: 'prflx'},
+          {type: 'candidate-pair', id: 'selected', state: 'succeeded', localCandidateId: '2'},
+          {type: 'local-candidate', id: '2', protocol: 'udp', ip: '2.2.2.2', port: 444, candidateType: 'prflx'},
         ], null);
 
         expect(result.connection.method).to.deep.equal(ConnectionMethod.Direct);
