@@ -17,3 +17,9 @@ export class KeyDownChannel extends TypedMessageChannel<KeyMessage> {
     super('kb-keydown');
   }
 }
+
+export class KeyRepeatChannel extends TypedMessageChannel<KeyMessage> {
+  constructor() {
+    super('kb-keyrepeat');
+  }
+}

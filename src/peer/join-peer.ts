@@ -1,5 +1,5 @@
 import {KeyPressDetector} from '../domain/key-press-detector';
-import {KeyDownEvent, KeyUpEvent} from '../domain/keyboard';
+import {KeyDownEvent, KeyRepeatEvent, KeyUpEvent} from '../domain/keyboard';
 import {MouseButtonDetector} from '../domain/mouse';
 import {MousePositionDetector} from '../domain/mouse-position-detector';
 import {MouseWheelDetector} from '../domain/mouse-wheel-detector';
@@ -46,6 +46,7 @@ export class JoinPeer {
   private _wheelChangeSubscription: Rx.Subscription;
   private _keyUpSubscription: Rx.Subscription;
   private _keyDownSubscription: Rx.Subscription;
+  private _keyRepeatSubscription: Rx.Subscription;
   private _statsSubscription: Rx.Subscription;
 
   constructor(iceServers: IceServerLocator, remoteScreen: HTMLMediaElement, detectorFactory: DetectorFactory) {
@@ -164,6 +165,9 @@ export class JoinPeer {
         this._keyDownSubscription = this.keyPressDetector.keyDown.subscribe((e: KeyDownEvent) => {
           PeerMsgs.KeyDown.send(p, {code: e.key, modifiers: e.modifiers});
         });
+        this._keyRepeatSubscription = this.keyPressDetector.keyRepeat.subscribe((e: KeyRepeatEvent) => {
+          PeerMsgs.KeyRepeat.send(p, {code: e.key, modifiers: e.modifiers});
+        });
       };
     });
 
@@ -225,6 +229,9 @@ export class JoinPeer {
     }
     if (this._keyDownSubscription) {
       this._keyDownSubscription.unsubscribe();
+    }
+    if (this._keyRepeatSubscription) {
+      this._keyRepeatSubscription.unsubscribe();
     }
     if (this._statsSubscription) {
       this._statsSubscription.unsubscribe();

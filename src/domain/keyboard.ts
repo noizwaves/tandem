@@ -10,6 +10,11 @@ export interface KeyUpEvent {
   modifiers: Modifiers;
 }
 
+export interface KeyRepeatEvent {
+  key: KeyCode;
+  modifiers: Modifiers;
+}
+
 export enum KeyCode {
   KeyA = 'KeyA',
   KeyB = 'KeyB',
@@ -149,6 +154,7 @@ export type Modifiers = ModifierCode[];
 export interface Keyboard {
   readonly keyDown: Rx.Observable<KeyDownEvent>;
   readonly keyUp: Rx.Observable<KeyUpEvent>;
+  readonly keyRepeat: Rx.Observable<KeyRepeatEvent>;
 
   plugIn(): void
 

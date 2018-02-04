@@ -1,7 +1,7 @@
 import {app, BrowserWindow, ipcMain as ipc, Menu, Notification, screen as electronScreen, Tray} from 'electron';
 import * as Rx from 'rxjs';
 import {Keyboard} from './domain/keyboard';
-import {KeyDownChannel, KeyUpChannel} from './keyboard.ipc';
+import {KeyDownChannel, KeyRepeatChannel, KeyUpChannel} from './keyboard.ipc';
 import * as DisplayChampionIPC from './displaychampion.ipc';
 import * as ReceptionIPC from './reception.ipc';
 import {KeyboardFactory} from './platform/keyboard-factory';
@@ -83,6 +83,7 @@ function createDisplayChampionWindow() {
   keyboard = keyboardFactory.getKeyboard();
   const keyDownChannel = new KeyDownChannel();
   const keyUpChannel = new KeyUpChannel();
+  const keyRepeatChannel = new KeyRepeatChannel();
 
   DisplayChampionIPC.ExternalKeyboardRequest.on(ipc, () => {
     DisplayChampionIPC.ExternalKeyboardResponse.send(displayChampionWindow, keyboard !== null);
@@ -91,6 +92,7 @@ function createDisplayChampionWindow() {
   if (keyboard) {
     keyboard.keyUp.subscribe(e => keyUpChannel.send(displayChampionWindow, e));
     keyboard.keyDown.subscribe(e => keyDownChannel.send(displayChampionWindow, e));
+    keyboard.keyRepeat.subscribe(e => keyRepeatChannel.send(displayChampionWindow, e));
   }
 
   displayChampionWindow.on('focus', function () {

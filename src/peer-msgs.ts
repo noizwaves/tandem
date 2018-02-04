@@ -178,10 +178,32 @@ class KeyDownChannel implements PeerMessageChannel<KeyMessage> {
 
     return {code, modifiers};
   }
-
 }
 
 export const KeyDown: PeerMessageChannel<KeyMessage> = new KeyDownChannel();
+
+
+class KeyRepeatChannel implements PeerMessageChannel<KeyMessage> {
+  readonly type = 'keyrepeat';
+
+  send(peer, message: KeyMessage) {
+    const data = JSON.stringify({
+      t: this.type,
+      code: message.code.toString(),
+      modifiers: message.modifiers.map(m => m.toString())
+    });
+    peer.send(data);
+  }
+
+  unpack(message: object): KeyMessage {
+    const code = <KeyCode> (<any>message).code;
+    const modifiers = <Modifiers> (<any>message).modifiers;
+
+    return {code, modifiers};
+  }
+}
+
+export const KeyRepeat: PeerMessageChannel<KeyMessage> = new KeyRepeatChannel();
 
 
 export interface ScreenSizeMessage {

@@ -155,4 +155,18 @@ export class RobotKeyPresser implements KeyPresser {
     const robotModifiers = modifiers.map(toRobotKeyModifier);
     robot.keyToggle(robotKey, 'up', robotModifiers);
   }
+
+  press(code: KeyCode, modifiers: Modifiers): void {
+    const robotKey = toRobotKey(code);
+    if (!robotKey) {
+      logger.warnSensitive('RobotJS lacks support for KeyCode', code);
+      return;
+    }
+
+    logger.debugSensitive('[RobotKeyPresser] Told to press key', robotKey);
+    logger.debugSensitive('[RobotKeyPresser] ... using modifiers', modifiers);
+
+    const robotModifiers = modifiers.map(toRobotKeyModifier);
+    robot.keyTap(robotKey, robotModifiers);
+  }
 }
