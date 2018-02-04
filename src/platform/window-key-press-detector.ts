@@ -1,7 +1,7 @@
 import * as Rx from 'rxjs/Rx';
 
 import {KeyPressDetector} from '../domain/key-press-detector';
-import {KeyCode, KeyDownEvent, KeyUpEvent, ModifierCode} from '../domain/keyboard';
+import {KeyCode, KeyDownEvent, KeyRepeatEvent, KeyUpEvent, ModifierCode} from '../domain/keyboard';
 import {getLogger} from '../logging';
 
 const logger = getLogger();
@@ -9,6 +9,7 @@ const logger = getLogger();
 export class WindowKeyPressDetector implements KeyPressDetector {
   readonly keyUp: Rx.Observable<KeyUpEvent>;
   readonly keyDown: Rx.Observable<KeyDownEvent>;
+  readonly keyRepeat: Rx.Observable<KeyRepeatEvent>;
 
   private readonly _keyUp: Rx.Subject<KeyUpEvent>;
   private readonly _keyDown: Rx.Subject<KeyDownEvent>;
@@ -22,6 +23,8 @@ export class WindowKeyPressDetector implements KeyPressDetector {
     this._keyDown = new Rx.Subject<KeyDownEvent>();
     this.keyUp = this._keyUp;
     this.keyDown = this._keyDown;
+
+    this.keyRepeat = Rx.Observable.empty();
 
     this._heldModifiers = new Set<ModifierCode>();
 

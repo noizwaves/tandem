@@ -2,7 +2,10 @@ import {expect, use as chaiUse} from 'chai';
 import 'mocha';
 import * as sinon from 'sinon';
 
-import {DoubleClick, KeyDown, KeyUp, MouseDown, MouseMove, MouseUp, ScreenSize, Scroll,} from '../src/peer-msgs';
+import {
+  DoubleClick, KeyDown, KeyRepeat, KeyUp, MouseDown, MouseMove, MouseUp, ScreenSize,
+  Scroll,
+} from '../src/peer-msgs';
 import {KeyCode, ModifierCode} from '../src/domain/keyboard';
 import {MouseButton} from '../src/domain/mouse';
 
@@ -145,6 +148,29 @@ describe('peer-msgs', () => {
 
     it('unpacks an object', () => {
       const result = KeyDown.unpack({code: 'Backspace', modifiers: ['ControlLeft', 'AltLeft']});
+
+      expect(result).to.deep.equal({
+        code: KeyCode.Backspace,
+        modifiers: [ModifierCode.ControlLeft, ModifierCode.AltLeft]
+      });
+    });
+  });
+
+  describe('KeyRepeat', () => {
+    it('sends the expected JSON message', () => {
+      const peer = {send: sinon.stub()};
+
+      KeyRepeat.send(peer, {code: KeyCode.Tab, modifiers: [ModifierCode.MetaLeft]});
+
+      expect(peer.send).to.have.been.calledWith('{"t":"keyrepeat","code":"Tab","modifiers":["MetaLeft"]}');
+    });
+
+    it('has the correct type', () => {
+      expect(KeyRepeat.type).to.equal('keyrepeat');
+    });
+
+    it('unpacks an object', () => {
+      const result = KeyRepeat.unpack({code: 'Backspace', modifiers: ['ControlLeft', 'AltLeft']});
 
       expect(result).to.deep.equal({
         code: KeyCode.Backspace,

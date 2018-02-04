@@ -156,6 +156,10 @@ export class HostPeer {
         const keyDown = PeerMsgs.KeyDown.unpack(message);
         this.keyPresser.pressDown(keyDown.code, keyDown.modifiers);
         break;
+      case PeerMsgs.KeyRepeat.type:
+        const keyRepeat = PeerMsgs.KeyRepeat.unpack(message);
+        this.keyPresser.press(keyRepeat.code, keyRepeat.modifiers);
+        break;
       default:
         result = data;
     }

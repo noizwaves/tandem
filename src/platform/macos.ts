@@ -1,6 +1,6 @@
-import {Observable, Subject} from 'rxjs';
 import * as Rx from 'rxjs';
-import {Keyboard, KeyCode, KeyDownEvent, KeyUpEvent, ModifierCode, Modifiers} from '../domain/keyboard';
+import {Observable, Subject} from 'rxjs';
+import {Keyboard, KeyCode, KeyDownEvent, KeyRepeatEvent, KeyUpEvent, ModifierCode, Modifiers} from '../domain/keyboard';
 import {SystemIntegrator} from '../domain/system-integrator';
 import {getLogger} from '../logging';
 
@@ -451,9 +451,11 @@ function convertToKeyCode(code: MacKeyCode): KeyCode {
 export class MacOsKeyboard implements Keyboard {
   keyDown: Observable<KeyDownEvent>;
   keyUp: Observable<KeyUpEvent>;
+  keyRepeat: Observable<KeyRepeatEvent>;
 
   private readonly _keyDown = new Subject<KeyDownEvent>();
   private readonly _keyUp = new Subject<KeyUpEvent>();
+  private readonly _keyRepeat = new Subject<KeyRepeatEvent>();
 
   private readonly _handler;
   private _monitor = null;
@@ -462,6 +464,7 @@ export class MacOsKeyboard implements Keyboard {
   constructor() {
     this.keyDown = this._keyDown;
     this.keyUp = this._keyUp;
+    this.keyRepeat = this._keyRepeat;
     const _this = this;
     const func = function (self, event) {
       const eventType = event('type');
@@ -531,11 +534,6 @@ export class MacOsKeyboard implements Keyboard {
     };
 
     const keyDownFunc = function (self, event) {
-      if (event('isARepeat')) {
-        logger.debug(`[MacOsKeyboard] Skipping repeat key down event`);
-        return;
-      }
-
       const modifierFlags = <MacModifierFlags> event('modifierFlags');
       const modifiers = convertToModifiers(modifierFlags);
 
@@ -547,8 +545,16 @@ export class MacOsKeyboard implements Keyboard {
 
       const key: KeyCode = convertToKeyCode(<MacKeyCode> keyCodeId);
 
-      _this._keyDown.next({key, modifiers});
-      logger.debugSensitive('[MacOsKeyboard] Key down', key);
+      const keyEvent = {key, modifiers};
+
+      if (event('isARepeat')) {
+        _this._keyRepeat.next(keyEvent);
+        logger.debugSensitive('[MacOsKeyboard] Key repeat', key);
+      } else {
+        _this._keyDown.next(keyEvent);
+        logger.debugSensitive('[MacOsKeyboard] Key down', key);
+      }
+
       logger.debugSensitive('[MacOsKeyboard] ... with modifiers', modifiers);
     };
 
