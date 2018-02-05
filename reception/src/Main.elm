@@ -16,7 +16,8 @@ init flags =
 
     emptyName = initNameFromString ""
   in
-    { appUpdates = UpdateStatusUnknown
+    { apiUrl = flags.apiUrl
+    , appUpdates = UpdateStatusUnknown
     , intent = Browsing emptyName Nothing
     , trust = TrustUnknown
     , connectivity = connectivity
@@ -34,4 +35,5 @@ main =
 
 type alias Flags =
   { online : Bool
+  , apiUrl : String
   }

@@ -121,7 +121,7 @@ update msg model =
             ValidName name ->
               ( { model | intent = Hosting name information }
               , Cmd.batch
-                [ sendHostingIntent name
+                [ sendHostingIntent model.apiUrl name
                 , readyToHost information
                 ]
               )
@@ -137,7 +137,7 @@ update msg model =
             ValidName name ->
               ( { model | intent = Joining name information }
               , Cmd.batch
-                [ sendJoiningIntent name
+                [ sendJoiningIntent model.apiUrl name
                 , readyToJoin information
                 ]
               )
@@ -149,7 +149,7 @@ update msg model =
     ReturnToBrowsing ->
       case model.intent of
         ConnectionFailed name info _ ->
-          ( { model | intent = Browsing (initNameFromString name) (Just info) }, sendLeaveIntent name )
+          ( { model | intent = Browsing (initNameFromString name) (Just info) }, sendLeaveIntent model.apiUrl name )
         _ ->
           ( model, Cmd.none )
 
@@ -158,7 +158,7 @@ update msg model =
         Connected name _ _ ->
           let
             endSessionCommands = Cmd.batch
-              [ sendLeaveIntent name
+              [ sendLeaveIntent model.apiUrl name
               , endSession True
               ]
           in
@@ -169,14 +169,14 @@ update msg model =
     ReceiveOfferFromDC offer ->
       case model.intent of
         Hosting name _ ->
-          ( model, sendAnswerRequest name offer )
+          ( model, sendAnswerRequest model.apiUrl name offer )
         _ ->
           ( model, Cmd.none )
 
     ReceiveAnswerFromDC answer ->
       case model.intent of
         Joining name _ ->
-          ( model, sendAnswerResponse name answer )
+          ( model, sendAnswerResponse model.apiUrl name answer )
         _ ->
           ( model, Cmd.none )
 
@@ -184,11 +184,11 @@ update msg model =
       case model.intent of
         Joining name info ->
           ( { model | intent = ConnectionFailed name info error }
-          , Cmd.batch [ sendConnectError name error ]
+          , Cmd.batch [ sendConnectError model.apiUrl name error ]
           )
         Hosting name info ->
           ( { model | intent = ConnectionFailed name info error }
-          , Cmd.batch [ sendConnectError name error ]
+          , Cmd.batch [ sendConnectError model.apiUrl name error ]
           )
         _ ->
           ( model, Cmd.none )
@@ -212,7 +212,7 @@ update msg model =
             let
               browsingName = initNameFromString name
             in
-              ( { model | intent = Browsing browsingName (Just nameInformation) }, sendLeaveIntent name)
+              ( { model | intent = Browsing browsingName (Just nameInformation) }, sendLeaveIntent model.apiUrl name)
           _ ->
             ( model, Cmd.none )
 
