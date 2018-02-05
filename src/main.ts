@@ -293,7 +293,6 @@ ReceptionIPC.RequestAnswer.on(ipc, function (offer) {
   tray.setImage(path.join(__dirname, 'icons', 'busy.png'));
 
   sessionAsJoiner = true;
-  displayChampionWindow.show();
 
   DisplayChampionIPC.RequestAnswer.send(displayChampionWindow, offer);
 });
@@ -340,6 +339,10 @@ DisplayChampionIPC.ConnectionStateChanged.on(ipc, function (connected) {
       });
       disconnectedNotification.show();
     }
+  }
+
+  if (sessionAsJoiner && connected) {
+    displayChampionWindow.show();
   }
 
   if (!connected) {
