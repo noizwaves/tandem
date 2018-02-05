@@ -1,6 +1,10 @@
 import * as Rx from 'rxjs';
 
-import {MousePosition, MousePositionDetector} from '../domain/mouse-position-detector';
+import {MousePosition, MousePositionDetector} from '../../../domain/mouse-position-detector';
+import {getLogger} from '../../../logging';
+import {RemoteWindowFocus} from '../remote-window-focus';
+
+const logger = getLogger();
 
 export class ElementMousePositionDetector implements MousePositionDetector {
   readonly position: Rx.Observable<MousePosition>;
@@ -8,13 +12,18 @@ export class ElementMousePositionDetector implements MousePositionDetector {
   private readonly _position: Rx.Subject<MousePosition>;
   private readonly mouseMoveHandler: (event: MouseEvent) => void;
 
-  constructor(private remoteScreen: HTMLMediaElement) {
+  constructor(private remoteScreen: HTMLMediaElement, private remoteWindowFocus: RemoteWindowFocus) {
     this._position = new Rx.Subject<MousePosition>();
     this.position = this._position;
 
     const movements = new Rx.Subject<MousePosition>();
 
     this.mouseMoveHandler = (event: MouseEvent) => {
+      if (!this.remoteWindowFocus.isFocused()) {
+        logger.warn(`[ElementMousePositionDetector] event detected but skipping as detector is disabled`);
+        return;
+      }
+
       event.stopPropagation();
       event.preventDefault();
 

@@ -5,7 +5,7 @@ import * as DisplayChampionIPC from './displaychampion.ipc';
 import {getLogger} from './logging';
 import {HostPeer} from './peer/host-peer';
 import {JoinPeer} from './peer/join-peer';
-import {OptimalDetectorFactory} from './platform/optimal-detector-factory';
+import {OptimalDetectorFactory} from './platform/viewer-events/optimal-detector-factory';
 import {RobotActuatorFactory} from './platform/robot-actuator-factory';
 import {DnsLocator} from './platform/dns-locator';
 

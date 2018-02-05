@@ -27,6 +27,10 @@ export const ReadyToHost = new TypedMessageChannel<any[]>('dc-ready-to-host');
 
 export const ReadyToJoin = new TypedMessageChannel<any[]>('dc-ready-to-join');
 
+export const Focus = new MessageChannel('dc-focus');
+
+export const Blur = new MessageChannel('dc-blur');
+
 export const CloseSession = new MessageChannel('dc-close-session');
 
 export const EnterFullScreen = new TypedMessageChannel<{height: number, width: number}>('dc-enter-full-screen');
