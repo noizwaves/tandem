@@ -5,7 +5,8 @@ import Debounce
 
 
 type alias Model =
-  { appUpdates: AppUpdateAvailability
+  { apiUrl: String
+  , appUpdates: AppUpdateAvailability
   , intent: ConnectionIntent
   , trust: ProcessTrustLevel
   , connectivity: ConnectivityLevel

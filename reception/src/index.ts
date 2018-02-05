@@ -14,6 +14,8 @@ const mountNode = document.getElementById('main');
 
 const app = Elm.Main.embed(mountNode, {
   online: navigator.onLine,
+  apiUrl: 'wss://tandem-concierge.cfapps.io:4443/api/v1/session/',
+  // apiUrl: 'ws://localhost:8080/api/v1/session/',
 });
 
 interface IceServerConfiguration {
