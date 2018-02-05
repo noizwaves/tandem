@@ -1,6 +1,6 @@
 import * as Rx from 'rxjs';
 
-import {MouseWheelChange, MouseWheelDetector} from '../domain/mouse-wheel-detector';
+import {MouseWheelChange, MouseWheelDetector} from '../../../domain/mouse-wheel-detector';
 
 
 export class ElementMouseWheelDetector implements MouseWheelDetector {

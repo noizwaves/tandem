@@ -101,6 +101,10 @@ function createDisplayChampionWindow() {
     if (sessionAsJoiner && keyboard) {
       keyboard.plugIn();
     }
+
+    if (sessionAsJoiner) {
+      DisplayChampionIPC.Focus.send(displayChampionWindow);
+    }
   });
 
   displayChampionWindow.on('blur', function () {
@@ -108,6 +112,10 @@ function createDisplayChampionWindow() {
 
     if (sessionAsJoiner && keyboard) {
       keyboard.unplug();
+    }
+
+    if (sessionAsJoiner) {
+      DisplayChampionIPC.Blur.send(displayChampionWindow);
     }
   });
 

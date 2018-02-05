@@ -1,11 +1,11 @@
 import * as Rx from 'rxjs';
 import {IpcRenderer} from 'electron';
 
-import {KeyDownEvent, KeyRepeatEvent, KeyUpEvent} from '../domain/keyboard';
-import {KeyDownChannel, KeyRepeatChannel, KeyUpChannel} from '../keyboard.ipc';
-import {KeyPressDetector} from '../domain/key-press-detector';
+import {KeyDownEvent, KeyRepeatEvent, KeyUpEvent} from '../../../domain/keyboard';
+import {KeyDownChannel, KeyRepeatChannel, KeyUpChannel} from '../../../keyboard.ipc';
+import {KeyPressDetector} from '../../../domain/key-press-detector';
 
-export class KeyboardKeyPressDetector implements KeyPressDetector {
+export class ExternalKeyboardKeyPressDetector implements KeyPressDetector {
   readonly keyUp: Rx.Observable<KeyUpEvent>;
   readonly keyDown: Rx.Observable<KeyDownEvent>;
   readonly keyRepeat: Rx.Observable<KeyRepeatEvent>;

@@ -1,8 +1,8 @@
 import * as Rx from 'rxjs/Rx';
 
-import {KeyPressDetector} from '../domain/key-press-detector';
-import {KeyCode, KeyDownEvent, KeyRepeatEvent, KeyUpEvent, ModifierCode} from '../domain/keyboard';
-import {getLogger} from '../logging';
+import {KeyPressDetector} from '../../../domain/key-press-detector';
+import {KeyCode, KeyDownEvent, KeyRepeatEvent, KeyUpEvent, ModifierCode} from '../../../domain/keyboard';
+import {getLogger} from '../../../logging';
 
 const logger = getLogger();
 

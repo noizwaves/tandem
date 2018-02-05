@@ -1,7 +1,7 @@
 import * as Rx from 'rxjs/Rx';
 
-import {DoubleClickEvent, MouseButton, MouseButtonDetector, MouseButtonDirection, MouseButtonEvent} from '../domain/mouse';
-import {getLogger} from '../logging';
+import {DoubleClickEvent, MouseButton, MouseButtonDetector, MouseButtonDirection, MouseButtonEvent} from '../../../domain/mouse';
+import {getLogger} from '../../../logging';
 
 const logger = getLogger();
 
