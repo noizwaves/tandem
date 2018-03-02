@@ -35,7 +35,8 @@ standardName value =
 
 standardModel : Model
 standardModel =
-  { appUpdates = UpdateStatusUnknown
+  { apiUrl = "api.example.com"
+  , appUpdates = UpdateStatusUnknown
   , intent = Browsing (standardName "foo456") Nothing
   , trust = TrustUnknown
   , connectivity = Online
