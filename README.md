@@ -15,7 +15,7 @@ Remote pair programming tool
 ### MacOS
 
 1. Install Node 8 via `brew install node@8`
-1. Install latest Yarn via `brew install yarn`
+1. Install latest Yarn via `brew install yarn --without-node`
 1. Install node-gyp via `yarn global add node-gyp`
 1. Install dependencies via `yarn`
 
@@ -36,7 +36,7 @@ Remote pair programming tool
 ### Linux
 
 1. Install Node 8 following [this guide](https://nodejs.org/en/download/package-manager/#debian-and-ubuntu-based-linux-distributions)
-1. Install Yarn by followg [this guide](https://yarnpkg.com/lang/en/docs/install/#linux-tab)
+1. Install Yarn by following [this guide](https://yarnpkg.com/lang/en/docs/install/#linux-tab)
 1. Install [robotjs build dependencies](https://github.com/octalmage/robotjs#building) via `sudo apt-get install libxtst-dev libpng++-dev`
 1. Install node-gyp via `yarn global add node-gyp`
 
