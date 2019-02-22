@@ -2,7 +2,7 @@
     "version": "0.4.1",
     "summary": "Remote pair programming tool",
     "repository": "https://github.com/noizwaves/tandem.git",
-    "license": "UNLICENSED",
+    "license": "MIT",
     "source-directories": [
         "./src"
     ],

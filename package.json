@@ -38,7 +38,7 @@
   "repository": "",
   "keywords": [],
   "author": "Adam Neumann",
-  "license": "UNLICENSED",
+  "license": "MIT",
   "devDependencies": {
     "@types/chai": "^4.0.10",
     "@types/mocha": "^2.2.44",
