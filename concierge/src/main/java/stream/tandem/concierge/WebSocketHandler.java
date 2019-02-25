@@ -1,6 +1,7 @@
 package stream.tandem.concierge;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
@@ -22,9 +23,24 @@ public class WebSocketHandler extends TextWebSocketHandler {
     private final Map<WebSocketSession, String> nameMap = new HashMap<>();
 
     private final WebSocketRoute webSocketRoute;
+    private final String iceLocation;
+    private final String iceCredential;
+    private final String iceUsername;
+    private final String iceUrls;
 
-    public WebSocketHandler(WebSocketRoute webSocketRoute) {
+    public WebSocketHandler(
+            WebSocketRoute webSocketRoute,
+            @Value("${tandem.ice.urls:stun:stun.l.google.com:19302}") String iceUrls,
+            @Value("${tandem.ice.username:}") String iceUsername,
+            @Value("${tandem.ice.credential:}") String iceCredential,
+            @Value("${tandem.ice.location:Google}") String iceLocation
+    ) {
         this.webSocketRoute = webSocketRoute;
+
+        this.iceUrls = iceUrls;
+        this.iceUsername = iceUsername;
+        this.iceCredential = iceCredential;
+        this.iceLocation = iceLocation;
     }
 
     @Override
@@ -120,10 +136,10 @@ public class WebSocketHandler extends TextWebSocketHandler {
         ArrayList<Object> output = new ArrayList<>();
 
         HashMap<String, String> crank = new HashMap<>();
-        crank.put("urls", "turn:crank.tandem.stream:3478?transport=udp");
-        crank.put("username", "displaychampion");
-        crank.put("credential", "<SOME_PASSWORD_HERE>");
-        crank.put("location", "Oregon USA");
+        crank.put("urls", iceUrls);
+        crank.put("username", iceUsername);
+        crank.put("credential", iceCredential);
+        crank.put("location", iceLocation);
 
         output.add(crank);
 
