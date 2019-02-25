@@ -1,0 +1,6 @@
+.gradle
+out
+build/*
+concierge.iml
+.DS_Store
+.idea/
