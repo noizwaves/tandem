@@ -77,4 +77,6 @@ The Tandem app observes environment variables for configuration.
 
 ### Concierge
 
-The signalling server, written in Java 8 and Spring. [Code is here](https://github.com/noizwaves/concierge).
+The signalling server, written in Java 8 and Spring.
+
+This is located under the `concierge` directory. [Read more here](concierge/README.md).
