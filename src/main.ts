@@ -37,11 +37,11 @@ const appMenu = Menu.buildFromTemplate([
       <MenuItemConstructorOptions> {role: 'cut'},
       <MenuItemConstructorOptions> {role: 'copy'},
       <MenuItemConstructorOptions> {role: 'paste'},
-      <MenuItemConstructorOptions> {role: 'pasteAndMatchStyle'},
-      // <MenuItemConstructorOptions> {role: 'pasteandmatchstyle'},
+      // <MenuItemConstructorOptions> {role: 'pasteAndMatchStyle'},
+      <MenuItemConstructorOptions> {role: 'pasteandmatchstyle'},
       <MenuItemConstructorOptions> {role: 'delete'},
-      <MenuItemConstructorOptions> {role: 'selectAll'}
-      // <MenuItemConstructorOptions> {role: 'selectall'}
+      // <MenuItemConstructorOptions> {role: 'selectAll'}
+      <MenuItemConstructorOptions> {role: 'selectall'}
     ]
   }
 ]);
