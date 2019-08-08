@@ -1,4 +1,4 @@
-import {app, BrowserWindow, ipcMain as ipc, Menu, Notification, screen as electronScreen, Tray} from 'electron';
+import {app, BrowserWindow, ipcMain as ipc, Menu, Notification, screen as electronScreen, Tray, MenuItemConstructorOptions} from 'electron';
 import * as Rx from 'rxjs';
 import {Keyboard} from './domain/keyboard';
 import {KeyDownChannel, KeyRepeatChannel, KeyUpChannel} from './keyboard.ipc';
@@ -18,27 +18,30 @@ configureLogging();
 
 const logger = getLogger();
 
-const trayMenu = Menu.buildFromTemplate([{role: 'quit'}]);
+const quit: MenuItemConstructorOptions = {role: 'quit'};
+const trayMenu = Menu.buildFromTemplate([quit]);
 
 const appMenu = Menu.buildFromTemplate([
   {
     label: app.getName(),
     submenu: [
-      {role: 'quit'}
+      <MenuItemConstructorOptions> {role: 'quit'}
     ]
   },
   {
     label: 'Edit',
     submenu: [
-      {role: 'undo'},
-      {role: 'redo'},
-      {type: 'separator'},
-      {role: 'cut'},
-      {role: 'copy'},
-      {role: 'paste'},
-      {role: 'pasteandmatchstyle'},
-      {role: 'delete'},
-      {role: 'selectall'}
+      <MenuItemConstructorOptions> {role: 'undo'},
+      <MenuItemConstructorOptions> {role: 'redo'},
+      <MenuItemConstructorOptions> {type: 'separator'},
+      <MenuItemConstructorOptions> {role: 'cut'},
+      <MenuItemConstructorOptions> {role: 'copy'},
+      <MenuItemConstructorOptions> {role: 'paste'},
+      <MenuItemConstructorOptions> {role: 'pasteAndMatchStyle'},
+      // <MenuItemConstructorOptions> {role: 'pasteandmatchstyle'},
+      <MenuItemConstructorOptions> {role: 'delete'},
+      <MenuItemConstructorOptions> {role: 'selectAll'}
+      // <MenuItemConstructorOptions> {role: 'selectall'}
     ]
   }
 ]);
@@ -65,7 +68,7 @@ let keyboard: Keyboard = null;
 
 function createDisplayChampionWindow() {
   // Create the browser window.
-  displayChampionWindow = new BrowserWindow({width: 800, height: 600, show: false});
+  displayChampionWindow = new BrowserWindow({width: 800, height: 600, show: false, webPreferences: { nodeIntegration: true}});
 
   // and load the displaychampion.html of the app.
   displayChampionWindow.loadURL(url.format({
@@ -164,7 +167,7 @@ function createReceptionWindow() {
 
   let trustSubscription: Rx.Subscription = null;
 
-  receptionWindow = new BrowserWindow({width: 400, height: 400});
+  receptionWindow = new BrowserWindow({width: 400, height: 400, webPreferences: { nodeIntegration: true}});
 
   receptionWindow.loadURL(url.format({
     pathname: path.join(__dirname, 'reception', 'dist', 'index.html'),
@@ -196,13 +199,13 @@ function createReceptionWindow() {
 }
 
 function openGpuInternalsWindow() {
-  const gpuWindow = new BrowserWindow({width: 800, height: 600});
+  const gpuWindow = new BrowserWindow({width: 800, height: 600, webPreferences: { nodeIntegration: true}});
   gpuWindow.loadURL('chrome://gpu');
   return gpuWindow;
 }
 
 function openWebRtcInternalsWindow() {
-  const webRtcWindow = new BrowserWindow({width: 800, height: 600});
+  const webRtcWindow = new BrowserWindow({width: 800, height: 600, webPreferences: { nodeIntegration: true}});
   webRtcWindow.loadURL('chrome://webrtc-internals');
   return webRtcWindow;
 }

@@ -14,8 +14,10 @@ Remote pair programming tool
 
 ### MacOS
 
-1. Install Node 8 via `brew install node@8`
-1. Install latest Yarn via `brew install yarn --without-node`
+1. Install Node 8 via:
+    1. `brew install node@10`
+    1. Add Node's `bin` path to `PATH`
+1. Install latest Yarn via `brew install yarn --ignore-dependencies`
 1. Install node-gyp via `yarn global add node-gyp`
 1. Install dependencies via `yarn`
 

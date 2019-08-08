@@ -47,7 +47,7 @@
     "chai": "^4.1.2",
     "cross-env": "^5.1.3",
     "css-loader": "^0.28.4",
-    "electron": "2.0.17",
+    "electron": "6.0.1",
     "electron-builder": "20.38.5",
     "elm": "^0.18.0",
     "elm-test": "^0.18.10",
@@ -55,7 +55,7 @@
     "file-loader": "^0.11.2",
     "mocha": "^4.0.1",
     "mock-require": "3.0.1",
-    "node-sass": "^4.5.3",
+    "node-sass": "^4.12.0",
     "sass-loader": "^6.0.6",
     "sinon": "^4.1.3",
     "sinon-chai": "^2.14.0",
@@ -68,16 +68,16 @@
     "webpack-dev-server": "^2.7.1",
     "webpack-node-externals": "^1.6.0"
   },
+  "resolutions": {
+    "**/**/fsevents": "^1.2.9"
+  },
   "dependencies": {
     "axios": "^0.17.1",
     "electron-log": "^2.2.12",
     "fs-extra": "^5.0.0",
     "moment": "^2.19.4",
-    "robotjs": "octalmage/robotjs#d0217334ddae79ff7d07046b8f65d43597a8044a",
+    "robotjs": "octalmage/robotjs#9a3b161e10897a1269cdccfae5e343334915abc2",
     "rxjs": "~5.5.2",
     "simple-peer": "~8.1.1"
-  },
-  "optionalDependencies": {
-    "nodobjc": "^2.1.0"
   }
 }
