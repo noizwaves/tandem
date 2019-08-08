@@ -3,10 +3,10 @@ import {SystemIntegrator} from '../domain/system-integrator';
 
 export class SystemIntegratorFactory {
   getSystemIntegrator(): SystemIntegrator {
-    // if (process.platform === 'darwin') {
-      // const { MacOsSystemIntegrator } = require('./macos');
-      // return new MacOsSystemIntegrator();
-    // }
+    if (process.platform === 'darwin') {
+      const { MacOsSystemIntegrator } = require('./macos');
+      return new MacOsSystemIntegrator();
+    }
 
     return new NoopSystemIntegrator();
   }
