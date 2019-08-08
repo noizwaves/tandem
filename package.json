@@ -25,7 +25,7 @@
     }
   },
   "scripts": {
-    "postinstall": "electron-builder install-app-deps",
+    "postinstall": "electron-rebuild",
     "build": "webpack --display-error-details",
     "start": "electron .",
     "start:dev": "cross-env TANDEM_DEVELOPER_TOOLS=true TANDEM_LOG_LEVEL=debug TANDEM_PRINT_SENSITIVE_VALUES_IN_LOGS=true electron .",
@@ -73,8 +73,7 @@
     "**/**/fsevents": "^1.2.9",
     "**/**/ffi": "github:lxe/node-ffi#node-12",
     "**/**/ref": "github:lxe/ref#node-12",
-    "**/**/ref-struct": "github:lxe/ref-struct#node-12",
-    "**/**/node-gyp": "5.0.3"
+    "**/**/ref-struct": "github:lxe/ref-struct#node-12"
   },
   "dependencies": {
     "axios": "^0.17.1",
