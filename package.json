@@ -72,7 +72,7 @@
     "axios": "^0.17.1",
     "electron-log": "^2.2.12",
     "fs-extra": "^5.0.0",
-    "moment": "^2.19.4",
+    "moment": "^2.29.4",
     "robotjs": "octalmage/robotjs#d0217334ddae79ff7d07046b8f65d43597a8044a",
     "rxjs": "~5.5.2",
     "simple-peer": "~8.1.1"
